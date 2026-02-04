@@ -1,0 +1,56 @@
+.toolbar {
+  height: 100%;
+  background-color: rgb(30, 47, 47);
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  padding: 1vw;
+}
+.gameLogHeader {
+  font-weight: bold;
+  font-size: large;
+}
+.toolbarButton {
+  align-self: flex-end;
+  font-size: 1.5vw;
+  font-weight: bold;
+  padding: 8px;
+  background-color: rgb(30, 47, 47);
+  color: white;
+  margin-bottom: 0.2vw;
+  margin-left: 1vw;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.gameLog {
+  margin-top: 1vw;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  height: 40%;
+  overflow: scroll;
+  /* background-color: white;
+  color: black; */
+  background-color: rgba(0, 0, 0, 0.515);
+  color: white;
+}
+.gameLogItem {
+  width: 100%;
+  padding: 4px 0px;
+  border: solid thin white;
+  border-top: none;
+}
+
+.chatInput {
+  margin: 1vw 0 1vw 0;
+  width: 100%;
+  height: 10%;
+  overflow: scroll;
+  background-color: rgba(0, 0, 0, 0.515);
+  color: white;
+  resize:unset;
+}

@@ -1,0 +1,50 @@
+import type { Metadata } from "next";
+import "@/app/globals.css";
+import StoreProvider from "@/client/redux/StoreProvider";
+import NextAuthSessionProvider from "@/app/providers/SessionProvider";
+import Script from "next/script";
+
+
+export const metadata: Metadata = {
+  title: "Legions Battleground",
+  description: "A Legions Realms At War online simulator",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <NextAuthSessionProvider>
+      <StoreProvider>
+        <html lang="en">
+          {/* google ads - work in progress */}
+          <head>
+            {
+            process.env.NODE_ENV === "production" &&
+            // process.env.NODE_ENV !== "production" &&
+            <Script
+              async
+              src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"
+              crossOrigin="use-credentials"
+              strategy="lazyOnload"
+            />
+          
+            // <Script 
+            //   async
+            //   src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8541093288812908"
+            //   crossOrigin="anonymous"
+            //   strategy="afterInteractive"
+            // />
+            }
+          </head>
+          {/**/}
+          <body>
+            {children}
+          </body>
+        </html>
+      </StoreProvider>
+    </NextAuthSessionProvider>
+  );
+}

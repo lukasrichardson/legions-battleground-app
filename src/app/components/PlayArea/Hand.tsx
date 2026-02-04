@@ -1,0 +1,73 @@
+import { CARD_TARGET } from "@/shared/enums/CardTarget";
+import { useDrop } from "react-dnd";
+import { ReactNode } from "react";
+import { useAppSelector, useAppDispatch } from "@/client/redux/hooks";
+import { moveCard } from "@/client/redux/gameStateSlice";
+import { emitGameEvent } from "@/client/utils/emitEvent";
+import { GAME_EVENT } from "@/client/enums/GameEvent";
+
+export default function Hand({children, cardTarget}: {children: ReactNode, cardTarget: CARD_TARGET}) {
+  const dispatch = useAppDispatch();
+  const gameState = useAppSelector((state) => state.gameState);
+  const { game: { p1Viewing, p2Viewing, sandboxMode}, side } = gameState;
+  const p1Side = side === "p1";
+  const viewing = cardTarget.includes("p1") ? p1Viewing : p2Viewing;
+  const [{}, drop] = useDrop(
+    () => ({
+      accept: ["card"],
+      canDrop: () => sandboxMode,
+      drop: (
+        cardToDrop: {id: string, cardTarget: CARD_TARGET, zoneIndex?: number}
+      ) => {
+        // dispatch(moveCard({
+        //   id: cardToDrop.id,
+        //   from: {target: cardToDrop.cardTarget, targetIndex: null},
+        //   target: cardTarget 
+        // }))
+        // emitGameEvent({ type: GAME_EVENT.moveCard, data: {
+        //   id: cardToDrop.id,
+        //   from: {target: cardToDrop.cardTarget, targetIndex: null},
+        //   target: cardTarget
+        // }})
+        dispatch(moveCard({
+          id: cardToDrop.id,
+          from: cardToDrop.cardTarget,
+          target: cardTarget,
+          targetIndex: null
+        }));
+        emitGameEvent({ type: GAME_EVENT.moveCard, data: {
+          id: cardToDrop.id,
+          from: {target: cardToDrop.cardTarget, targetIndex: cardToDrop.zoneIndex},
+          target: cardTarget,
+          targetIndex: null
+        }})
+      },
+      collect: (monitor) => ({
+        isOver: !!monitor.isOver(),
+        canDrop: !!monitor.canDrop()
+      })
+    }),
+    [cardTarget, viewing]
+  )
+  // const isP2PlayerCards = cardTarget.includes("p2");
+  const playerHand = (p1Side && cardTarget === CARD_TARGET.P1_PLAYER_HAND) || (!p1Side && cardTarget === CARD_TARGET.P2_PLAYER_HAND);
+
+  return (
+    drop(
+      <div className={[
+        "relative flex justify-center w-full",
+        "h-[10%]",
+        !playerHand ? "-translate-y-[20%]" : "",
+        // !isP2PlayerCards ? "bg-[#1d1e18] text-white" : "",
+      ].join(" ")}
+      >
+        {(viewing && viewing != "null") && (
+          <div className="absolute inset-x-0 bottom-[25%] z-[1000] mx-auto w-1/2 h-1/2 pointer-events-none flex items-center justify-center bg-[rgba(76,76,76,0.7)] text-white">
+            viewing {viewing}
+          </div>
+        )}
+        {children}
+      </div>
+    )
+  )
+}

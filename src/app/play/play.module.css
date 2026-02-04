@@ -1,0 +1,30 @@
+
+.cardPreview {
+  display: flex;
+  justify-content: flex-start;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 21vw;
+  height: 30vw;
+  opacity: 100%;
+  animation-name: example;
+  animation-duration: 1s;
+}
+
+@keyframes example {
+  0% {opacity: 0;}
+  50% {opacity: 1;}
+  75% {opacity: 1;}
+  100% {opacity: 1;}
+}
+.sequencePage {
+  width: 100vw;
+  height: 100%;
+}
+.sequence {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10%;
+}
