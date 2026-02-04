@@ -58,7 +58,7 @@ export default function Modal({
       {drag(
         <div
           ref={ref}
-          className={["relative max-w-[75%] max-h-[50%] bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-slate-900/95 border border-white/20 rounded-2xl shadow-2xl backdrop-blur-xl overflow-hidden flex flex-col pointer-events-auto",
+          className={["relative max-w-[75%] max-h-[85%] bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-slate-900/95 border border-white/20 rounded-2xl shadow-2xl backdrop-blur-xl overflow-hidden flex flex-col pointer-events-auto",
           ].join(" ")}
           style={{ transform: modalState ? `translate(${modalState.left}px, ${modalState.top}px)` : undefined }}
         >

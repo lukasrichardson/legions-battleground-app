@@ -194,9 +194,9 @@ export default function CardInner({
           {<span className="cursor-pointer" onClick={(e) => {dispatch(healthGameFunction(1));emitGameEvent({ type: healthGameEvent, data: 1 }); e.stopPropagation();}}>↑</span>}
         </div>}
         {isGuardian && <div className="absolute bottom-0 bg-[#f5f5f5] rounded flex items-center justify-center text-black w-full">
-          {<span className="cursor-pointer" onClick={(e) => {dispatch(apGameFunction(-1));emitGameEvent({ type: apGameEvent, data: -1 }); e.stopPropagation();}}>↓</span>}
+          {<span className="cursor-pointer" onClick={(e) => {dispatch(apGameFunction(-5));emitGameEvent({ type: apGameEvent, data: -5 }); e.stopPropagation();}}>↓</span>}
           <span>{"AP "}{p1Card ? p1PlayerAP : p2PlayerAP}</span>
-          {<span className="cursor-pointer" onClick={(e) => {dispatch(apGameFunction(1));emitGameEvent({ type: apGameEvent, data: 1 }); e.stopPropagation();}}>↑</span>}
+          {<span className="cursor-pointer" onClick={(e) => {dispatch(apGameFunction(5));emitGameEvent({ type: apGameEvent, data: 5 }); e.stopPropagation();}}>↑</span>}
         </div>}
       </div>)}
     </Popover>
