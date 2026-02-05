@@ -3,11 +3,15 @@ import "@/app/globals.css";
 import StoreProvider from "@/client/redux/StoreProvider";
 import NextAuthSessionProvider from "@/app/providers/SessionProvider";
 import Script from "next/script";
+import grue from "PUBLIC/Gemini_Generated_Image_vsbv5avsbv5avsbv.png";
 
 
 export const metadata: Metadata = {
   title: "Legions Battleground",
-  description: "A Legions Realms At War online simulator",
+  description: "A Legions Realms At War TCG simulator",
+  icons: {
+    icon: grue.src,
+  },
 };
 
 export default function RootLayout({
