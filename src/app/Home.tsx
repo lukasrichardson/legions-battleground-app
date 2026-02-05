@@ -92,7 +92,7 @@ export default function Home() {
               </CardHeader>
             </Card>
             
-            {process.env.NODE_ENV === "development" && <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={handleCardsClick}>
+            <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={handleCardsClick}>
               <CardHeader className="p-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <div className="w-6 h-6 bg-purple-500 rounded-lg flex items-center justify-center">
@@ -106,7 +106,7 @@ export default function Home() {
                   Browse all available cards
                 </CardDescription>
               </CardHeader>
-            </Card>}
+            </Card>
             
             <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={handleCreateGame}>
               <CardHeader className="p-4">
