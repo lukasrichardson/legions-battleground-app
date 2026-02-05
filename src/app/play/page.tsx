@@ -144,7 +144,7 @@ function Page() {
           modalHeader={
             <div className="flex items-center justify-between w-full p-6 pb-0">
               <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-lg flex items-center justify-center">
                   <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M9 3h6l4 6-7 12-7-12 4-6z" />
                   </svg>

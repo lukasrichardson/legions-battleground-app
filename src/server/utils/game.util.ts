@@ -32,7 +32,8 @@ export const fetchToolboxDeckById = async ({ deckId }: { deckId: string }) => {
       statusText: response.statusText,
       headers: response.headers,
       dataLength: response.data?.length,
-      environment: process.env.NODE_ENV || 'development'
+      environment: process.env.NODE_ENV || 'development',
+      responseData: response.data
     });
 
     // Handle both 200 and 202 status codes

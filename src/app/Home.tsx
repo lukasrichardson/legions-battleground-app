@@ -60,7 +60,7 @@ export default function Home() {
   } = HomeConstants;
   
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 overflow-hidden">
+    <div className="h-screen w-screen bg-gradient-to-br from-slate-900 via-blue-900/80 to-slate-900 overflow-hidden">
       <div className="h-full flex flex-col px-4 py-6">
         {/* Header */}
         <div className="text-center mb-6">
