@@ -159,6 +159,7 @@ export default function JoinRoomModal() {
                   onChange={(e) => setPlayerName(e.target.value)}
                   name="playerName"
                   autoComplete="on"
+                  autoFocus
                   placeholder="Enter your name"
                   className="w-full bg-white/10 border-white/20 text-white placeholder-gray-400 rounded-xl h-12 px-4 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200"
                   required

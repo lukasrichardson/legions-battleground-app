@@ -19,6 +19,7 @@ export default function SearchPane({
 }) {
   const [legion, setLegion] = useState<string[]>([]);
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [cards, setCards] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -29,6 +30,14 @@ export default function SearchPane({
   const [set, setSet] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
   useEffect(() => {
     if (deckLegion) {
       setLegion([deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"]);
@@ -37,7 +46,7 @@ export default function SearchPane({
   
   useEffect(() => {
     const getCards = async () => {
-      const res = await fetchCards({ legion: deckLegion && legion.length === 0 ? [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"] : legion, query, page, pageSize, type, rarity, set });
+      const res = await fetchCards({ legion: deckLegion && legion.length === 0 ? [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"] : legion, query: debouncedQuery, page, pageSize, type, rarity, set });
       if (res?.cards) {
         setCards(res.cards);
       }
@@ -47,7 +56,7 @@ export default function SearchPane({
     }
     getCards();
     getFilterOptions();
-  }, [legion, query, page, pageSize, type, rarity, set, deckLegion]);
+  }, [legion, debouncedQuery, page, pageSize, type, rarity, set, deckLegion]);
 
 
   const handleLegionSelect = (legionVal: string[]) => {

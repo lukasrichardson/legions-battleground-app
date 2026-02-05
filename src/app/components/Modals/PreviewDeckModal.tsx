@@ -175,6 +175,7 @@ export default function PreviewDeckModal() {
                 placeholder="4938"
                 name="deckId"
                 autoComplete="on"
+                autoFocus
                 className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500/20 h-12 transition-all duration-200"
                 required
               />

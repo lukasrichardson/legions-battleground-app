@@ -18,7 +18,7 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
   const dispatch = useAppDispatch();
   const { side, game: { playerConscripted, sandboxMode } } = gameState;
 
-  const canDrop = (target: CARD_TARGET, side: string, card: { type: CARD_TYPE, cardTarget: CARD_TARGET }) => {
+  const canDropCard = (target: CARD_TARGET, side: string, card: { type: CARD_TYPE, cardTarget: CARD_TARGET }) => {
     
     if (sandboxMode) return true;
 
@@ -50,10 +50,10 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
 
     return false;
   };
-  const [{ }, drop] = useDrop(
+  const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
       accept: ["card"],
-      canDrop: (card) => canDrop(cardTarget, side, card),
+      canDrop: (card) => canDropCard(cardTarget, side, card),
       drop: (cardToDrop: { id: string, cardTarget: CARD_TARGET, name: string, type: CARD_TYPE, zoneIndex?: number }) => {
         // if (cardToDrop.type === CARD_TYPE.WARRIOR) {
         //   dispatch(moveCard({
@@ -115,10 +115,13 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
     drop(
       <div
         className={[
-          "relative flex items-center justify-center rounded md:rounded-lg border transition-transform",
+          "relative flex items-center justify-center rounded md:rounded-lg border transition-all duration-200",
           "border-gray-300",
           "hover:scale-[1.02]",
           "mx-1",
+          isOver && canDrop ? "border-green-400 bg-green-400/10 scale-[1.02]" : "",
+          isOver && !canDrop ? "border-red-400 bg-red-400/10" : "",
+          canDrop && !isOver ? "border-blue-400/50" : "",
           // !isP2PlayerCards ? "bg-[#1d1e18] text-white" : "",
         ].join(" ")}
       >

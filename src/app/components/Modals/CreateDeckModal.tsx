@@ -88,6 +88,14 @@ export default function CreateDeckModal({
     closeModal();
   };
 
+  // Auto-clear errors after user input
+  useEffect(() => {
+    if (error && (deckName || selectedLegion)) {
+      const timer = setTimeout(() => setError(""), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [deckName, selectedLegion, error]);
+
   const renderLoading = () => (
     <div className="flex flex-col items-center justify-center py-16">
       <div className="relative">
@@ -125,7 +133,12 @@ export default function CreateDeckModal({
                 onChange={(e) => setDeckName(e.target.value)}
                 name="deckName"
                 autoComplete="off"
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500/20 h-12 transition-all duration-200"
+                autoFocus
+                className={`bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-12 transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                  error && !deckName.trim() 
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                    : 'focus:border-blue-500 focus:ring-blue-500/20'
+                }`}
                 placeholder="Enter deck name"
                 required
                 disabled={loading}
@@ -138,7 +151,11 @@ export default function CreateDeckModal({
                 {LegionLabelText} <span className="text-red-400">*</span>
               </label>
               <Select value={selectedLegion} onValueChange={setSelectedLegion} disabled={loading}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500/20 h-12 transition-all duration-200">
+                <SelectTrigger className={`bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-12 transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                  error && !selectedLegion 
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                    : 'focus:border-blue-500 focus:ring-blue-500/20'
+                }`}>
                   <SelectValue placeholder={SelectLegionPlaceholder} />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-white/20 text-white">
@@ -170,7 +187,7 @@ export default function CreateDeckModal({
             {/* Submit Button */}
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:scale-95 text-white font-semibold py-4 text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               disabled={loading}
             >
               {loading ? (

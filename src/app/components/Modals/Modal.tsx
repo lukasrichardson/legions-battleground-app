@@ -39,16 +39,24 @@ export default function Modal({
 
   // Prevent body scroll when modal is open
   useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && open) {
+        closeModal();
+      }
+    };
+
     if (open) {
       document.body.style.overflow = 'hidden';
+      document.addEventListener('keydown', handleEscape);
     } else {
       document.body.style.overflow = 'unset';
     }
     
     return () => {
       document.body.style.overflow = 'unset';
+      document.removeEventListener('keydown', handleEscape);
     };
-  }, [open]);
+  }, [open, closeModal]);
 
   if (!open) return null;
 
