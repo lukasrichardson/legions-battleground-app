@@ -81,7 +81,7 @@ export default function CardInner({
   const apGameFunction: Function = p1Card ? changeP1AP : changeP2AP;
   /* eslint-enable */
   const rotated = p1Side ? (!p1Card && !inPileView) : (p1Card && !inPileView);
-  const [{ }, drag] = useDrag(() => ({
+  const [{ isDragging }, drag] = useDrag(() => ({
     type: "card",
     canDrag: !hidden,
     item: { ...card, cardTarget, zoneIndex: zoneIndex},
@@ -131,9 +131,9 @@ export default function CardInner({
     <Popover
       content={<CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} />}
       title={null}
-      trigger={["click", "contextMenu"]}
+      trigger={["click", "contextMenu", "hover"]}
       onOpenChange={handlePopoverVisibleChange}
-      open={isPopoverVisible}
+      open={isPopoverVisible && !isDragging}
     >
 
       {drag(
@@ -160,7 +160,7 @@ export default function CardInner({
           //   height={120}
           //   width={90}
           // />
-          <Image
+          !isDragging && <Image
             style={{ width: '100%', height: '100%', position: 'relative'}}
             src={!faceUp ? back_of_card : card.img}
             alt="image"
