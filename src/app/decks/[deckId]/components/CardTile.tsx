@@ -1,4 +1,5 @@
 import { CardDocument } from "@/client/interfaces/Card.mongo";
+import { useEffect, useState } from "react";
 
 export const PLACEHOLDER =
   "data:image/svg+xml;utf8," +
@@ -31,17 +32,40 @@ export const renderCardTile = (card: { id: string | number; title: string; featu
     </div>
   </div>)
 }
-export const renderSearchCardTile = (card: CardDocument, index: number, onContextMenu: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void) => {
+
+export const renderDeckCardTile = (card: { id: string | number; title: string; featured_image: string }, index: number, onContextMenu: (e: React.MouseEvent, card: { id: string | number; title: string; featured_image: string }) => void, onMouseEnter: (card: { id: string | number; title: string; featured_image: string }) => void) => {
   return (
     <div onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index}>
       {renderCardTile(card, index, onMouseEnter)}
     </div>
   )
 }
-export const renderDeckCardTile = (card: { id: string | number; title: string; featured_image: string }, index: number, onContextMenu: (e: React.MouseEvent, card: { id: string | number; title: string; featured_image: string }) => void, onMouseEnter: (card: { id: string | number; title: string; featured_image: string }) => void) => {
+
+export const SearchCardTile = ({ card, index, onContextMenu, onMouseEnter }: { card: CardDocument, index: number, onContextMenu: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void }) => {
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const handleOnMouseEnter = () => {
+    const timeoutId = setTimeout(() => {
+      // if mouse is still over hovered card after 100ms, set it as hovered card to prevent flickering when quickly moving mouse across cards
+      onMouseEnter(card);
+    }, 80);
+    setTimeoutId(timeoutId);
+  }
+  const handleOnMouseLeave = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      setTimeoutId(null);
+    }
+  }
+  useEffect(() => {
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    }
+  }, [timeoutId]);
   return (
-    <div onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index}>
-      {renderCardTile(card, index, onMouseEnter)}
+    <div onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
+      {renderCardTile(card, index, handleOnMouseEnter)}
     </div>
   )
 }

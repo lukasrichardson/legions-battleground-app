@@ -1,5 +1,4 @@
 // import { MultiSelect } from "@/app/components/Multiselect";
-import { renderSearchCardTile } from "./CardTile";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CardDocument } from "@/client/interfaces/Card.mongo";
 import { fetchCards, fetchFilterOptions } from "@/client/utils/api.utils";
@@ -7,6 +6,7 @@ import { Input } from "@/client/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import { Button } from "@/client/ui/button";
 import { MultiSelect } from "@/client/ui/multiselect";
+import { SearchCardTile } from "./CardTile";
 
 export default function SearchPane({
   setHoveredCard,
@@ -43,7 +43,7 @@ export default function SearchPane({
       setLegion([deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"]);
     }
   }, [deckLegion]);
-  
+
   useEffect(() => {
     const getCards = async () => {
       const res = await fetchCards({ legion: deckLegion && legion.length === 0 ? [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"] : legion, query: debouncedQuery, page, pageSize, type, rarity, set });
@@ -100,11 +100,11 @@ export default function SearchPane({
   const prevPage = () => {
     setPageAndScrollTop(page > 1 ? page - 1 : 1);
   }
-  
+
   const resetPage = () => {
     setPageAndScrollTop(1);
   }
-  
+
   const setPageAndScrollTop = (newPage: number) => {
     setPage(newPage);
     if (scrollRef.current) {
@@ -114,7 +114,8 @@ export default function SearchPane({
 
   const filterOptionsForDeckLegion = useMemo(() => {
     if (!deckLegion) return filterOptions;
-    return {...filterOptions,
+    return {
+      ...filterOptions,
       legion: [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"],
     };
   }, [filterOptions, deckLegion]);
@@ -142,7 +143,7 @@ export default function SearchPane({
             placeholder="Search cards..."
             className="bg-white/10 border-white/20 text-white placeholder-gray-400 h-6 text-xs"
           />
-          
+
           {/* Only show filters on larger screens to save space on mobile */}
           <div className="hidden sm:block">
             {(Object.keys(filterOptionsForDeckLegion).length > 0) && (
@@ -160,12 +161,12 @@ export default function SearchPane({
               </div>
             )}
           </div>
-          
+
           {/* Pagination Info - Compact */}
           <div className="text-center text-xs text-gray-300">
             Page {page} of {total / pageSize > 0 ? Math.ceil(total / pageSize) : 1} ({total} cards)
           </div>
-          
+
           {/* Pagination Controls - Compact */}
           <div className="flex justify-center gap-1">
             {page > 1 && (
@@ -194,19 +195,20 @@ export default function SearchPane({
               <p className="text-gray-500 text-xs mt-1">Try adjusting your search criteria</p>
             </div>
           ) : (
-            <div 
-              ref={scrollRef} 
+            <div
+              ref={scrollRef}
               className="h-full overflow-auto"
               style={{ minHeight: '120px' }} // Reduced for mobile
             >
               <div className="flex flex-wrap">
                 {cards.map((card, index) => (
-                  <div 
-                    key={card.toString()+index} 
+                  <div
+                    key={card.toString() + index}
                     className="w-1/2 sm:w-1/3 lg:w-1/4 xl:w-1/5 max-w-40 py-1 box-border cursor-pointer"
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
-                    {renderSearchCardTile(card, index, handleSearchedCardClick, setHoveredCard)}
+                    
+                    <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
                   </div>
                 ))}
               </div>
