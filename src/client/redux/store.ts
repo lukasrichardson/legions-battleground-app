@@ -3,6 +3,7 @@ import gameStateSlice from '@/client/redux/gameStateSlice';
 import modalsSlice from '@/client/redux/modalsSlice';
 import sequenceSlice from './sequenceSlice';
 import phaseSlice from './phaseSlice';
+import clientSettingsSlice from './clientSettingsSlice';
 
 export const makeStore = () => {
   return configureStore({
@@ -11,6 +12,7 @@ export const makeStore = () => {
       modalsState: modalsSlice,
       sequenceState: sequenceSlice,
       phaseState: phaseSlice,
+      clientSettings: clientSettingsSlice
     }
   })
 }

@@ -11,6 +11,7 @@ import { ROOM_EVENT } from "@/client/enums/RoomEvent";
 import { resetState } from "@/client/redux/gameStateSlice";
 import { useEffect, useRef } from "react";
 import CardPreview from "../Card/CardPreview";
+import { setHoverMenu } from "@/client/redux/clientSettingsSlice";
 
 const ToolbarConstants = {
   GameLogHeaderText: "Game Log",
@@ -27,6 +28,7 @@ export default function Toolbar({ }) {
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
+  const clientSettings = useAppSelector((state) => state.clientSettings);
   const gameLogRef = useRef<HTMLDivElement>(null);
   const { side } = gameState;
   const p1 = side === "p1";
@@ -71,7 +73,7 @@ export default function Toolbar({ }) {
       <div className="relative w-full h-[25%] overflow-y-auto bg-black/50 text-white rounded-md p-1 mb-1 border border-white/10" ref={gameLogRef}>
         {gameLog.length ? (
           <>
-            <div className="text-sm text-white/80 sticky top-0 bg-black/50">Logs</div>
+            <div className="text-sm text-center text-white/80 sticky top-0 bg-black/90">Logs</div>
             {gameLog.map((log, index) => (
               <div key={index} className="border border-white/10 rounded mb-1 p-1 flex flex-col-reverse">
                 <div key={index} className="text-xs text-white/80">{log}</div>
@@ -108,13 +110,17 @@ export default function Toolbar({ }) {
         onKeyDown={onChatSubmit}
       />
 
-      <div className="mt-auto w-full flex flex-wrap gap-2">
-        {/* <button className="self-end text-[14px] font-bold px-3 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10 pointer-events-none" onClick={() => dispatch(openSetDecksModal())} disabled>{ChangeDeckButtonText}</button> */}
-        <button className="self-end text-[14px] font-bold px-3 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={handleSwitchSide}>{SwitchSideButtonText + (p1 ? "P2" : "P1")}</button>
-        <button className="self-end text-[14px] font-bold px-3 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => emitGameEvent({ type: GAME_EVENT.rollDie, data: { side } })}>{RollDieButtonText}</button>
-        <button className="self-end text-[14px] font-bold px-3 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => emitGameEvent({ type: GAME_EVENT.resetGame, data: { p2DeckId: p2DeckFromServer?.id, p1DeckId: p1DeckFromServer?.id } })}>{ResetGameButtonText}</button>
-        <button className="self-end text-[14px] font-bold px-3 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={handleLeaveGame}>{LeaveGameButtonText}</button>
-        <button className="self-end text-[14px] font-bold px-3 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => dispatch(openHelpModal())}>{HelpButtonText}</button>
+      <div className="mt-auto w-full flex flex-wrap gap-1 justify-between">
+        {/* <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10 pointer-events-none" onClick={() => dispatch(openSetDecksModal())} disabled>{ChangeDeckButtonText}</button> */}
+        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={handleSwitchSide}>{SwitchSideButtonText + (p1 ? "P2" : "P1")}</button>
+        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => emitGameEvent({ type: GAME_EVENT.rollDie, data: { side } })}>{RollDieButtonText}</button>
+        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => emitGameEvent({ type: GAME_EVENT.resetGame, data: { p2DeckId: p2DeckFromServer?.id, p1DeckId: p1DeckFromServer?.id } })}>{ResetGameButtonText}</button>
+        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={handleLeaveGame}>{LeaveGameButtonText}</button>
+        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => dispatch(openHelpModal())}>{HelpButtonText}</button>
+        <div>
+          <label htmlFor="hoverMenu" className="text-xs mr-1">Show Menu On Hover:</label>
+          <input name="hoverMenu" type="checkbox" checked={clientSettings.hoverMenu} onChange={() => dispatch(setHoverMenu(!clientSettings.hoverMenu))}/>
+        </div>
       </div>
     </div>
   )

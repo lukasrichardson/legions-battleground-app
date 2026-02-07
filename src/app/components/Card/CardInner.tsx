@@ -27,12 +27,11 @@ const PILE_OFFSETS = {
 // Custom hook for game state selectors
 const useCardGameState = (cardTarget: CARD_TARGET) => {
   return useAppSelector(useCallback((state) => {
-    const { side, game } = state.gameState;
+    const { game } = state.gameState;
     const p1Card = cardTarget.includes("p1");
     return {
-      side,
       p1Card,
-      p1Side: side === "p1",
+      p1Side: state.gameState.side === "p1",
       playerHealth: {
         p1: game.p1PlayerHealth,
         p2: game.p2PlayerHealth,
@@ -96,9 +95,10 @@ export default function CardInner({
   handleDecreaseCooldown,
  }: CardInnerProps) {
   const gameState = useCardGameState(cardTarget);
+  const clientSettings = useAppSelector(state => state.clientSettings);
   const dispatch = useAppDispatch();
 
-  const { side, p1Side, p1Card, playerHealth, playerAP, game } = gameState;
+  const { p1Side, p1Card, playerHealth, playerAP, game } = gameState;
   const pileOfCard = (zoneIndex || zoneIndex === 0 ) ? game[cardTarget as keyof typeof game][zoneIndex] as CardInterface[] | undefined : game[cardTarget as keyof typeof game] as CardInterface[] | undefined;
   const inPileOfMinTwo = pileOfCard && pileOfCard.length >=2;
   const healthGameEvent = p1Card ? GAME_EVENT.changeP1Health : GAME_EVENT.changeP2Health;
@@ -214,7 +214,7 @@ export default function CardInner({
     <Popover
       content={<CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} />}
       title={null}
-      trigger={["click", "contextMenu", "hover"]}
+      trigger={clientSettings.hoverMenu ? ["click", "contextMenu", "hover"] : ["click", "contextMenu"]}
       onOpenChange={handlePopoverVisibleChange}
       open={isPopoverVisible && !isDragging}
     >
