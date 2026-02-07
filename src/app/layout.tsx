@@ -23,27 +23,8 @@ export default function RootLayout({
     <NextAuthSessionProvider>
       <StoreProvider>
         <html lang="en">
-          {/* google ads - work in progress */}
           <head>
-            {
-            process.env.NODE_ENV === "production" &&
-            // process.env.NODE_ENV !== "production" &&
-            <Script
-              async
-              src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"
-              crossOrigin="use-credentials"
-              strategy="lazyOnload"
-            />
-          
-            // <Script 
-            //   async
-            //   src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8541093288812908"
-            //   crossOrigin="anonymous"
-            //   strategy="afterInteractive"
-            // />
-            }
           </head>
-          {/**/}
           <body>
             {children}
             {/* Service Worker Registration for Image Caching */}

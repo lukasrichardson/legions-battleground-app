@@ -29,7 +29,7 @@
 - **Breadcrumb Navigation:** Enhanced navigation with breadcrumb components
 - **Responsive Design:** Mobile-friendly interface with adaptive layouts and automatic scaling for play area
 
-> **⚡ Latest:** Added deck deletion functionality with hover-to-reveal delete buttons in deck list and dedicated delete button in deck editor. Includes DELETE `/api/decks/:deckId` endpoint with ownership validation to ensure users can only delete their own decks.
+> **⚡ Latest:** Enhanced performance with intelligent image preloading system featuring connection-aware throttling, Service Worker integration, and memory management. Added client settings slice for UI preferences and improved modal system with streamlined components.
 
 ---
 
@@ -49,7 +49,7 @@
 ## 📁 Project Structure
 
 ```
-public/                    # Static assets (card images, ads.txt)
+public/                    # Static assets (card images)
 scripts/                   # Utility scripts (fetchCards.ts for MongoDB card data seeding)
 src/
 ├── app/                   # Next.js App Router (Frontend)
@@ -84,8 +84,7 @@ src/
 │   ├── globals.css      # Global styles with Tailwind imports
 │   ├── Home.tsx         # Home page component with room management
 │   ├── layout.tsx       # Root layout with SessionProvider and StoreProvider
-│   ├── page.tsx         # Main page with modal management
-│   └── _AdsBanner.tsx   # Advertisement component
+│   └── page.tsx         # Main page with modal management
 ├── client/              # Client-side utilities (shared between frontend/backend)
 │   ├── constants/       # Game constants and initial state (InitialGameState.ts, cardMenu.constants.ts)
 │   ├── data/           # Card data (cards.ts)
@@ -93,13 +92,14 @@ src/
 │   ├── hooks/          # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize)
 │   ├── interfaces/     # TypeScript interfaces (Card, GameState, IMenuItem)
 │   ├── lib/            # Utility functions (utils.ts for className merging)
-│   ├── redux/          # State management (store, slices for game, modals, phases, sequences)
+│   ├── redux/          # State management (store, slices for game, modals, phases, sequences, client settings)
 │   │   ├── store.ts    # Redux store configuration
 │   │   ├── hooks.ts    # Typed Redux hooks
 │   │   ├── gameStateSlice.ts  # Game state management
 │   │   ├── modalsSlice.ts     # Modal state management
 │   │   ├── phaseSlice.ts      # Game phase management
 │   │   ├── sequenceSlice.ts   # Game sequence management
+│   │   ├── clientSettingsSlice.ts # Client-side UI settings management
 │   │   └── StoreProvider.tsx  # Redux provider component
 │   ├── ui/             # Shared UI primitives (shadcn/ui components)
 │   │   ├── breadcrumb.tsx     # Breadcrumb navigation component
@@ -110,10 +110,11 @@ src/
 │   │   ├── multiselect.tsx    # Multi-selection component
 │   │   ├── navigation-menu.tsx # Navigation menu component
 │   │   └── select.tsx         # Select dropdown component
-│   ├── utils/          # Client utilities (API, gameState, string utils, emitEvent)
+│   ├── utils/          # Client utilities (API, gameState, string utils, emitEvent, image preloading)
 │   │   ├── api.utils.ts       # API communication utilities
 │   │   ├── emitEvent.ts       # Socket event emission utilities
 │   │   ├── gameState.utils.ts # Game state manipulation utilities
+│   │   ├── imagePreloader.ts  # Intelligent image preloading with connection awareness
 │   │   └── string.util.ts     # String utility functions
 │   └── socket.js       # Socket.IO client setup
 ├── server/             # Backend (Express + Socket.IO)
@@ -161,8 +162,9 @@ src/
 │   ├── enums/          # Common enumerations (CardTarget, CardType)
 │   │   ├── CardTarget.ts         # Card targeting enumeration
 │   │   └── CardType.ts           # Card type enumeration
-│   └── interfaces/     # Common TypeScript interfaces (DeckResponse)
-│       └── DeckResponse.ts       # Deck response interface
+│   └── interfaces/     # Common TypeScript interfaces (DeckResponse, RoomInterface)
+│       ├── DeckResponse.ts       # Deck response interface
+│       └── RoomInterface.ts      # Room and player management interface
 └── middleware.ts       # Next.js middleware for route protection
 ```
 
@@ -330,6 +332,35 @@ src/
 
 ---
 
+## 🖼️ Intelligent Image Preloading System
+
+### Performance Optimization
+- **Connection Awareness:** Automatically adjusts batch size and concurrent requests based on user's network connection
+- **Throttled Loading:** Prevents browser overload with configurable concurrent request limits
+- **Memory Management:** Intelligent cache management with size limits to prevent memory leaks
+- **Service Worker Integration:** Background caching for improved performance
+- **Priority-based Loading:** High, normal, and low priority preloading for optimal user experience
+
+### Smart Features
+- **Data Saver Respect:** Reduces preloading when user has data saver enabled
+- **Connection Type Detection:** Adapts behavior for 2G, 3G, 4G connections
+- **Background Preloading:** Non-blocking image preloading for better UX
+- **Batch Processing:** Intelligent batching with pauses between batches for lower priority loads
+- **Cache Statistics:** Built-in monitoring and statistics for debugging and optimization
+
+### Implementation
+- **Singleton Pattern:** Single instance manages all image preloading across the application
+- **Promise-based API:** Clean async/await interface for easy integration
+- **Utility Functions:** Pre-built functions for common use cases (deck images, game state, search results)
+- **Error Handling:** Graceful failure handling with retry mechanisms
+
+### Files
+- `src/client/utils/imagePreloader.ts` - Core preloading system with NetworkInformation API integration
+- Usage in deck builder, game interface, and card browsing components
+- Service Worker integration for offline-capable image caching
+
+---
+
 ## 🎯 Enhanced Drag & Drop System
 
 ### Zone Index Architecture
@@ -369,7 +400,7 @@ src/
   - Visual indicators show when sandbox mode is active
 
 ### State Management
-- **Client State:** Redux slices for game state, modals, UI
+- **Client State:** Redux slices for game state, modals, UI, phases, sequences, and client settings
 - **Server State:** Authoritative game state in MongoDB with real-time synchronization
 - **Shared Types:** Consolidated TypeScript interfaces and enums in `src/shared/`
 - **User Authentication:** JWT sessions with user-specific data isolation

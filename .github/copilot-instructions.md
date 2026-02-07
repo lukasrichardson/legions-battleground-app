@@ -46,8 +46,7 @@ src/
 │   ├── globals.css        # Global styles with Tailwind imports
 │   ├── Home.tsx           # Home page component with room management
 │   ├── layout.tsx         # Root layout with SessionProvider and StoreProvider
-│   ├── page.tsx           # Main page with modal management
-│   └── _AdsBanner.tsx     # Advertisement component
+│   └── page.tsx           # Main page with modal management
 ├── client/                 # Client-side utilities (shared between frontend/backend)
 │   ├── constants/         # Game constants and initial state (InitialGameState.ts, cardMenu.constants.ts)
 │   ├── data/              # Card data (cards.ts)
@@ -62,6 +61,7 @@ src/
 │   │   ├── modalsSlice.ts # Modal state management
 │   │   ├── phaseSlice.ts  # Game phase management
 │   │   ├── sequenceSlice.ts # Game sequence management
+│   │   ├── clientSettingsSlice.ts # Client-side UI settings management
 │   │   └── StoreProvider.tsx # Redux provider component
 │   ├── ui/                # Shared UI primitives (shadcn/ui components)
 │   │   ├── breadcrumb.tsx # Breadcrumb navigation component
@@ -72,10 +72,11 @@ src/
 │   │   ├── multiselect.tsx # Multi-selection component
 │   │   ├── navigation-menu.tsx # Navigation menu component
 │   │   └── select.tsx     # Select dropdown component
-│   ├── utils/             # Client utilities (API, gameState, string utils, emitEvent)
+│   ├── utils/             # Client utilities (API, gameState, string utils, emitEvent, image preloading)
 │   │   ├── api.utils.ts   # API communication utilities
 │   │   ├── emitEvent.ts   # Socket event emission utilities
 │   │   ├── gameState.utils.ts # Game state manipulation utilities
+│   │   ├── imagePreloader.ts  # Intelligent image preloading with connection awareness
 │   │   └── string.util.ts # String utility functions
 │   └── socket.js          # Socket.IO client setup
 ├── server/                 # Express backend with Socket.IO and MongoDB
@@ -166,6 +167,8 @@ src/
 - **Breadcrumb Navigation:** Enhanced navigation with breadcrumb components for better UX
 - **Responsive Design:** Mobile-friendly interface with adaptive layouts and hidden elements on smaller screens
 - **Game Log System:** Auto-scrolling game log display with conditional rendering based on game mode
+- **Intelligent Image Preloading:** Connection-aware image preloading system with Service Worker integration and memory management
+- **Client Settings:** Configurable UI preferences including hover menu controls and other client-side settings
 
 ## Database & External APIs
 - **MongoDB:** Game rooms, player data, and persistent game states with user-specific deck collections (using 'test' database for development)
@@ -273,6 +276,23 @@ node scripts/fetchCards.ts  # Seed MongoDB with card data from Legions ToolBox A
 - **Responsive Filters:** Use conditional rendering `hidden sm:block` for mobile optimization
 - **Backend Integration:** Extend routes with filter parameter validation and MongoDB query building
 - **Filter Options:** Use `fetchFilterOptions()` to populate available filter values dynamically
+
+## Image Preloading Development Patterns
+- **Preloader Import:** Import `imagePreloader` singleton from `src/client/utils/imagePreloader.ts`
+- **Utility Functions:** Use `preloadDeckImages()`, `preloadGameImages()`, `preloadSearchResults()` for common scenarios
+- **Priority Levels:** Set appropriate priority ('high', 'normal', 'low') based on user interaction context
+- **Connection Awareness:** System automatically adapts to user's network conditions and data saver preferences
+- **Memory Management:** Built-in cache size limits and cleanup to prevent memory leaks
+- **Background Loading:** Use `preloadAllCardsBackground()` for non-critical preloading with delays
+- **Performance Monitoring:** Use `imagePreloader.getStats()` for debugging and optimization
+- **Service Worker Integration:** Automatic background caching when Service Worker is available
+
+## Client Settings Development Patterns
+- **Settings Import:** Import from `src/client/redux/clientSettingsSlice.ts` for UI preference management
+- **State Access:** Use `useAppSelector((state) => state.clientSettings)` to access current settings
+- **Settings Updates:** Dispatch `setHoverMenu()` and other setting actions for real-time UI changes
+- **Persistent Settings:** Consider implementing localStorage persistence for user preferences
+- **Component Integration:** Add settings controls in toolbar or settings modals with immediate effect
 
 ## Authentication & User Management
 - **Frontend Auth:** Use `useAuth` hook from `src/client/hooks/useAuth.ts` for session state
