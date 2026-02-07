@@ -13,8 +13,8 @@ import { changeP1AP, changeP1Health, changeP2AP, changeP2Health } from "@/client
 import { emitGameEvent } from "@/client/utils/emitEvent";
 
 const CARD_DIMENSIONS = {
-  HEIGHT: 100,
-  WIDTH: 75,
+  // HEIGHT: 100,
+  // WIDTH: 75,
   IMAGE_HEIGHT: 108,
   IMAGE_WIDTH: 81,
 } as const;
@@ -203,8 +203,10 @@ export default function CardInner({
   }, [selected, rotated, inPileView, cardInView, index]);
 
   const cardClasses = useMemo(() => [
+    "h-[100px]",
+    "w-[75px]",
     "card-inner",
-    `transform scale-100 transition-transform duration-75 h-[${CARD_DIMENSIONS.HEIGHT}px] w-[${CARD_DIMENSIONS.WIDTH}px] cursor-pointer`,
+    `transform scale-100 transition-transform duration-75 cursor-pointer`,
     cardInView || inPileView
       ? "relative"
       : "absolute",
