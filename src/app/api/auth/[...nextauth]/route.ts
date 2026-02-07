@@ -21,10 +21,7 @@ const authOptions: NextAuthOptions = {
         params: {
           scope: "identify email",
         },
-      },
-      httpOptions: {
-        timeout: 10000, // 10 second timeout
-      },
+      }
     }),
   ],
   session: { strategy: "jwt" },
