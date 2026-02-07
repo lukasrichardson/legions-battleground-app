@@ -17,6 +17,14 @@ const authOptions: NextAuthOptions = {
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID!,
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: "identify email",
+        },
+      },
+      httpOptions: {
+        timeout: 10000, // 10 second timeout
+      },
     }),
   ],
   session: { strategy: "jwt" },
@@ -30,7 +38,7 @@ const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  // debug: process.env.NODE_ENV !== "production",
+  debug: true, // Enable debug mode to troubleshoot OAuth issues
 };
 
 const handler = NextAuth(authOptions);
