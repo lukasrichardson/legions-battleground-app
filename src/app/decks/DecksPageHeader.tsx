@@ -20,7 +20,7 @@ export default function DecksPageHeader() {
   return (
     <div className="mb-6">
       {/* Breadcrumbs - Top Left */}
-      <div className="mb-2">
+      <div className="mb-2 absolute top-2 left-2">
         <Breadcrumbs breadcrumbs={[{name: "Home", path: "/"}]} />
       </div>
       

@@ -264,6 +264,83 @@ export const routes = (app: ExpressApp) => {
   }
   );
 
+  app.post("/api/decks/:deckId/duplicate", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+
+      const db = getDatabase();
+      
+      // Check if deck with same deckId
+      const existingDeck: DeckResponse = await db.collection<DeckResponse>("decks").findOne({ 
+        _id: new ObjectId(req.params.deckId),
+      });
+      if (!existingDeck) {
+        return res.status(409).json({ 
+          error: "Conflict", 
+          message: `cant find deck with deck with id "${req.params.deckId}"` 
+        });
+      }
+
+      // Create the new deck object with userId
+      const newDeck: DeckResponse = {
+        ...existingDeck,
+        name: existingDeck.name + " Copy",
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+      delete newDeck._id;
+
+      // Insert the deck into MongoDB
+      const result = await db.collection("decks").insertOne(newDeck);
+      
+      if (!result.insertedId) {
+        return res.status(500).json({ 
+          error: "Internal server error", 
+          message: "Failed to create deck in database" 
+        });
+      }
+
+      // Return success response with deck ID
+      return res.status(201).json({
+        success: true,
+        message: "Deck created successfully",
+        deck: {
+          _id: result.insertedId,
+          name: newDeck.name,
+          subtitle: newDeck.subtitle,
+          legion: newDeck.legion,
+          userId: newDeck.userId,
+          created_at: newDeck.created_at
+        }
+      });
+
+    } catch (error: unknown) {
+      console.error("Error creating deck:", error);
+      
+      // Handle specific MongoDB errors
+      if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
+        return res.status(409).json({ 
+          error: "Conflict", 
+          message: "A deck with this ID or name already exists" 
+        });
+      }
+      
+      // Handle connection errors
+      if (error && typeof error === 'object' && 'name' in error && 
+          (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError')) {
+        return res.status(503).json({ 
+          error: "Service unavailable", 
+          message: "Database connection failed. Please try again later." 
+        });
+      }
+
+      // Generic server error
+      return res.status(500).json({ 
+        error: "Internal server error", 
+        message: "An unexpected error occurred while creating the deck" 
+      });
+    }
+  });
+
   app.post("/api/decks", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Input validation

@@ -104,7 +104,7 @@ export function MultiSelect({
       {open && (
         <div
           ref={menuRef}
-          className="absolute z-50 mt-2 w-64 rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5"
+          className="fixed z-50 mt-2 w-64 rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5"
         >
           <div className="flex items-center justify-between px-3 py-2 border-b">
             <button

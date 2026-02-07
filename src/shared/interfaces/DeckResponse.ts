@@ -57,4 +57,6 @@ export interface DeckResponse {
   legion: string;
   userId?: string;
   cards_in_deck: CardInDeck[];
+  created_at: Date;
+  updated_at: Date;
 }

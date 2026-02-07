@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CardDocument } from "@/client/interfaces/Card.mongo";
 import { fetchCards, fetchFilterOptions } from "@/client/utils/api.utils";
 import { Input } from "@/client/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
+import { Card, CardContent} from "@/client/ui/card";
 import { Button } from "@/client/ui/button";
 import { MultiSelect } from "@/client/ui/multiselect";
 import { SearchCardTile } from "./CardTile";
@@ -11,11 +11,13 @@ import { SearchCardTile } from "./CardTile";
 export default function SearchPane({
   setHoveredCard,
   handleAddCardToDeck,
-  deckLegion
+  deckLegion,
+  gallery = false
 }: {
   setHoveredCard: (card: CardDocument | null) => void,
   handleAddCardToDeck: (card) => void,
-  deckLegion: string | null
+  deckLegion: string | null,
+  gallery?: boolean
 }) {
   const [legion, setLegion] = useState<string[]>([]);
   const [query, setQuery] = useState("");
@@ -119,24 +121,16 @@ export default function SearchPane({
       legion: [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"],
     };
   }, [filterOptions, deckLegion]);
+  const handleOnScroll = (e) => {
+    e.preventDefault();
+    e.currentTarget.scrollLeft += e.deltaY;
+  }
 
   return (
     <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
-      <CardHeader className="p-2 pb-1">
-        <CardTitle className="flex items-center justify-between text-xs">
-          <span className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-purple-500 rounded flex items-center justify-center">
-              <svg className="w-1.5 h-1.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-              </svg>
-            </div>
-            Search Cards
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-2 pt-0 flex-1 overflow-hidden flex flex-col">
+      <CardContent className="p-2 pt-0 h-full flex flex-col overflow-hidden">
         {/* Search and Filters - Compact for mobile */}
-        <div className="space-y-1 mb-2">
+        <div className="space-y-1 mb-2 flex-1/4">
           <Input
             value={query}
             onChange={handleSearchChange}
@@ -145,7 +139,7 @@ export default function SearchPane({
           />
 
           {/* Only show filters on larger screens to save space on mobile */}
-          <div className="hidden sm:block">
+          <div className="hidden lg:block">
             {(Object.keys(filterOptionsForDeckLegion).length > 0) && (
               <div className="space-y-1">
                 {Object.keys(filterOptionsForDeckLegion).map((key) => (
@@ -155,16 +149,11 @@ export default function SearchPane({
                     value={key === 'legion' ? legion : key === 'type' ? type : key === 'rarity' ? rarity : set}
                     onChange={key === 'legion' ? handleLegionSelect : key === 'type' ? handleTypeSelect : key === 'rarity' ? handleRaritySelect : handleSetSelect}
                     placeholder={`${key.charAt(0).toUpperCase() + key.slice(1)}`}
-                    className="cursor-pointer"
+                    className="cursor-pointer text-xs"
                   />
                 ))}
               </div>
             )}
-          </div>
-
-          {/* Pagination Info - Compact */}
-          <div className="text-center text-xs text-gray-300">
-            Page {page} of {total / pageSize > 0 ? Math.ceil(total / pageSize) : 1} ({total} cards)
           </div>
 
           {/* Pagination Controls - Compact */}
@@ -174,6 +163,9 @@ export default function SearchPane({
                 Prev
               </Button>
             )}
+              <div className="text-center text-xs text-gray-300">
+              Page {page} of {total / pageSize > 0 ? Math.ceil(total / pageSize) : 1} ({total} cards)
+              </div>
             {total / pageSize > page && (
               <Button onClick={nextPage} size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs">
                 Next
@@ -183,7 +175,7 @@ export default function SearchPane({
         </div>
 
         {/* Cards List - Scrollable with smaller card sizes to match deck */}
-        <div className="flex-1 min-h-0 max-h-full">
+        <div className="grow lg:overflow-auto">
           {cards.length === 0 ? (
             <div className="text-center py-2 h-full flex flex-col items-center justify-center">
               <div className="w-6 h-6 bg-gray-700/50 rounded-full flex items-center justify-center mb-1">
@@ -197,21 +189,30 @@ export default function SearchPane({
           ) : (
             <div
               ref={scrollRef}
-              className="h-full overflow-auto"
-              style={{ minHeight: '120px' }} // Reduced for mobile
             >
-              <div className="flex flex-wrap">
+              {gallery ? <div onWheel={handleOnScroll} className="flex flex-wrap overflow-x-hidden overflow-y-auto">
                 {cards.map((card, index) => (
                   <div
                     key={card.toString() + index}
-                    className="w-1/2 sm:w-1/3 lg:w-1/4 xl:w-1/5 max-w-40 py-1 box-border cursor-pointer"
+                    className="max-w-full xs:max-w-1/2 sm:max-w-1/3 md:max-w-1/4 lg:max-w-1/6 cursor-pointer max-h-full inline-block box-border"
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
                     
                     <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
                   </div>
                 ))}
-              </div>
+              </div> : <div onWheel={handleOnScroll} className="lg:flex lg:justify-center lg:flex-wrap h-full overflow-x-scroll overflow-y-hidden lg:overflow-x-hidden lg:overflow-y-auto whitespace-nowrap">
+                {cards.map((card, index) => (
+                  <div
+                    key={card.toString() + index}
+                    className="max-w-1/3 xs:max-w-1/4 sm:max-w-1/6 md:max-w-1/7 lg:max-w-1/5 cursor-pointer max-h-full inline-block box-border"
+                    onClick={(e) => handleSearchedCardClick(e, card)}
+                  >
+                    
+                    <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
+                  </div>
+                ))}
+              </div>}
             </div>
           )}
         </div>

@@ -114,10 +114,10 @@ export default function DeckBuilder() {
   }
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 overflow-hidden">
+    <div className="h-screen w-screen bg-gradient-to-br from-slate-900 via-blue-900/80 to-slate-900 overflow-hidden">
       <div className="h-full flex flex-col px-2 py-2">
         {/* Header - Fixed height, no overflow issues */}
-        <div className="h-auto mb-2">
+        <div className="h-auto mb-1">
           <DeckEditorHeader 
             deck={deck}
             isEditingName={isEditingName}
@@ -135,7 +135,7 @@ export default function DeckBuilder() {
         {/* Main Content Area - Takes remaining space */}
         <div className="flex-1 min-h-0 flex flex-col-reverse lg:flex-row gap-2">
           {/* Deck Grid Pane - Full width on mobile, left side on large screens */}
-          <div className="flex-1 lg:flex-3 min-h-0 order-1 lg:order-1">
+          <div className="flex-2 lg:flex-3 min-h-0 order-1 lg:order-1">
             <DeckGrid
               deck={deck}
               setHoveredCard={setHoveredCard}
@@ -146,14 +146,14 @@ export default function DeckBuilder() {
           </div>
           
           {/* Right Sidebar - Search and Preview on large screens */}
-          <div className="flex flex-1 lg:flex-1 flex-col min-h-0 gap-2 order-2 lg:order-2 lg:w-80 xl:w-96">
+          <div className="flex flex-1 lg:flex-1 flex-col gap-2 order-2 lg:order-2 lg:w-80 xl:w-96">
             {/* Preview Pane - Only show on large screens */}
-            <div className="hidden lg:block flex-1/3 min-h-0">
+            <div className="hidden lg:block h-1/3 overflow-hidden">
               <Preview hoveredCard={hoveredCard} />
             </div>
             
             {/* Search Pane - Responsive height to prevent overlap on small screens */}
-            <div className="h-96 lg:h-auto lg:flex-2/3 min-h-0">
+            <div className="h-full lg:h-2/3 overflow-hidden">
               <SearchPane
                 setHoveredCard={setHoveredCard}
                 handleAddCardToDeck={handleAddCardToDeck}

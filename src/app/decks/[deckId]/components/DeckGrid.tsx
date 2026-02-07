@@ -1,5 +1,5 @@
 import { CardDocument } from "@/client/interfaces/Card.mongo";
-import { renderDeckCardTile } from "./CardTile";
+import { DeckCardTile } from "./CardTile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import { Button } from "@/client/ui/button";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
@@ -39,7 +39,7 @@ const renderLeftSideSection = (cards: CardDocument[], handleDeckCardClick, setHo
               className={"[&:not(:first-child)]:-mt-[115%]"}
               // className="w-1/2 sm:w-1/3 lg:w-1/4 xl:w-1/5 max-w-40 py-1 box-border"
             >
-              {renderDeckCardTile(card, index, handleDeckCardClick, setHoveredCard)}
+              <DeckCardTile card={card} index={index} onContextMenu={handleDeckCardClick} onMouseEnter={setHoveredCard} />
             </div>
           ))}
         </div>
@@ -69,9 +69,8 @@ const renderDeckSection = (cards: CardDocument[], handleDeckCardClick, setHovere
             <div 
               key={card.id.toString()+index}
               className={"[&:not(:first-child)]:-mt-[115%]"}
-              // className="w-1/2 sm:w-1/3 lg:w-1/4 xl:w-1/5 max-w-40 py-1 box-border"
             >
-              {renderDeckCardTile(card, index, handleDeckCardClick, setHoveredCard)}
+              <DeckCardTile card={card} index={index} onContextMenu={handleDeckCardClick} onMouseEnter={setHoveredCard} />
             </div>
           ))}
         </div>
