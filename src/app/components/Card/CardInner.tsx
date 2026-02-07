@@ -93,14 +93,14 @@ export default function CardInner({
   handleDecreaseOtherModifier,
   handleIncreaseCooldown,
   handleDecreaseCooldown,
- }: CardInnerProps) {
+}: CardInnerProps) {
   const gameState = useCardGameState(cardTarget);
   const clientSettings = useAppSelector(state => state.clientSettings);
   const dispatch = useAppDispatch();
 
   const { p1Side, p1Card, playerHealth, playerAP, game } = gameState;
-  const pileOfCard = (zoneIndex || zoneIndex === 0 ) ? game[cardTarget as keyof typeof game][zoneIndex] as CardInterface[] | undefined : game[cardTarget as keyof typeof game] as CardInterface[] | undefined;
-  const inPileOfMinTwo = pileOfCard && pileOfCard.length >=2;
+  const pileOfCard = (zoneIndex || zoneIndex === 0) ? game[cardTarget as keyof typeof game][zoneIndex] as CardInterface[] | undefined : game[cardTarget as keyof typeof game] as CardInterface[] | undefined;
+  const inPileOfMinTwo = pileOfCard && pileOfCard.length >= 2;
   const healthGameEvent = p1Card ? GAME_EVENT.changeP1Health : GAME_EVENT.changeP2Health;
   const apGameEvent = p1Card ? GAME_EVENT.changeP1AP : GAME_EVENT.changeP2AP;
   /* eslint-disable */
@@ -134,17 +134,17 @@ export default function CardInner({
   }, [dispatch, apGameFunction, apGameEvent]);
   const rotated = p1Side ? (!p1Card && !inPileView) : (p1Card && !inPileView);
   const [imageLoaded, setImageLoaded] = useState(false);
-  
+
   // Reset loading state when image source changes
   const imageSrc = !faceUp ? back_of_card : card.img;
   useEffect(() => {
     setImageLoaded(false);
   }, [imageSrc]);
-  
+
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "card",
     canDrag: !hidden,
-    item: { ...card, cardTarget, zoneIndex: zoneIndex},
+    item: { ...card, cardTarget, zoneIndex: zoneIndex },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging()
     })
@@ -167,10 +167,10 @@ export default function CardInner({
       CARD_TARGET.P1_PLAYER_REVEALED,
       CARD_TARGET.P2_PLAYER_REVEALED
     ].includes(cardTarget),
-    
+
     hasCooldown: cardTarget.includes("VeilRealm") ||
-                 cardTarget.includes("Warlord") ||
-                 cardTarget.includes("Synergy")
+      cardTarget.includes("Warlord") ||
+      cardTarget.includes("Synergy")
   }), [cardTarget]);
 
   const { cardInView, hasCooldown } = cardVisibilitySettings;
@@ -204,12 +204,13 @@ export default function CardInner({
 
   const cardClasses = useMemo(() => [
     "card-inner",
-    "transform scale-100 transition-transform duration-75 cursor-pointer",
-    `h-[${CARD_DIMENSIONS.HEIGHT}px] w-[${CARD_DIMENSIONS.WIDTH}px]`,
-    cardInView || inPileView ? "relative" : "absolute",
+    `transform scale-100 transition-transform duration-75 h-[${CARD_DIMENSIONS.HEIGHT}px] w-[${CARD_DIMENSIONS.WIDTH}px] cursor-pointer`,
+    cardInView || inPileView
+      ? "relative"
+      : "absolute",
     inPileOfMinTwo ? "left-0" : "",
     isPlayerHandCard ? "[&:hover]:z-[1000] hover:transform hover:-translate-y-[40%] hover:scale-[1.5]" : "",
-  ].filter(Boolean).join(" "), [cardInView, inPileView, inPileOfMinTwo, isPlayerHandCard]);
+  ].join(" "), [cardInView, inPileView, inPileOfMinTwo, isPlayerHandCard]);
   return (
     <Popover
       content={<CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} />}
@@ -220,64 +221,64 @@ export default function CardInner({
     >
 
       {drag(
-      <div
-        className={cardClasses}
-        style={cardStyles}
-        onMouseEnter={handleCardHover}
-        onMouseLeave={handleCardBlur}
-        onClick={handleCardRightClick}
-      >
-        {card?.img ? (
-          !isDragging && <>
-            {!imageLoaded && (
-              <div className="card-image-loading w-full h-full rounded" />
-            )}
-            <Image
-              style={{ 
-                width: '100%', 
-                height: '100%', 
-                position: 'relative',
-                display: imageLoaded ? 'block' : 'none'
-              }}
-              src={imageSrc}
-              alt="image"
-              height={CARD_DIMENSIONS.IMAGE_HEIGHT}
-              width={CARD_DIMENSIONS.IMAGE_WIDTH}
-              unoptimized
-              loading="eager"
-              priority
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageLoaded(true)} // Show even if image fails to load
-            /></>
-        ) : <span>{card?.name}</span>}
-        {(!cardInView && index === 0 && faceUp) && <>
-        <div className="absolute top-0 right-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full">
-          {focused && <span className="cursor-pointer text-xl" onClick={(e) => {e.stopPropagation(); handleDecreaseAttackModifier?.()}}>↓</span>}
-          {(attackModifierExists || focused) && <span className=" mx-auto">{attackModifierExists &&<span>{attackModifierNegative ? "" : "+"}{card.attackModifier}</span>}atk</span>}
-          {focused && <span className="cursor-pointer text-xl" onClick={(e) => {e.stopPropagation(); handleIncreaseAttackModifier?.()}}>↑</span>}
-        </div>
-        <div className="absolute bottom-0 left-0 rounded flex items-center justify-between  text-white font-bold text-shadow-gray-950 text-shadow-lg w-full">
-          {focused && <span className="cursor-pointer text-xl" onClick={(e) => {e.stopPropagation(); handleDecreaseOtherModifier?.()}}>↓</span>}
-          {(otherModifierExists || focused) && <span className="mx-auto">cnt{otherModifierExists &&<span>{card.otherModifier}</span>}</span>}
-          {focused && <span className="cursor-pointer text-xl" onClick={(e) => {e.stopPropagation(); handleIncreaseOtherModifier?.()}}>↑</span>}
-        </div>
-        </>}
-        {hasCooldown && <div className="absolute bottom-0 bg-[#f5f5f5] rounded flex items-center justify-center text-black w-full">
-          {<span className="cursor-pointer" onClick={(e) => {e.stopPropagation(); handleDecreaseCooldown?.();}}>↓</span>}
-          {cooldownExists &&<span>{"CD "}{card.cooldown}</span>}
-          {<span className="cursor-pointer" onClick={(e) => {e.stopPropagation(); handleIncreaseCooldown?.();}}>↑</span>}
-        </div>}
-        {isWarlord && <div className="absolute top-0 bg-[#f5f5f5] rounded flex items-center justify-center text-black w-full">
-          {<span className="cursor-pointer" onClick={handleHealthDecrease}>↓</span>}
-          <span>{"DCM "}{p1Card ? playerHealth.p1 : playerHealth.p2}</span>
-          {<span className="cursor-pointer" onClick={handleHealthIncrease}>↑</span>}
-        </div>}
-        {isGuardian && <div className="absolute bottom-0 bg-[#f5f5f5] rounded flex items-center justify-center text-black w-full">
-          {<span className="cursor-pointer" onClick={handleAPDecrease}>↓</span>}
-          <span>{"AP "}{p1Card ? playerAP.p1 : playerAP.p2}</span>
-          {<span className="cursor-pointer" onClick={handleAPIncrease}>↑</span>}
-        </div>}
-      </div>)}
+        <div
+          className={cardClasses}
+          style={cardStyles}
+          onMouseEnter={handleCardHover}
+          onMouseLeave={handleCardBlur}
+          onClick={handleCardRightClick}
+        >
+          {card?.img ? (
+            !isDragging && <>
+              {!imageLoaded && (
+                <div className="card-image-loading w-full h-full rounded" />
+              )}
+              <Image
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  position: 'relative',
+                  display: imageLoaded ? 'block' : 'none'
+                }}
+                src={imageSrc}
+                alt="image"
+                height={CARD_DIMENSIONS.IMAGE_HEIGHT}
+                width={CARD_DIMENSIONS.IMAGE_WIDTH}
+                unoptimized
+                loading="eager"
+                priority
+                onLoad={() => setImageLoaded(true)}
+                onError={() => setImageLoaded(true)} // Show even if image fails to load
+              /></>
+          ) : <span>{card?.name}</span>}
+          {(!cardInView && index === 0 && faceUp) && <>
+            <div className="absolute top-0 right-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full">
+              {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseAttackModifier?.() }}>↓</span>}
+              {(attackModifierExists || focused) && <span className=" mx-auto">{attackModifierExists && <span>{attackModifierNegative ? "" : "+"}{card.attackModifier}</span>}atk</span>}
+              {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseAttackModifier?.() }}>↑</span>}
+            </div>
+            <div className="absolute bottom-0 left-0 rounded flex items-center justify-between  text-white font-bold text-shadow-gray-950 text-shadow-lg w-full">
+              {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseOtherModifier?.() }}>↓</span>}
+              {(otherModifierExists || focused) && <span className="mx-auto">cnt{otherModifierExists && <span>{card.otherModifier}</span>}</span>}
+              {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseOtherModifier?.() }}>↑</span>}
+            </div>
+          </>}
+          {hasCooldown && <div className="absolute bottom-0 bg-[#f5f5f5] rounded flex items-center justify-center text-black w-full">
+            {<span className="cursor-pointer" onClick={(e) => { e.stopPropagation(); handleDecreaseCooldown?.(); }}>↓</span>}
+            {cooldownExists && <span>{"CD "}{card.cooldown}</span>}
+            {<span className="cursor-pointer" onClick={(e) => { e.stopPropagation(); handleIncreaseCooldown?.(); }}>↑</span>}
+          </div>}
+          {isWarlord && <div className="absolute top-0 bg-[#f5f5f5] rounded flex items-center justify-center text-black w-full">
+            {<span className="cursor-pointer" onClick={handleHealthDecrease}>↓</span>}
+            <span>{"DCM "}{p1Card ? playerHealth.p1 : playerHealth.p2}</span>
+            {<span className="cursor-pointer" onClick={handleHealthIncrease}>↑</span>}
+          </div>}
+          {isGuardian && <div className="absolute bottom-0 bg-[#f5f5f5] rounded flex items-center justify-center text-black w-full">
+            {<span className="cursor-pointer" onClick={handleAPDecrease}>↓</span>}
+            <span>{"AP "}{p1Card ? playerAP.p1 : playerAP.p2}</span>
+            {<span className="cursor-pointer" onClick={handleAPIncrease}>↑</span>}
+          </div>}
+        </div>)}
     </Popover>
   )
 }
