@@ -45,6 +45,18 @@ a {
   }
 }
 
+/* Loading shimmer animation for card images */
+.card-image-loading {
+  background: linear-gradient(90deg, #232962 5%, #e0e0e0 50%, #f0f0f0 95%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 .deckShuffle {
   scale: 1;
   transform-origin: right;

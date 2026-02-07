@@ -46,6 +46,26 @@ export default function RootLayout({
           {/**/}
           <body>
             {children}
+            {/* Service Worker Registration for Image Caching */}
+            <Script
+              id="sw-registration"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/sw.js')
+                      .then(function(registration) {
+                        console.log('[App] Service Worker registered:', registration.scope);
+                      })
+                      .catch(function(error) {
+                        console.warn('[App] Service Worker registration failed:', error);
+                      });
+                  } else {
+                    console.warn('[App] Service Worker not supported');
+                  }
+                `
+              }}
+            />
           </body>
         </html>
       </StoreProvider>

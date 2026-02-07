@@ -17,6 +17,7 @@ import Modal from "../components/Modals/Modal";
 import { PreGamePhase } from "@/client/redux/phaseSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from "@/client/enums/GameEvent";
+import { preloadGameImages } from "@/client/utils/imagePreloader";
 
 function Page() {
   const gameState = useAppSelector((state) => state.gameState);
@@ -56,6 +57,18 @@ function Page() {
 
   // Determine if phase modals should be shown (not in sandbox mode)
   const showPhaseModals = !gameState.game.sandboxMode;
+
+  // Preload game images when game state is available
+  useEffect(() => {
+    if (gameState.game) {
+      console.log('[PlayArea] Preloading game images');
+      try {
+        preloadGameImages(gameState.game);
+      } catch (error) {
+        console.warn('[PlayArea] Preload failed:', error);
+      }
+    }
+  }, [gameState.game]);
 
   const rpsContent = useCallback(() => {
     const hasChosen = p1 ? !!p1RPSChoice : !!p2RPSChoice;

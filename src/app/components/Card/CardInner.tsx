@@ -3,7 +3,7 @@ import { CardInterface } from "@/client/interfaces/CardInterface";
 import { Popover } from "antd";
 import Image from 'next/image';
 import back_of_card from "PUBLIC/back_of_card.jpg";
-import { MouseEventHandler, useMemo } from "react";
+import { MouseEventHandler, useMemo, useState, useEffect } from "react";
 import { useDrag } from 'react-dnd';
 import CardMenuComponent from '@/app/components/Card/CardMenu';
 import IMenuItem from "@/client/interfaces/IMenuItem";
@@ -63,6 +63,7 @@ export default function CardInner({
  }: CardInnerProps) {
   const gameState = useAppSelector((state) => state.gameState);
   const dispatch = useAppDispatch();
+
   const { side } = gameState;
   const p1Side = side === "p1";
   const p1Card = cardTarget.includes("p1");
@@ -81,6 +82,14 @@ export default function CardInner({
   const apGameFunction: Function = p1Card ? changeP1AP : changeP2AP;
   /* eslint-enable */
   const rotated = p1Side ? (!p1Card && !inPileView) : (p1Card && !inPileView);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  
+  // Reset loading state when image source changes
+  const imageSrc = !faceUp ? back_of_card : card.img;
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [imageSrc]);
+  
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "card",
     canDrag: !hidden,
@@ -152,24 +161,27 @@ export default function CardInner({
         onClick={handleCardRightClick}
       >
         {card?.img ? (
-          // <img
-          //   style={{ width: '100%', height: '100%', position: 'relative'}}
-          //   // src={!faceUp ? back_of_card : card.img}
-          //   src={!faceUp ? back_of_card.src : card.img}
-          //   alt="image"
-          //   height={120}
-          //   width={90}
-          // />
-          !isDragging && <Image
-            style={{ width: '100%', height: '100%', position: 'relative'}}
-            src={!faceUp ? back_of_card : card.img}
-            alt="image"
-            // height={120}
-            // width={90}
-            height={108}
-            width={81}
-            unoptimized
-          />
+          !isDragging && <>
+            {!imageLoaded && (
+              <div className="card-image-loading w-full h-full rounded" />
+            )}
+            <Image
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                position: 'relative',
+                display: imageLoaded ? 'block' : 'none'
+              }}
+              src={imageSrc}
+              alt="image"
+              height={108}
+              width={81}
+              unoptimized
+              loading="eager"
+              priority
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageLoaded(true)} // Show even if image fails to load
+            /></>
         ) : <span>{card?.name}</span>}
         {(!cardInView && index === 0 && faceUp) && <>
         <div className="absolute top-0 right-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full">

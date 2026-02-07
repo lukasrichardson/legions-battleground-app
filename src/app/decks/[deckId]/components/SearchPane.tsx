@@ -7,6 +7,7 @@ import { Card, CardContent} from "@/client/ui/card";
 import { Button } from "@/client/ui/button";
 import { MultiSelect } from "@/client/ui/multiselect";
 import { SearchCardTile } from "./CardTile";
+import { preloadSearchResults } from "@/client/utils/imagePreloader";
 
 export default function SearchPane({
   setHoveredCard,
@@ -59,6 +60,21 @@ export default function SearchPane({
     getCards();
     getFilterOptions();
   }, [legion, debouncedQuery, page, pageSize, type, rarity, set, deckLegion]);
+
+  // Preload search result images with debouncing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (cards.length > 0) {
+        console.log(`[SearchPane] Preloading ${Math.min(cards.length, 20)} search result images`);
+        try {
+          preloadSearchResults(cards);
+        } catch (error) {
+          console.warn('[SearchPane] Preload failed:', error);
+        }
+      }
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [cards]);
 
 
   const handleLegionSelect = (legionVal: string[]) => {

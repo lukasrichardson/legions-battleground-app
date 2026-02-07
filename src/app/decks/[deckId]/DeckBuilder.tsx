@@ -8,6 +8,7 @@ import SearchPane from "./components/SearchPane";
 import DeckEditorHeader from "./components/DeckEditorHeader";
 import { fetchDeckById, patchDeckById } from "@/client/utils/api.utils";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
+import { preloadDeckImages } from "@/client/utils/imagePreloader";
 
 export default function DeckBuilder() {
   const params = useParams<{ deckId: string }>()
@@ -26,6 +27,18 @@ export default function DeckBuilder() {
     fetchDeck();
     return () => { setDeck(null) };
   }, [params?.deckId]);
+
+  // Preload deck images when deck is loaded
+  useEffect(() => {
+    if (deck?.cards_in_deck?.length) {
+      console.log(`[DeckBuilder] Preloading ${deck.cards_in_deck.length} deck images`);
+      try {
+        preloadDeckImages(deck.cards_in_deck);
+      } catch (error) {
+        console.warn('[DeckBuilder] Preload failed:', error);
+      }
+    }
+  }, [deck?.cards_in_deck]);
   
   const handleRemoveCardFromDeck = async (card) => {
     const cardInDeckIndex = deck.cards_in_deck.findIndex(item => item.id === card.id);

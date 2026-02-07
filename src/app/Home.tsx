@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/cli
 import { useSession } from "next-auth/react";
 import AuthButtons from "./components/auth/AuthButtons";
 import { useRouter } from "next/navigation";
+import { fetchCards } from "@/client/utils/api.utils";
+import { preloadAllCardsBackground } from "@/client/utils/imagePreloader";
 
 const HomeConstants = {
   HomeTitle: "Legions Battleground",
@@ -41,6 +43,26 @@ export default function Home() {
   useEffect(() => {
     dispatch(closeHelpModal());
   }, [dispatch])
+
+  // Start background preloading of all card images after page load
+  useEffect(() => {
+    const startBackgroundPreload = async () => {
+      try {
+        console.log('[Home] Starting background preload of all cards');
+        const res = await fetchCards({ page: 1, pageSize: 100 }); // Smaller batch to respect API
+        if (res?.cards?.length) {
+          console.log(`[Home] Found ${res.cards.length} cards for background preloading`);
+          preloadAllCardsBackground(res.cards);
+        }
+      } catch (error) {
+        console.warn('[Home] Background preload failed:', error);
+      }
+    };
+
+    // Start preloading after a short delay
+    const timer = setTimeout(startBackgroundPreload, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleDecksClick = () => {
     router.push("decks");
