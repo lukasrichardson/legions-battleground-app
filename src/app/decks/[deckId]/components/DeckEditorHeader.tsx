@@ -1,4 +1,3 @@
-import Breadcrumbs from "../../components/Breadcrumbs";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/client/ui/select";
 import { fetchDecks } from "@/client/utils/api.utils";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";

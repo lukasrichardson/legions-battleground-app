@@ -3,7 +3,7 @@ import "@/app/globals.css";
 import StoreProvider from "@/client/redux/StoreProvider";
 import NextAuthSessionProvider from "@/app/providers/SessionProvider";
 import Script from "next/script";
-import grue from "PUBLIC/Gemini_Generated_Image_vsbv5avsbv5avsbv.png";
+import grue from "PUBLIC/gru-no-background.png";
 
 
 export const metadata: Metadata = {
