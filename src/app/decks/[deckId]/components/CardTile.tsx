@@ -19,7 +19,7 @@ export const renderCardTile = (card: { id: string | number; title: string; featu
     key={card?.id.toString() + index}
     onMouseEnter={() => onMouseEnter(card)}
     onClick={() => onMouseEnter(card)}
-    className="overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md h-fit cursor-pointer"
+    className="overflow-hidden rounded-xl border border-black bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md h-fit cursor-pointer"
   >
     <div className="aspect-[3/4] w-full overflow-hidden rounded-lg">
       {/* eslint-disable-next-line @next/next/no-img-element */}

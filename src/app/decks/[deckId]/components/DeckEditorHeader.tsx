@@ -77,18 +77,19 @@ export default function DeckEditorHeader({
   }
 
   return (
-    <div className="space-y-1 py-1">
+    <div className="space-y-1">
       {/* Title and Deck Selector */}
-      <div className="text-center space-y-1">
+      <div className="text-center">
         <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
           Deck Editor
         </h1>
-        <h3 className="text-sm text-gray-400">Left Click to add cards, Right Click to remove cards</h3>
+        <span className="text-sm text-gray-400">Left Click to add cards, Right Click to remove cards</span>
 
         {/* Deck Selector */}
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-1 flex-wrap">
+          <span className="text-white/70 text-xs">{deck?.legion || ""}</span>
           <Select value={deck?._id?.toString()} onValueChange={handleDeckChange} disabled={loading}>
-            <SelectTrigger className="h-8 w-40 text-sm bg-white/10 border-white/20 text-white">
+            <SelectTrigger className="h-6 max-w-fit text-sm bg-white/10 border-white/20 text-white">
               <SelectValue placeholder={loading ? "Loading..." : "Select deck"} />
             </SelectTrigger>
             <SelectContent>
@@ -106,8 +107,6 @@ export default function DeckEditorHeader({
               </SelectGroup>
             </SelectContent>
           </Select>
-          <button onClick={handleDeleteDeckClick} className="text-red-500 hover:underline cursor-pointer">Delete Deck</button>
-          <div className="text-center">
             {isEditingName ? (
               <div className="inline-flex items-center gap-2 flex-wrap justify-center">
                 <input
@@ -139,20 +138,32 @@ export default function DeckEditorHeader({
             ) : (
               <button
                 onClick={onStartEditingName}
-                className="group text-white/90 hover:text-white transition-colors cursor-pointer"
+                className="group text-white/90 hover:text-white transition-colors cursor-pointer border-white border-1 rounded p-0.5 text-sm"
                 disabled={saving}
               >
-                <span className="text-sm font-medium">
-                  {deck?.name || 'Unnamed Deck'}
-                </span>
-                <span className="ml-1 opacity-40 group-hover:opacity-100 transition-opacity text-xs">
-                  ✏️
+                <span className="opacity-75 group-hover:opacity-100 transition-opacity">
+                  ✏️Rename
                 </span>
               </button>
             )}
-            <span className="text-white/70 text-xs">{"(" + (deck?.legion || 'Unknown Legion') + ")"}</span>
-          </div>
-          <button className="cursor-pointer border-white border-1 rounded p-0.5" onClick={handleCreateDuplicateClick}><span className="text-white">Copy</span></button>
+            <button
+                onClick={handleCreateDuplicateClick}
+                className="group text-white/90 hover:text-white transition-colors cursor-pointer border-white border-1 rounded p-0.5 text-sm"
+                disabled={saving}
+              >
+                <span className="opacity-75 group-hover:opacity-100 transition-opacity">
+                  Copy
+                </span>
+            </button>
+            <button
+                onClick={handleDeleteDeckClick}
+                className="group text-red-800 hover:text-red-700 transition-colors cursor-pointer border-red-900 hover:border-red-700 border-1 rounded p-0.5 text-sm"
+                disabled={saving}
+              >
+                <span className="opacity-85 group-hover:opacity-100 transition-opacity">
+                  Delete
+                </span>
+            </button>
         </div>
       </div>
 
