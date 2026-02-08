@@ -13,7 +13,7 @@ export default function Preview({hoveredCard}: {hoveredCard: {title: string; tex
                 src={hoveredCard.featured_image}
                 alt={hoveredCard.title}
                 onError={(e) => ((e.currentTarget as HTMLImageElement).src = PLACEHOLDER)}
-                className="aspect-[3/4] h-auto object-cover"
+                className="aspect-[3/4] h-auto object-cover hover:scale-250 hover:top-0 hover:right-0 transition-transform duration-200 origin-top-right hover:z-95"
               />
             </div>
             <div className="space-y-2 flex-4 h-full overflow-scroll">

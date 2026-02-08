@@ -69,9 +69,15 @@ export default function DeckBuilder() {
   }
 
   const handleSortClick = async () => {
+    const counts = {};
+    deck.cards_in_deck.forEach(card => {
+      counts[card.id] = (counts[card.id] || 0) + 1;
+    });
     const sortedDeck = {
       ...deck,
       cards_in_deck: deck.cards_in_deck.sort((a, b) => {
+        const frequencyCompare = counts[b.id] - counts[a.id];
+        if (frequencyCompare !== 0) return frequencyCompare;
         // Sort by card type first, then by name
         const typeA = a.card_type.names[0];
         const typeB = b.card_type.names[0];
@@ -161,7 +167,7 @@ export default function DeckBuilder() {
           {/* Right Sidebar - Search and Preview on large screens */}
           <div className="flex flex-1 lg:flex-1 flex-col gap-2 order-2 lg:order-2 lg:w-80 xl:w-96">
             {/* Preview Pane - Only show on large screens */}
-            <div className="hidden lg:block h-1/3 overflow-hidden">
+            <div className="hidden lg:block h-1/3">
               <Preview hoveredCard={hoveredCard} />
             </div>
             
