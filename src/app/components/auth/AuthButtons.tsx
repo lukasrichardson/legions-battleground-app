@@ -9,7 +9,7 @@ export default function AuthButtons() {
 
   return session ? (
     <div className="flex items-center gap-2 justify-center">
-      <span className="text-white/80 text-sm">{session.user?.email}</span>
+      <span className="text-white/80 text-sm">Signed In As: {session.user?.name || session.user?.email}</span>
       <Button variant="ghost" className="text-white" onClick={() => signOut()}>
         Sign out
       </Button>

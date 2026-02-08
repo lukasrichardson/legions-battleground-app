@@ -20,6 +20,7 @@ const authOptions: NextAuthOptions = {
       authorization: {
         params: {
           scope: "identify email",
+          prompt: "none"
         },
       },
       httpOptions: {
