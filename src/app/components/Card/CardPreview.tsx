@@ -14,16 +14,9 @@ export default function CardPreview({}) {
         style={{ width: '100%', height: '100%', position: 'relative' }}
         width={400}
         height={400}
-        src={(gameState.cardInFocus ? gameState.cardInFocus.img : gameState.previousCardInFocus?.img) || "/frt-031.png"}
+        src={(gameState.cardInFocus ? gameState.cardInFocus.img : gameState.previousCardInFocus?.img) || "/back-of-card.jpg"}
         alt="back of card"
       />
-      {/* <Image
-        style={{ width: '100%', height: '100%', position: 'relative' }}
-        width={400}
-        height={400}
-        src={(gameState.cardInFocus ? gameState.cardInFocus.img : gameState.previousCardInFocus?.img) || "/frt-031.png"}
-        alt="back of card"
-      /> */}
       
     </div>
     <div className="max-h-[20%] text-xs overflow-scroll shadow-inner p-2 bg-black/50 rounded-md mt-2 border border-white/10 mb-2">
