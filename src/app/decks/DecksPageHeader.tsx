@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Breadcrumbs from "./components/Breadcrumbs";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/client/ui/card";
 import CreateDeckModal from "../components/Modals/CreateDeckModal";
 import { useAppDispatch } from "@/client/redux/hooks";
@@ -19,11 +18,6 @@ export default function DecksPageHeader() {
 
   return (
     <div className="mb-6">
-      {/* Breadcrumbs - Top Left */}
-      <div className="mb-2 absolute top-2 left-2">
-        <Breadcrumbs breadcrumbs={[{name: "Home", path: "/"}]} />
-      </div>
-      
       {/* Header */}
       <div className="text-center mb-6">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">

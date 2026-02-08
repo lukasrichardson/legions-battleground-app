@@ -85,43 +85,6 @@ export default function CreateRoomModal() {
     }
   }
 
-  // const handleCreateTestGame = async (e: React.MouseEvent<HTMLDivElement>) => {
-  //   e.preventDefault();
-    
-  //   // Check authentication before proceeding
-  //   if (!isAuthenticated) {
-  //     setError("Please sign in to create a test room");
-  //     return;
-  //   }
-    
-  //   setLoading(true);
-  //   try {
-  //     const res = await axios.post(`${window.location.origin}/createRoom`, {
-  //       roomName: "testroom",
-  //       playerName: "testplayer",
-  //       sandboxMode: true,
-  //       deckId: "68d414053a94febdaeab0678",
-  //       roomPassword: ""
-  //     });
-  //     const { roomName: newRoomName } = res.data;
-  //     router.push(`/play?room=${newRoomName}&playerName=testplayer&deckId=68d414053a94febdaeab0678`);
-  //     setRoomName("");
-  //     setPlayerName("");
-  //     setSandboxMode(true);
-  //     setDeckId("");
-  //     setLoading(false);
-  //     dispatch(setCreateRoomModalOpen(false));
-  //   } catch (error: unknown) {
-  //     if (error instanceof Error) {
-        // Error would be handled here
-  //       setError("Error: " + error.message || " An Error Occurred, try again");
-  //     } else {
-  //       setError("Error: " + error || " An Error Occurred, try again");
-  //     }
-  //     setLoading(false);
-  //   }
-  // }
-
   const getDecks = async () => {
     fetchDecks((param: {name: string, _id: string}[]) => {setDecks(param)});
   }

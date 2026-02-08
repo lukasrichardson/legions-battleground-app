@@ -9,6 +9,7 @@ import DeckEditorHeader from "./components/DeckEditorHeader";
 import { fetchDeckById, patchDeckById } from "@/client/utils/api.utils";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { preloadDeckImages } from "@/client/utils/imagePreloader";
+import FullPage from "@/app/components/FullPage";
 
 export default function DeckBuilder() {
   const params = useParams<{ deckId: string }>()
@@ -127,8 +128,7 @@ export default function DeckBuilder() {
   }
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-slate-900 via-blue-900/80 to-slate-900 overflow-hidden">
-      <div className="h-full flex flex-col px-2 py-2">
+    <FullPage showBreadcrumbs={true}>
         {/* Header - Fixed height, no overflow issues */}
         <div className="h-auto mb-1">
           <DeckEditorHeader 
@@ -175,7 +175,6 @@ export default function DeckBuilder() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </FullPage>
   );
 }

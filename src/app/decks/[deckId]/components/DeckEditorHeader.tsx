@@ -79,11 +79,6 @@ export default function DeckEditorHeader({
 
   return (
     <div className="space-y-1 py-1">
-      {/* Breadcrumbs */}
-      <div className="mb-1 absolute top-2 left-2">
-        <Breadcrumbs breadcrumbs={[{ name: "Home", path: "/" }, { name: "Decks", path: "/decks" }]} />
-      </div>
-
       {/* Title and Deck Selector */}
       <div className="text-center space-y-1">
         <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
