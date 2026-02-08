@@ -15,8 +15,8 @@ import FullPage from "./components/FullPage";
 
 const HomeConstants = {
   HomeTitle: "Legions Battleground",
-  HomeDescription: "Play and Practice LRAW Online!",
-  CreateGameBtnText: "Create New Game",
+  HomeDescription: "Play and Practice LRAW Online -",
+  CreateGameBtnText: "Play",
   RoomsHeaderText: "Game Rooms",
   JoinBtnText: "Join",
   ImportDeckText: "Import Deck",
@@ -90,7 +90,8 @@ export default function Home() {
               {HomeTitle}
             </h1>
             <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
-              {HomeDescription}
+              {HomeDescription}{"   "}
+            <span className="text-green-500">Powered By <a className="!underline" href="https://legionstoolbox.com" target="_blank" rel="noopener noreferrer">Legions Toolbox</a></span>
             </p>
             <AuthButtons />
           </div>
@@ -106,7 +107,7 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                       </svg>
                     </div>
-                    {"DeckBuilder"}
+                    {"Decks"}
                   </CardTitle>
                   <CardDescription className="text-gray-300 text-sm">
                     Create and edit your decks
@@ -125,7 +126,7 @@ export default function Home() {
                     {"Card Gallery"}
                   </CardTitle>
                   <CardDescription className="text-gray-300 text-sm">
-                    Browse all available cards
+                    Search & Filter through all cards
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -141,7 +142,7 @@ export default function Home() {
                     {CreateGameBtnText}
                   </CardTitle>
                   <CardDescription className="text-gray-300 text-sm">
-                    Start a new game session
+                    Create a VS or Solo game
                   </CardDescription>
                 </CardHeader>
               </Card>
