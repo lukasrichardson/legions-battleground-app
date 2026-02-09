@@ -317,7 +317,7 @@ Image System Files:
 1. **Browser Cache**: Standard HTTP caching from server
 2. **Service Worker Cache**: Aggressive client-side caching (7 days)
 3. **Image Preloading**: Predictive loading based on user context
-4. **Memory Cache**: In-memory tracking of loaded images (500 max)
+4. **Memory Cache**: In-memory tracking of loaded images (3000 max)
 
 ### Loading Priorities
 ```typescript

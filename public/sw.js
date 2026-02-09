@@ -3,8 +3,8 @@
 
 const CACHE_NAME = 'legions-card-images-v1';
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
-const MAX_CONCURRENT_REQUESTS = 5;
-const BATCH_SIZE = 20;
+const MAX_CONCURRENT_REQUESTS = 10;
+const BATCH_SIZE = 40;
 const STORAGE_QUOTA_THRESHOLD = 0.8; // Use max 80% of available storage
 
 // Track concurrent requests to avoid overwhelming network
@@ -252,7 +252,7 @@ async function preloadImages(urls, priority) {
     
     // Small delay between batches for lower priority
     if (priority !== 'high' && i + batchSize < uncachedUrls.length) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 50));
     }
   }
   
