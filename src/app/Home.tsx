@@ -2,7 +2,7 @@ import { useSocket } from "@/client/hooks/useSocket";
 import { closeHelpModal, openImportDeckModal } from "@/client/redux/modalsSlice";
 import { useAppDispatch } from "@/client/redux/hooks";
 import { setCreateRoomModalOpen, setJoinRoomModalOpen } from "@/client/redux/modalsSlice";
-import { ReactElement, useEffect } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import Table from "./components/Table/Table";
 import { Button } from "@/client/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/client/ui/card";
@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { fetchCards } from "@/client/utils/api.utils";
 import { preloadAllCardsBackground } from "@/client/utils/imagePreloader";
 import FullPage from "./components/FullPage";
+import PerformanceDashboard from "./components/Modals/PerformanceDashboard";
 
 const HomeConstants = {
   HomeTitle: "Legions Battleground",
@@ -26,6 +27,7 @@ export default function Home() {
   const dispatch = useAppDispatch();
   const { rooms } = useSocket();
   const router = useRouter();
+  const [showPerformanceDashboard, setShowPerformanceDashboard] = useState(false);
 
   const {data: session} = useSession();
 
@@ -50,7 +52,7 @@ export default function Home() {
     const startBackgroundPreload = async () => {
       try {
         console.log('[Home] Starting background preload of all cards');
-        const res = await fetchCards({ page: 1, pageSize: 100 }); // Smaller batch to respect API
+        const res = await fetchCards({ page: 1, pageSize: 3000 }); // Smaller batch to respect API
         if (res?.cards?.length) {
           console.log(`[Home] Found ${res.cards.length} cards for background preloading`);
           preloadAllCardsBackground(res.cards);
@@ -235,7 +237,25 @@ export default function Home() {
                 </CardContent>
               </Card>
             </div>
+            
+            {/* Performance Dashboard Button */}
+            <div className="mt-4 flex justify-center">
+              <Button
+                onClick={() => setShowPerformanceDashboard(true)}
+                size="sm"
+                className="bg-purple-600 hover:bg-purple-700 text-xs"
+              >
+                📊 Image Performance
+              </Button>
+            </div>
+            
           </>}
+          
+          {/* Performance Dashboard Modal */}
+          <PerformanceDashboard 
+            isOpen={showPerformanceDashboard}
+            onClose={() => setShowPerformanceDashboard(false)}
+          />
     </FullPage>
   )
 }

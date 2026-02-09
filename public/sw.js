@@ -11,6 +11,12 @@ const STORAGE_QUOTA_THRESHOLD = 0.8; // Use max 80% of available storage
 let activeRequests = 0;
 const requestQueue = [];
 
+// Performance tracking
+let cacheHits = 0;
+let cacheMisses = 0;
+let totalRequests = 0;
+const loadMetrics = [];
+
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing...');
   self.skipWaiting();
@@ -47,6 +53,9 @@ self.addEventListener('fetch', (event) => {
 
 // Cache-first strategy with freshness checks
 async function handleImageRequest(request) {
+  const startTime = Date.now();
+  totalRequests++;
+  
   try {
     const cache = await caches.open(CACHE_NAME);
     const cachedResponse = await cache.match(request);
@@ -55,12 +64,16 @@ async function handleImageRequest(request) {
       // Check if cache is still fresh
       const cacheTime = cachedResponse.headers.get('sw-cache-time');
       if (cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
+        cacheHits++;
+        recordLoadMetric(request.url, startTime, true);
         return cachedResponse;
       }
     }
 
     // Fetch from network with throttling
+    cacheMisses++;
     const networkResponse = await fetchWithThrottling(request);
+    recordLoadMetric(request.url, startTime, false);
     
     if (networkResponse && networkResponse.ok) {
       // Cache the response with timestamp
@@ -245,3 +258,62 @@ async function preloadImages(urls, priority) {
   
   console.log(`[SW] Preload batch complete`);
 }
+
+// Record performance metrics
+function recordLoadMetric(url, startTime, fromCache) {
+  const loadTime = Date.now() - startTime;
+  const metric = { url, loadTime, fromCache, timestamp: Date.now() };
+  
+  loadMetrics.push(metric);
+  // Keep only last 100 metrics to manage memory
+  if (loadMetrics.length > 100) {
+    loadMetrics.shift();
+  }
+  
+  // Broadcast to clients
+  broadcastToClients({
+    type: 'IMAGE_LOAD_METRIC',
+    metric
+  });
+}
+
+// Broadcast message to all clients
+function broadcastToClients(message) {
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage(message);
+    });
+  });
+}
+
+// Handle analytics requests
+self.addEventListener('message', async (event) => {
+  const { data } = event;
+  
+  if (data.type === 'GET_CACHE_STATS') {
+    const cache = await caches.open(CACHE_NAME);
+    const keys = await cache.keys();
+    
+    const stats = {
+      totalRequests,
+      cacheHits,
+      cacheMisses,
+      cacheSize: keys.length,
+      hitRate: totalRequests > 0 ? cacheHits / totalRequests : 0,
+      avgLoadTime: loadMetrics.length > 0 ? 
+        loadMetrics.reduce((sum, m) => sum + m.loadTime, 0) / loadMetrics.length : 0,
+      networkSavings: Math.round((cacheHits / Math.max(totalRequests, 1)) * 100)
+    };
+    
+    event.ports[0]?.postMessage({
+      type: 'CACHE_STATS_RESPONSE',
+      messageId: data.messageId,
+      stats
+    });
+  } else if (data.type === 'PRELOAD_IMAGES') {
+    const { imageUrls, priority = 'normal' } = data;
+    console.log(`[SW] Preloading ${imageUrls.length} images with ${priority} priority`);
+    
+    await preloadImages(imageUrls, priority);
+  }
+});

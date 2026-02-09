@@ -1,6 +1,8 @@
 // Intelligent Image Preloader for Card Images
 // Provides connection-aware preloading with throttling
 
+import { serviceWorkerMonitor } from './serviceWorkerMonitor';
+
 interface NetworkInformation {
   effectiveType?: 'slow-2g' | '2g' | '3g' | '4g';
   saveData?: boolean;
@@ -71,8 +73,8 @@ class ImagePreloader {
 
     try {
       await promise;
-      // Add memory management - limit to 500 cached items
-      if (this.loadedImages.size > 500) {
+      // Add memory management - limit to 3000 cached items
+      if (this.loadedImages.size > 3000) {
         const firstItem = this.loadedImages.values().next().value;
         this.loadedImages.delete(firstItem);
       }
@@ -92,6 +94,7 @@ class ImagePreloader {
         }
 
         this.activeRequests++;
+        const startTime = Date.now();
         
         const img = new Image();
         
@@ -105,11 +108,14 @@ class ImagePreloader {
         };
 
         img.onload = () => {
+          // Track performance - assume it came from network if not in service worker cache
+          serviceWorkerMonitor.trackImageLoad(url, startTime, false);
           cleanup();
           resolve();
         };
-
+        
         img.onerror = () => {
+          serviceWorkerMonitor.trackImageLoad(url, startTime, false);
           cleanup();
           reject(new Error(`Failed to load image: ${url}`));
         };
@@ -167,7 +173,7 @@ class ImagePreloader {
       
       // Brief pause between batches for lower priority
       if (priority !== 'high' && batches.length > 1) {
-        await new Promise(resolve => setTimeout(resolve, priority === 'low' ? 200 : 50));
+        await new Promise(resolve => setTimeout(resolve, priority === 'low' ? 200 : 15));
       }
     }
 
@@ -178,7 +184,7 @@ class ImagePreloader {
   private getBatchSize(priority: string): number {
     const nav = navigator as { connection?: NetworkInformation };
     const connection = nav.connection;
-    let baseSize = 10;
+    let baseSize = 20;
     
     if (connection?.effectiveType === 'slow-2g' || connection?.effectiveType === '2g') {
       baseSize = 3;
@@ -251,7 +257,7 @@ export const preloadGameImages = async (gameState: any) => {
 
 export const preloadSearchResults = async (searchResults: Array<{ featured_image?: string }>) => {
   const imageUrls = searchResults
-    .slice(0, 20) // Only preload first 20 results
+    .slice(0, 100) // Only preload first 100 results
     .map(card => card.featured_image)
     .filter((url): url is string => !!url);
   

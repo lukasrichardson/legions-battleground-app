@@ -210,7 +210,7 @@ export default function SearchPane({
                 {cards.map((card, index) => (
                   <div
                     key={card.toString() + index}
-                    className="max-w-full xs:max-w-1/2 sm:max-w-1/3 md:max-w-1/4 lg:max-w-1/6 cursor-pointer max-h-full inline-block box-border relative"
+                    className="w-full xs:w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 cursor-pointer max-h-full inline-block box-border relative"
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
                     
