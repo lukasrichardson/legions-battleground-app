@@ -167,15 +167,14 @@ export default function CardInner({
       CARD_TARGET.P1_PLAYER_REVEALED,
       CARD_TARGET.P2_PLAYER_REVEALED
     ].includes(cardTarget),
-
     hasCooldown: cardTarget.includes("VeilRealm") ||
       cardTarget.includes("Warlord") ||
       cardTarget.includes("Synergy")
   }), [cardTarget]);
 
   const { cardInView, hasCooldown } = cardVisibilitySettings;
-
   const isPlayerHandCard = (p1Side && cardTarget === CARD_TARGET.P1_PLAYER_HAND) || (!p1Side && cardTarget === CARD_TARGET.P2_PLAYER_HAND);
+
   const isWarlord = useMemo(() => {
     return cardTarget === CARD_TARGET.P1_PLAYER_WARLORD || cardTarget === CARD_TARGET.P2_PLAYER_WARLORD;
   }, [cardTarget]);
@@ -190,7 +189,6 @@ export default function CardInner({
       scale: rotated ? -1 : 1,
       ['--index' as string]: index,
     };
-
     if (!inPileView && !cardInView && typeof index === 'number') {
       return {
         ...baseStyle,
@@ -198,7 +196,6 @@ export default function CardInner({
         marginTop: `calc(${index} * ${PILE_OFFSETS.TOP}px)`,
       };
     }
-
     return { ...baseStyle, marginLeft: 0, marginTop: 0 };
   }, [selected, rotated, inPileView, cardInView, index]);
 
@@ -250,7 +247,7 @@ export default function CardInner({
                 loading="eager"
                 priority
                 onLoad={() => setImageLoaded(true)}
-                onError={() => setImageLoaded(true)} // Show even if image fails to load
+                onError={() => setImageLoaded(true)}
               /></>
           ) : <span>{card?.name}</span>}
           {(!cardInView && index === 0 && faceUp) && <>

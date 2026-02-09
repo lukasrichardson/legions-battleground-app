@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { PLACEHOLDER } from "./components/CardTile";
 import { Card, CardContent} from "@/client/ui/card";
 
@@ -8,12 +9,14 @@ export default function Preview({hoveredCard}: {hoveredCard: {title: string; tex
         {hoveredCard ? (
           <div className="h-full flex justify-center">
             <div className="h-full rounded-lg flex-2 flex items-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={hoveredCard.featured_image}
                 alt={hoveredCard.title}
                 onError={(e) => ((e.currentTarget as HTMLImageElement).src = PLACEHOLDER)}
                 className="aspect-[3/4] h-auto object-cover hover:scale-250 hover:top-0 hover:right-0 transition-transform duration-200 origin-top-right hover:z-95"
+                unoptimized
+                width={400}
+                height={400}
               />
             </div>
             <div className="space-y-2 flex-4 h-full overflow-scroll">

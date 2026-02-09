@@ -9,6 +9,7 @@ import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
 import { Card, CardContent } from "@/client/ui/card";
 import { useAuth } from "@/client/hooks/useAuth";
+import Image from "next/image";
 
 interface ToolboxCard {
   qty: number,
@@ -242,22 +243,17 @@ export default function PreviewDeckModal() {
               {([warlord, realm, synergy, guardian, ...(warriors || []), ...(unifieds || []), ...(fortifieds || [])] as ToolboxCard[])
                 .map((card, index) => (
                   card?
-                  <img
+                  <Image
                     style={{ position: 'relative' }}
                     src={card.image}
                     alt="card"
                     height={120}
                     width={90}
                     key={(card.id ?? 'card') + index.toString()}
-                  /> : null
-                  // <Image
-                  //   style={{ position: 'relative' }}
-                  //   src={card.image}
-                  //   alt="card"
-                  //   height={120}
-                  //   width={90}
-                  //   key={(card.id ?? 'card') + index.toString()}
-                  // />
+                    unoptimized
+                  />
+                  : null
+                  
                 ))}
             </div>
           </div>

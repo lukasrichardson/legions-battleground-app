@@ -91,7 +91,7 @@ export default function Home() {
             </h1>
             <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
               {HomeDescription}{"   "}
-            <span className="text-green-500">Powered By <a className="!underline" href="https://legionstoolbox.com" target="_blank" rel="noopener noreferrer">Legions Toolbox</a></span>
+            <span className="text-green-500">Powered By <a className="!underline" href="https://legionstoolbox.com" target="_blank" rel="noopener noreferrer">LegionsToolbox.com</a></span>
             </p>
             <AuthButtons />
           </div>

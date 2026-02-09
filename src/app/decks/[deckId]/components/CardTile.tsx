@@ -1,4 +1,5 @@
 import { CardDocument } from "@/client/interfaces/Card.mongo";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export const PLACEHOLDER =
@@ -22,12 +23,14 @@ export const renderCardTile = (card: { id: string | number; title: string; featu
     className="overflow-hidden rounded-xl border border-black bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md h-fit cursor-pointer"
   >
     <div className="aspect-[3/4] w-full overflow-hidden rounded-lg">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={card?.featured_image}
         alt={card?.title || "DECK IMAGE"}
         onError={(e) => ((e.currentTarget as HTMLImageElement).src = PLACEHOLDER)}
         className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+        unoptimized
+        width={400}
+        height={400}
       />
     </div>
   </div>)

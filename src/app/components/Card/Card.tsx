@@ -1,11 +1,11 @@
-import IMenuItem from '@/client/interfaces/IMenuItem';
+import IMenuItem, { INewMenuItem } from '@/client/interfaces/IMenuItem';
 import { MouseEventHandler, useCallback, useMemo, useState } from 'react';
 import { CardInterface } from "@/client/interfaces/CardInterface";
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { useAppDispatch, useAppSelector } from '@/client/redux/hooks';
 import { clearCardInFocus, focusCard, setPileInView, moveCard, selectCard, clearSelectedCard, flipCard, increaseAttackModifier, decreaseAttackModifier, increaseOtherModifier, decreaseOtherModifier, increaseCooldown, decreaseCooldown } from '@/client/redux/gameStateSlice';
 
-import { cardMenuItems, deckMenuItems } from '@/client/constants/cardMenu.constants';
+import { cardMenuItems, deckMenuItems, newCardMenuItems } from '@/client/constants/cardMenu.constants';
 import { GAME_EVENT } from '@/client/enums/GameEvent';
 import { emitGameEvent } from '@/client/utils/emitEvent';
 import MenuItemAction from '@/client/enums/MenuItemAction';
@@ -18,7 +18,8 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
   const { cardInFocus, side } = state;
   const { selectedCard } = state.game;
   const dispatch = useAppDispatch();
-  
+  const { legacyMenu } = useAppSelector((state) => state.clientSettings);
+
 
   const handlePopoverVisibleChange = () => {
     if (hidden) return;
@@ -27,7 +28,103 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
   const closePopover = () => {
     setIsPopoverVisible(false);
   }
-  const onMenuItemClick = useCallback((items: IMenuItem[], key: string | number) => {
+  const newonMenuItemClick = useCallback((items: INewMenuItem[], key: string | number) => {
+    const menuItemClicked: INewMenuItem | undefined = items?.find((item) => item.key === key || item.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key)));
+    switch (menuItemClicked?.target) {
+      case CARD_TARGET.CONTROLLER_HAND:
+        dispatch(moveCard({
+          id: card.id,
+          target: side === "p1" ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND,
+          from: cardTarget,
+        }));
+        emitGameEvent({
+          type: GAME_EVENT.moveCard, data: {
+            id: card.id,
+            target: side === "p1" ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND,
+            from: { target: cardTarget, targetIndex: zoneIndex },
+          }
+        });
+        break;
+      case CARD_TARGET.CONTROLLER_DISCARD:
+        dispatch(moveCard({
+          id: card.id,
+          target: side === "p1" ? CARD_TARGET.P1_PLAYER_DISCARD : CARD_TARGET.P2_PLAYER_DISCARD,
+          from: cardTarget,
+        }));
+        emitGameEvent({
+          type: GAME_EVENT.moveCard, data: {
+            id: card.id,
+            target: side === "p1" ? CARD_TARGET.P1_PLAYER_DISCARD : CARD_TARGET.P2_PLAYER_DISCARD,
+            from: { target: cardTarget, targetIndex: zoneIndex },
+          }
+        });
+        break;
+      case CARD_TARGET.CONTROLLER_ERADICATION:
+        dispatch(moveCard({
+          id: card.id,
+          target: side === "p1" ? CARD_TARGET.P1_PLAYER_ERADICATION : CARD_TARGET.P2_PLAYER_ERADICATION,
+          from: cardTarget,
+        }));
+        emitGameEvent({
+          type: GAME_EVENT.moveCard, data: {
+            id: card.id,
+            target: side === "p1" ? CARD_TARGET.P1_PLAYER_ERADICATION : CARD_TARGET.P2_PLAYER_ERADICATION,
+            from: { target: cardTarget, targetIndex: zoneIndex },
+          }
+        });
+        break;
+      case CARD_TARGET.CONTROLLER_REVEALED:
+        dispatch(moveCard({
+          id: card.id,
+          target: side === "p1" ? CARD_TARGET.P1_PLAYER_REVEALED : CARD_TARGET.P2_PLAYER_REVEALED,
+          from: cardTarget,
+        }));
+        emitGameEvent({
+          type: GAME_EVENT.moveCard, data: {
+            id: card.id,
+            target: side === "p1" ? CARD_TARGET.P1_PLAYER_REVEALED : CARD_TARGET.P2_PLAYER_REVEALED,
+            from: { target: cardTarget, targetIndex: zoneIndex },
+          }
+        });
+        break;
+      case CARD_TARGET.CONTROLLER_DECK:
+        if (menuItemClicked?.label?.includes("Bottom")) {
+          dispatch(moveCard({
+            id: card.id,
+            target: side === "p1" ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK,
+            from: cardTarget,
+            targetIndex: undefined,
+            bottom: true
+          }));
+          emitGameEvent({
+            type: GAME_EVENT.moveCard, data: {
+              id: card.id,
+              target: side === "p1" ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK,
+              from: { target: cardTarget, targetIndex: zoneIndex },
+              bottom: true
+            }
+          });
+        } else {
+
+          dispatch(moveCard({
+            id: card.id,
+            target: side === "p1" ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK,
+            from: cardTarget,
+          }));
+          emitGameEvent({
+            type: GAME_EVENT.moveCard, data: {
+              id: card.id,
+              target: side === "p1" ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK,
+              from: { target: cardTarget, targetIndex: zoneIndex },
+            }
+          });
+        }
+        break;
+      default:
+        break;
+    }
+  }, [card, cardTarget, dispatch, zoneIndex, side]);
+  const legacyonMenuItemClick = useCallback((items: IMenuItem[], key: string | number) => {
     const menuItemClicked: IMenuItem | undefined = items?.find((item) => item.key === key || item.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key)));
     switch (menuItemClicked?.menuAction) {
       case MenuItemAction.MOVE:
@@ -51,20 +148,20 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
           type: GAME_EVENT.moveCard, data: {
             id: card.id,
             target: child?.title,
-            from: {target: cardTarget, targetIndex: zoneIndex},
+            from: { target: cardTarget, targetIndex: zoneIndex },
             targetIndex,
             bottom
           }
         });
         break;
       case MenuItemAction.VIEW:
-        emitGameEvent({type: side === "p1" ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: {cardTarget, limit: null}})
+        emitGameEvent({ type: side === "p1" ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: null } })
         dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex }));
         closePopover();
         break;
       case MenuItemAction.VIEW_TOP_X:
         const viewXChild = menuItemClicked?.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key));
-        emitGameEvent({type: side === "p1" ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: {cardTarget, limit: viewXChild?.title}})
+        emitGameEvent({ type: side === "p1" ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: viewXChild?.title } })
         dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewXChild?.title }));
         closePopover();
         break;
@@ -107,7 +204,12 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
     }
   }
 
-  const cardMenuItemsFiltered = useMemo(() => {
+  const newcardMenuItemsFiltered = useMemo(() => {
+    const filteredMenuItems = [...newCardMenuItems];
+    return filteredMenuItems;
+  }, []);
+
+  const legacycardMenuItemsFiltered = useMemo(() => {
     let filteredMenuItems = [...cardMenuItems];
     if (inPileView) filteredMenuItems = filteredMenuItems.filter(item => item.menuAction != MenuItemAction.VIEW);
     if (cardTarget.includes("Deck")) filteredMenuItems = [...filteredMenuItems, ...deckMenuItems];
@@ -128,81 +230,93 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
   const focused = cardInFocus?.id === card.id;
 
   const handleIncreaseAttackModifier = useCallback(() => {
-      dispatch(increaseAttackModifier({ cardTarget, cardIndex: index, zoneIndex }));
-      emitGameEvent({ type: GAME_EVENT.increaseCardAttackModifier, data: {
+    dispatch(increaseAttackModifier({ cardTarget, cardIndex: index, zoneIndex }));
+    emitGameEvent({
+      type: GAME_EVENT.increaseCardAttackModifier, data: {
         cardTarget,
         cardIndex: index,
         zoneIndex
-      }});
+      }
+    });
   }, [cardTarget, index, zoneIndex, dispatch]);
   const handleDecreaseAttackModifier = useCallback(() => {
     dispatch(decreaseAttackModifier({ cardTarget, cardIndex: index, zoneIndex }));
-    emitGameEvent({ type: GAME_EVENT.decreaseCardAttackModifier, data: {
-      cardTarget,
-      cardIndex: index,
-      zoneIndex
-    }});
+    emitGameEvent({
+      type: GAME_EVENT.decreaseCardAttackModifier, data: {
+        cardTarget,
+        cardIndex: index,
+        zoneIndex
+      }
+    });
   }, [cardTarget, index, zoneIndex, dispatch]);
   const handleIncreaseOtherModifier = useCallback(() => {
     dispatch(increaseOtherModifier({ cardTarget, cardIndex: index, zoneIndex }));
-    emitGameEvent({ type: GAME_EVENT.increaseCardOtherModifier, data: {
-      cardTarget,
-      cardIndex: index,
-      zoneIndex
-    }});
-  },[cardTarget, index, zoneIndex, dispatch]);
+    emitGameEvent({
+      type: GAME_EVENT.increaseCardOtherModifier, data: {
+        cardTarget,
+        cardIndex: index,
+        zoneIndex
+      }
+    });
+  }, [cardTarget, index, zoneIndex, dispatch]);
 
   const handleDecreaseOtherModifier = useCallback(() => {
     dispatch(decreaseOtherModifier({ cardTarget, cardIndex: index, zoneIndex }));
-    emitGameEvent({ type: GAME_EVENT.decreaseCardOtherModifier, data: {
-      cardTarget,
-      cardIndex: index,
-      zoneIndex
-    }});
+    emitGameEvent({
+      type: GAME_EVENT.decreaseCardOtherModifier, data: {
+        cardTarget,
+        cardIndex: index,
+        zoneIndex
+      }
+    });
   }, [cardTarget, index, zoneIndex, dispatch]);
 
   const handleIncreaseCooldown = useCallback(() => {
     dispatch(increaseCooldown({ cardTarget, cardIndex: index, zoneIndex }));
-    emitGameEvent({ type: GAME_EVENT.increaseCardCooldown, data: {
-      cardTarget,
-      cardIndex: index,
-      zoneIndex
-    }});
-  },[cardTarget, index, zoneIndex, dispatch]);
+    emitGameEvent({
+      type: GAME_EVENT.increaseCardCooldown, data: {
+        cardTarget,
+        cardIndex: index,
+        zoneIndex
+      }
+    });
+  }, [cardTarget, index, zoneIndex, dispatch]);
 
   const handleDecreaseCooldown = useCallback(() => {
     dispatch(decreaseCooldown({ cardTarget, cardIndex: index, zoneIndex }));
-    emitGameEvent({ type: GAME_EVENT.decreaseCardCooldown, data: {
-      cardTarget,
-      cardIndex: index,
-      zoneIndex
-    }});
+    emitGameEvent({
+      type: GAME_EVENT.decreaseCardCooldown, data: {
+        cardTarget,
+        cardIndex: index,
+        zoneIndex
+      }
+    });
   }, [cardTarget, index, zoneIndex, dispatch]);
 
   return (
-      <CardInner
-        card={card}
-        selected={selected}
-        faceUp={faceUp}
-        cardTarget={cardTarget}
-        cardMenuItems={cardMenuItemsFiltered}
-        isPopoverVisible={isPopoverVisible}
-        inPileView={inPileView}
-        hidden={hidden}
-        focused={focused}
-        index={index}
-        zoneIndex={zoneIndex}
-        handlePopoverVisibleChange={handlePopoverVisibleChange}
-        onMenuItemClick={onMenuItemClick}
-        handleCardBlur={handleCardBlur}
-        handleCardHover={handleCardHover}
-        handleCardRightClick={handleCardRightClick}
-        handleIncreaseAttackModifier={handleIncreaseAttackModifier}
-        handleDecreaseAttackModifier={handleDecreaseAttackModifier}
-        handleIncreaseOtherModifier={handleIncreaseOtherModifier}
-        handleDecreaseOtherModifier={handleDecreaseOtherModifier}
-        handleIncreaseCooldown={handleIncreaseCooldown}
-        handleDecreaseCooldown={handleDecreaseCooldown}
-        />
+    <CardInner
+      card={card}
+      selected={selected}
+      faceUp={faceUp}
+      cardTarget={cardTarget}
+      cardMenuItems={legacyMenu ? legacycardMenuItemsFiltered : newcardMenuItemsFiltered}
+      isPopoverVisible={isPopoverVisible}
+      inPileView={inPileView}
+      hidden={hidden}
+      focused={focused}
+      index={index}
+      zoneIndex={zoneIndex}
+      handlePopoverVisibleChange={handlePopoverVisibleChange}
+      onMenuItemClick={legacyMenu ? legacyonMenuItemClick : newonMenuItemClick}
+      handleCardBlur={handleCardBlur}
+      handleCardHover={handleCardHover}
+      handleCardRightClick={handleCardRightClick}
+      handleIncreaseAttackModifier={handleIncreaseAttackModifier}
+      handleDecreaseAttackModifier={handleDecreaseAttackModifier}
+      handleIncreaseOtherModifier={handleIncreaseOtherModifier}
+      handleDecreaseOtherModifier={handleDecreaseOtherModifier}
+      handleIncreaseCooldown={handleIncreaseCooldown}
+      handleDecreaseCooldown={handleDecreaseCooldown}
+    />
   );
 }

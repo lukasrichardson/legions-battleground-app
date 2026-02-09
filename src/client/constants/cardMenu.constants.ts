@@ -1,6 +1,57 @@
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import MenuItemAction from '@/client/enums/MenuItemAction';
-import IMenuItem from '@/client/interfaces/IMenuItem';
+import IMenuItem, { INewMenuItem } from '@/client/interfaces/IMenuItem';
+
+export const newCardMenuItems: INewMenuItem[] = [
+  {
+    key: "0",
+    title: "moveToHand",
+    icon: null,
+    menuAction: MenuItemAction.MOVE,
+    target: CARD_TARGET.CONTROLLER_HAND,
+    label: "-> Hand",
+  },
+  {
+    key: "1",
+    title: "moveToDiscard",
+    icon: null,
+    menuAction: MenuItemAction.MOVE,
+    target: CARD_TARGET.CONTROLLER_DISCARD,
+    label: "-> Discard",
+  },
+  {
+    key: "2",
+    title: "moveToEradication",
+    icon: null,
+    menuAction: MenuItemAction.MOVE,
+    target: CARD_TARGET.CONTROLLER_ERADICATION,
+    label: "-> Eradication",
+  },
+  {
+    key: "3",
+    title: "moveToRevealed",
+    icon: null,
+    menuAction: MenuItemAction.MOVE,
+    target: CARD_TARGET.CONTROLLER_REVEALED,
+    label: "-> Revealed",
+  },
+  {
+    key: "4",
+    title: "moveToBottomDeck",
+    icon: null,
+    menuAction: MenuItemAction.MOVE,
+    target: CARD_TARGET.CONTROLLER_DECK,
+    label: "-> Bottom of Deck",
+  },
+  {
+    key: "5",
+    title: "moveToTopDeck",
+    icon: null,
+    menuAction: MenuItemAction.MOVE,
+    target: CARD_TARGET.CONTROLLER_DECK,
+    label: "-> Top of Deck",
+  },
+]
 export const cardMenuItems: IMenuItem[] = [
   {
     key: "0",

@@ -2,8 +2,10 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 const initialState: {
   hoverMenu: boolean;
+  legacyMenu: boolean;
 } = {
-  hoverMenu: true
+  hoverMenu: true,
+  legacyMenu: true
 }
 
 const clientSettingsSlice = createSlice({
@@ -12,10 +14,13 @@ const clientSettingsSlice = createSlice({
   reducers: {
     setHoverMenu: (state, action: PayloadAction<boolean>) => {
       state.hoverMenu = action.payload;
+    },
+    setLegacyMenu: (state, action: PayloadAction<boolean>) => {
+      state.legacyMenu = action.payload;
     }
   }
 });
 
-export const { setHoverMenu } = clientSettingsSlice.actions;
+export const { setHoverMenu, setLegacyMenu } = clientSettingsSlice.actions;
 
 export default clientSettingsSlice.reducer;

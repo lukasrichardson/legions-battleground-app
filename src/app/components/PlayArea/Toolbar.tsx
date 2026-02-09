@@ -11,7 +11,7 @@ import { ROOM_EVENT } from "@/client/enums/RoomEvent";
 import { resetState } from "@/client/redux/gameStateSlice";
 import { useEffect, useRef } from "react";
 import CardPreview from "../Card/CardPreview";
-import { setHoverMenu } from "@/client/redux/clientSettingsSlice";
+import useClientSettings from "@/client/hooks/useClientSettings";
 
 const ToolbarConstants = {
   GameLogHeaderText: "Game Log",
@@ -28,7 +28,7 @@ export default function Toolbar({ }) {
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
-  const clientSettings = useAppSelector((state) => state.clientSettings);
+  const { hoverMenu, setHoverMenu, legacyMenu, setLegacyMenu } = useClientSettings();
   const gameLogRef = useRef<HTMLDivElement>(null);
   const { side } = gameState;
   const p1 = side === "p1";
@@ -119,7 +119,11 @@ export default function Toolbar({ }) {
         <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => dispatch(openHelpModal())}>{HelpButtonText}</button>
         <div>
           <label htmlFor="hoverMenu" className="text-xs mr-1">Show Menu On Hover:</label>
-          <input name="hoverMenu" type="checkbox" checked={clientSettings.hoverMenu} onChange={() => dispatch(setHoverMenu(!clientSettings.hoverMenu))}/>
+          <input name="hoverMenu" type="checkbox" checked={hoverMenu} onChange={() => setHoverMenu(!hoverMenu)}/>
+        </div>
+        <div>
+          <label htmlFor="legacyMenu" className="text-xs mr-1">Use Legacy Menu:</label>
+          <input name="legacyMenu" type="checkbox" checked={legacyMenu} onChange={() => setLegacyMenu(!legacyMenu)}/>
         </div>
       </div>
     </div>

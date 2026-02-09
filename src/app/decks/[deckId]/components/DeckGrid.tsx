@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import { Button } from "@/client/ui/button";
 import { CardInDeck, DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { CARD_TYPE } from "@/shared/enums/CardType";
-import { render } from "react-dom";
 
 const renderLeftSideSection = (cards: CardDocument[], handleDeckCardClick, setHoveredCard) => {
   if (!cards || cards.length === 0) return null;

@@ -31,5 +31,10 @@ export enum CARD_TARGET {
 
   CONTROLLER_DECK = "controllerDeck",
   CONTROLLER_HAND = "controllerHand",
+  CONTROLLER_DISCARD = "controllerDiscard",
+  CONTROLLER_ERADICATION = "controllerEradication",
+  CONTROLLER_FORTIFIED = "controllerFortified",
+  CONTROLLER_UNIFIED = "controllerUnified",
   CONTROLLER_WARRIOR = "controllerWarrior",
+  CONTROLLER_REVEALED = "controllerRevealed",
 }
