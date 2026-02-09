@@ -210,7 +210,7 @@ export default function SearchPane({
                 {cards.map((card, index) => (
                   <div
                     key={card.toString() + index}
-                    className="max-w-full xs:max-w-1/2 sm:max-w-1/3 md:max-w-1/4 lg:max-w-1/6 cursor-pointer max-h-full inline-block box-border"
+                    className="max-w-full xs:max-w-1/2 sm:max-w-1/3 md:max-w-1/4 lg:max-w-1/6 cursor-pointer max-h-full inline-block box-border relative"
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
                     
@@ -221,7 +221,7 @@ export default function SearchPane({
                 {cards.map((card, index) => (
                   <div
                     key={card.toString() + index}
-                    className="max-w-1/3 xs:max-w-1/4 sm:max-w-1/6 md:max-w-1/7 lg:max-w-1/5 cursor-pointer max-h-full inline-block box-border"
+                    className="w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-1/5 cursor-pointer max-h-full inline-block box-border"
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
                     

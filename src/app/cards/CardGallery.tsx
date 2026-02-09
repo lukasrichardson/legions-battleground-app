@@ -1,7 +1,7 @@
 import { CardDocument } from "@/client/interfaces/Card.mongo";
 import { useState } from "react";
 import SearchPane from "../decks/[deckId]/components/SearchPane";
-import Image from "next/image";
+import CardImage from "../components/Card/CardImage";
 
 export const CardGallery = () => {
   const [hoveredCard, setHoveredCard] = useState<CardDocument | null>(null);
@@ -24,12 +24,10 @@ export const CardGallery = () => {
         </div>
         <div className="hidden lg:flex w-[20%] h-full relative flex-col items-center justify-start">
           <div className="h-1/2 relative aspect-[3/4]">
-            {hoveredCard && <Image
+            {hoveredCard && <CardImage
               src={hoveredCard.featured_image}
               alt={hoveredCard.title || 'Card Preview'}
-              className="hover:scale-200 relative top-0 right-0 transition-transform duration-200 origin-top-right object-contain w-fit"
-              fill
-              unoptimized
+              className="hover:scale-200 top-0 right-0 transition-transform duration-200 origin-top-right object-contain w-fit"
             />}
           </div>
           <div className="h-1/2">

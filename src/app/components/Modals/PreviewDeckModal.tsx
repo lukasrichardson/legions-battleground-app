@@ -3,13 +3,12 @@ import Modal from "./Modal";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { closeImportDeckModal } from "@/client/redux/modalsSlice";
 import axios from "axios";
-// import Image from 'next/image';
 import { useRouter } from "next/navigation";
 import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
 import { Card, CardContent } from "@/client/ui/card";
 import { useAuth } from "@/client/hooks/useAuth";
-import Image from "next/image";
+import CardImage from "../Card/CardImage";
 
 interface ToolboxCard {
   qty: number,
@@ -242,18 +241,16 @@ export default function PreviewDeckModal() {
             <div className="flex flex-wrap gap-2">
               {([warlord, realm, synergy, guardian, ...(warriors || []), ...(unifieds || []), ...(fortifieds || [])] as ToolboxCard[])
                 .map((card, index) => (
-                  card?
-                  <Image
-                    style={{ position: 'relative' }}
-                    src={card.image}
-                    alt="card"
-                    height={120}
-                    width={90}
-                    key={(card.id ?? 'card') + index.toString()}
-                    unoptimized
-                  />
-                  : null
-                  
+                  card ?
+                    <div key={card.id ?? 'card' + index.toString()} className="w-[90px] h-[120px] relative">
+                      <CardImage
+                        src={card.image}
+                        alt={`Card ${index + 1}`}
+                        className="w-24 h-32 object-cover rounded-lg border border-white/20"
+                      />
+                    </div>
+                    : null
+
                 ))}
             </div>
           </div>

@@ -1,9 +1,8 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CardInterface } from "@/client/interfaces/CardInterface";
 import { Popover } from "antd";
-import Image from 'next/image';
 import back_of_card from "PUBLIC/back_of_card.jpg";
-import { MouseEventHandler, useMemo, useState, useEffect, useCallback } from "react";
+import { MouseEventHandler, useMemo, useCallback } from "react";
 import { useDrag } from 'react-dnd';
 import CardMenuComponent from '@/app/components/Card/CardMenu';
 import IMenuItem from "@/client/interfaces/IMenuItem";
@@ -11,13 +10,14 @@ import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { GAME_EVENT } from "@/client/enums/GameEvent";
 import { changeP1AP, changeP1Health, changeP2AP, changeP2Health } from "@/client/redux/gameStateSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
+import CardImage from "./CardImage";
 
-const CARD_DIMENSIONS = {
-  // HEIGHT: 100,
-  // WIDTH: 75,
-  IMAGE_HEIGHT: 108,
-  IMAGE_WIDTH: 81,
-} as const;
+// const CARD_DIMENSIONS = {
+//   HEIGHT: 100,
+//   WIDTH: 75,
+//   IMAGE_HEIGHT: 108,
+//   IMAGE_WIDTH: 81,
+// } as const;
 
 const PILE_OFFSETS = {
   LEFT: 15,
@@ -133,13 +133,9 @@ export default function CardInner({
     e.stopPropagation();
   }, [dispatch, apGameFunction, apGameEvent]);
   const rotated = p1Side ? (!p1Card && !inPileView) : (p1Card && !inPileView);
-  const [imageLoaded, setImageLoaded] = useState(false);
 
   // Reset loading state when image source changes
   const imageSrc = !faceUp ? back_of_card : card.img;
-  useEffect(() => {
-    setImageLoaded(false);
-  }, [imageSrc]);
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "card",
@@ -210,6 +206,7 @@ export default function CardInner({
     inPileOfMinTwo ? "left-0" : "",
     isPlayerHandCard ? "[&:hover]:z-[1000] hover:transform hover:-translate-y-[40%] hover:scale-[1.5]" : "",
   ].join(" "), [cardInView, inPileView, inPileOfMinTwo, isPlayerHandCard]);
+
   return (
     <Popover
       content={<CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} />}
@@ -229,26 +226,12 @@ export default function CardInner({
         >
           {card?.img ? (
             !isDragging && <>
-              {!imageLoaded && (
-                <div className="card-image-loading w-full h-full rounded" />
-              )}
-              <Image
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  position: 'relative',
-                  display: imageLoaded ? 'block' : 'none'
-                }}
+              <CardImage
                 src={imageSrc}
-                alt="image"
-                height={CARD_DIMENSIONS.IMAGE_HEIGHT}
-                width={CARD_DIMENSIONS.IMAGE_WIDTH}
-                unoptimized
-                loading="eager"
-                priority
-                onLoad={() => setImageLoaded(true)}
-                onError={() => setImageLoaded(true)}
-              /></>
+                alt={card?.name || "Card Image"}
+                className="object-contain transition-transform duration-200 group-hover:scale-[1.03] w-full h-full"
+              />
+              </>
           ) : <span>{card?.name}</span>}
           {(!cardInView && index === 0 && faceUp) && <>
             <div className="absolute top-0 right-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full">

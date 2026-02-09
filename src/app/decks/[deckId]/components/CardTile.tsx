@@ -1,5 +1,5 @@
+import CardImage from "@/app/components/Card/CardImage";
 import { CardDocument } from "@/client/interfaces/Card.mongo";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export const PLACEHOLDER =
@@ -20,17 +20,13 @@ export const renderCardTile = (card: { id: string | number; title: string; featu
     key={card?.id.toString() + index}
     onMouseEnter={() => onMouseEnter(card)}
     onClick={() => onMouseEnter(card)}
-    className="overflow-hidden rounded-xl border border-black bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md h-fit cursor-pointer"
+    className="overflow-hidden rounded-sm text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md h-full w-full cursor-pointer"
   >
-    <div className="aspect-[3/4] w-full overflow-hidden rounded-lg">
-      <Image
+    <div className="aspect-[3/4] w-full h-full overflow-hidden rounded-lg relative">
+      <CardImage
         src={card?.featured_image}
         alt={card?.title || "DECK IMAGE"}
-        onError={(e) => ((e.currentTarget as HTMLImageElement).src = PLACEHOLDER)}
-        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
-        unoptimized
-        width={400}
-        height={400}
+        className="object-contain transition-transform duration-200 group-hover:scale-[1.03]"
       />
     </div>
   </div>)

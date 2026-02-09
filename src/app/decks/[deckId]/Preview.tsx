@@ -1,25 +1,20 @@
-import Image from "next/image";
-import { PLACEHOLDER } from "./components/CardTile";
-import { Card, CardContent} from "@/client/ui/card";
+import { Card, CardContent } from "@/client/ui/card";
+import CardImage from "@/app/components/Card/CardImage";
 
-export default function Preview({hoveredCard}: {hoveredCard: {title: string; text: string; featured_image: string}}) {
+export default function Preview({ hoveredCard }: { hoveredCard: { title: string; text: string; featured_image: string } }) {
   return (
     <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
       <CardContent className="p-0 flex-1 h-full">
         {hoveredCard ? (
           <div className="h-full flex justify-center">
-            <div className="h-full rounded-lg flex-2 flex items-center">
-              <Image
+            <div className="rounded-lg flex items-start justify-center relative w-1/2">
+              <CardImage
                 src={hoveredCard.featured_image}
                 alt={hoveredCard.title}
-                onError={(e) => ((e.currentTarget as HTMLImageElement).src = PLACEHOLDER)}
-                className="aspect-[3/4] h-auto object-cover hover:scale-250 hover:top-0 hover:right-0 transition-transform duration-200 origin-top-right hover:z-95"
-                unoptimized
-                width={400}
-                height={400}
-              />
+                className="aspect-[3/4] object-contain hover:scale-250 hover:top-0 hover:right-0 transition-transform duration-200 origin-top-right hover:z-95"
+                />
             </div>
-            <div className="space-y-2 flex-4 h-full overflow-scroll">
+            <div className="space-y-2 w-1/2 h-full overflow-scroll">
               <h3 className="text-sm font-semibold text-white">{hoveredCard.title}</h3>
               <div className="bg-white/5 rounded-lg p-2">
                 <p className="text-xs leading-relaxed text-gray-300 whitespace-pre-wrap">{hoveredCard.text}</p>
