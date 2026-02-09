@@ -51,7 +51,7 @@ src/
 │   ├── constants/         # Game constants and initial state (InitialGameState.ts, cardMenu.constants.ts)
 │   ├── data/              # Card data (cards.ts)
 │   ├── enums/             # Client-specific enums (GameEvent, MenuItemAction, RoomEvent)
-│   ├── hooks/             # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize)
+│   ├── hooks/             # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize, useClientSettings)
 │   ├── interfaces/        # TypeScript interfaces (Card, GameState, IMenuItem)
 │   ├── lib/               # Utility functions (utils.ts for className merging)
 │   ├── redux/             # State management with multiple slices
@@ -77,6 +77,7 @@ src/
 │   │   ├── emitEvent.ts   # Socket event emission utilities
 │   │   ├── gameState.utils.ts # Game state manipulation utilities
 │   │   ├── imagePreloader.ts  # Intelligent image preloading with connection awareness
+│   │   ├── serviceWorkerMonitor.ts # Service Worker performance monitoring
 │   │   └── string.util.ts # String utility functions
 │   └── socket.js          # Socket.IO client setup
 ├── server/                 # Express backend with Socket.IO and MongoDB
@@ -168,7 +169,7 @@ src/
 - **Responsive Design:** Mobile-friendly interface with adaptive layouts and hidden elements on smaller screens
 - **Game Log System:** Auto-scrolling game log display with conditional rendering based on game mode
 - **Intelligent Image Preloading:** Connection-aware image preloading system with Service Worker integration and memory management
-- **Client Settings:** Configurable UI preferences including hover menu controls and other client-side settings
+- **Client Settings:** Configurable UI preferences including hover menu controls and other client-side settings with localStorage persistence
 
 ## Database & External APIs
 - **MongoDB:** Game rooms, player data, and persistent game states with user-specific deck collections (using 'test' database for development)
@@ -198,8 +199,7 @@ node scripts/fetchCards.ts  # Seed MongoDB with card data from Legions ToolBox A
 - **Database:** MongoDB for persistent rooms and game data
 - **External API:** Legions ToolBox for deck imports and card data
 - **Asset Loading:** Next.js Image optimization for remote card images
-- **Deployment:** Dockerized with health check monitoring
-
+- **Deployment:** Dockerized with health check monitoring- **Client Settings:** Persistent UI preferences via clientSettingsSlice and localStorage
 ## Game-Specific Patterns
 - **Card Actions:** Client UI → Redux action → Socket event → Server validation → MongoDB → Broadcast
 - **Room Management:** REST API for room creation, Socket.IO for real-time room events
@@ -246,9 +246,10 @@ node scripts/fetchCards.ts  # Seed MongoDB with card data from Legions ToolBox A
 ## Component Architecture Patterns
 - **Card Components:** Modular card display system with CardInner.tsx for reusable card logic
 - **Drag & Drop System:** React DnD integration with zone index tracking for multi-zone card arrays
-- **Modal System:** Centralized modal components with consistent styling and behavior, streamlined UI without header icons for cleaner presentation
-- **Deck Builder Components:** Specialized components for deck editing (CardTile.tsx, DeckGrid.tsx, SearchPane.tsx, Preview.tsx)
+- **Modals:** Centralized modal components with consistent styling and behavior, streamlined UI without header icons for cleaner presentation
+- **Deck Builder Components:** Specialized components for deck editing (CardTile.tsx, DeckEditorHeader.tsx, DeckGrid.tsx, SearchPane.tsx)
 - **Authentication Flow:** OAuth integration with AuthButtons.tsx and protected route middleware
+- **Import Deck Flow:** Import deck functionality integrated within PreviewDeckModal for seamless deck management
 - **Breadcrumb Navigation:** Reusable breadcrumb system for hierarchical navigation
 - **Multiselect Pattern:** Custom multiselect component for filter management across the app
 - **Toolbar Integration:** Conditional UI display based on game mode with game log and sequence state management
@@ -277,6 +278,14 @@ node scripts/fetchCards.ts  # Seed MongoDB with card data from Legions ToolBox A
 - **Backend Integration:** Extend routes with filter parameter validation and MongoDB query building
 - **Filter Options:** Use `fetchFilterOptions()` to populate available filter values dynamically
 
+## Client Settings Architecture
+- **Settings Store:** `clientSettingsSlice.ts` manages UI preferences with Redux Toolkit
+- **Persistent Storage:** `useClientSettings()` hook provides localStorage integration
+- **Available Settings:** `hoverMenu` (boolean), `legacyMenu` (boolean) for UI behavior control
+- **Real-time Updates:** Settings changes immediately affect UI without page refresh
+- **Hook Pattern:** Custom hook manages both state access and localStorage persistence
+- **Default Values:** settings default to `true` for both hover and legacy menu options
+
 ## Image Preloading Development Patterns
 - **Preloader Import:** Import `imagePreloader` singleton from `src/client/utils/imagePreloader.ts`
 - **Utility Functions:** Use `preloadDeckImages()`, `preloadGameImages()`, `preloadSearchResults()` for common scenarios
@@ -289,9 +298,11 @@ node scripts/fetchCards.ts  # Seed MongoDB with card data from Legions ToolBox A
 
 ## Client Settings Development Patterns
 - **Settings Import:** Import from `src/client/redux/clientSettingsSlice.ts` for UI preference management
+- **Settings Hook:** Use `useClientSettings()` hook from `src/client/hooks/useClientSettings.ts` for full settings management
 - **State Access:** Use `useAppSelector((state) => state.clientSettings)` to access current settings
-- **Settings Updates:** Dispatch `setHoverMenu()` and other setting actions for real-time UI changes
-- **Persistent Settings:** Consider implementing localStorage persistence for user preferences
+- **Settings Updates:** Dispatch `setHoverMenu()`, `setLegacyMenu()` actions or use hook methods for real-time UI changes
+- **Persistent Settings:** Automatic localStorage persistence via useClientSettings hook
+- **Available Settings:** `hoverMenu` (boolean) and `legacyMenu` (boolean) for UI behavior control
 - **Component Integration:** Add settings controls in toolbar or settings modals with immediate effect
 
 ## Authentication & User Management

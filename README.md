@@ -57,7 +57,7 @@ src/
 │   ├── cards/           # Card browsing pages with advanced filtering
 │   ├── components/       # UI components (Card, Modals, PlayArea, Table, auth)
 │   │   ├── Card/        # Card display components (Card.tsx, CardInner.tsx, CardMenu.tsx, CardPreview.tsx)
-│   │   ├── Modals/      # Modal components (Create/Join Room, Deck Management, Card Pile, Help, etc.)
+│   │   ├── Modals/      # Modal components (Create/Join Room, Deck Management, Card Pile, Help, Preview Deck with Import)
 │   │   ├── PlayArea/    # Game interface components (PlayArea.tsx, Toolbar.tsx, Components.tsx)
 │   │   ├── Table/       # Room table display components
 │   │   ├── auth/        # Authentication UI components (AuthButtons.tsx)
@@ -115,8 +115,8 @@ src/
 │   │   ├── emitEvent.ts       # Socket event emission utilities
 │   │   ├── gameState.utils.ts # Game state manipulation utilities
 │   │   ├── imagePreloader.ts  # Intelligent image preloading with connection awareness
+│   │   ├── serviceWorkerMonitor.ts # Service Worker performance monitoring
 │   │   └── string.util.ts     # String utility functions
-│   └── socket.js       # Socket.IO client setup
 ├── server/             # Backend (Express + Socket.IO)
 │   ├── cards/          # Card schema, effects, keywords, utilities
 │   │   ├── card.schema.ts        # Card data schema
@@ -264,14 +264,14 @@ src/
 
 - **Frontend:**
   - Next.js 15+ (App Router)
-  - TypeScript
+  - TypeScript 5+
   - Tailwind CSS 4.1+
   - shadcn/ui (UI component library)
   - Custom MultiSelect component for advanced filtering
-  - Redux Toolkit
-  - React DnD (drag and drop)
-  - Ant Design (select components)
-  - Radix UI (dropdown, navigation, select)
+  - Redux Toolkit 2.3+
+  - React DnD 16+ (drag and drop)
+  - Ant Design 6.2+ (select components)
+  - Radix UI 2+ (dropdown, navigation, select)
   - NextAuth.js 4.24+ (authentication)
 
 - **Backend:**
@@ -279,12 +279,13 @@ src/
   - Socket.IO 4.8+ (real-time)
   - MongoDB 6.20+ (native client + Mongoose 8.18+)
   - Node.js
-  - TypeScript
+  - TypeScript 5+
   - Node-cron 4.2+ (health monitoring)
   - NextAuth.js (JWT session management)
-  - Cookie-parser (session token handling)
+  - Cookie-parser 1.4+ (session token handling)
   - Body-parser 2.2+ (request parsing)
   - Dotenv 17.2+ (environment configuration)
+  - Axios 1.7+ (API requests)
 
 - **External APIs:**
   - Legions ToolBox API (deck imports)

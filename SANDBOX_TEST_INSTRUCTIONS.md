@@ -1,4 +1,3 @@
-
 # Manual Test Instructions for Sandbox Mode Implementation
 
 ## Test 1: Normal Mode (Default)
@@ -39,11 +38,13 @@
 3. In normal mode, same actions should be properly validated
 
 ## Console Logs to Check
+
 - "Sandbox mode: Manual phase control - skipping auto-progression" 
 - No validation warnings for sandbox mode actions
 - Proper phase progression logs for normal mode
 
 ## UI Elements to Verify
+
 - ✅ Sandbox checkbox in CreateRoomModal (unchecked by default)
 - ✅ Orange indicator in top-right of game screen (sandbox only)
 - ✅ Orange indicator in toolbar (sandbox only)

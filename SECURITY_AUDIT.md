@@ -31,6 +31,7 @@ This repository has been audited for security vulnerabilities before public rele
 ### ✅ Repository Status: **SAFE FOR PUBLIC RELEASE**
 
 #### Environment Variables Required for Deployment:
+
 ```bash
 NEXTAUTH_URL=https://your-domain.com
 NEXTAUTH_SECRET=your-long-random-string
@@ -42,6 +43,7 @@ MONGO_URL=your-mongodb-connection-string
 ```
 
 #### Safe Public Content:
+
 - ✅ README.md - No sensitive information
 - ✅ Source code - Uses environment variables properly  
 - ✅ Package.json - Standard dependencies only
@@ -49,6 +51,7 @@ MONGO_URL=your-mongodb-connection-string
 - ✅ Documentation - Generic examples only
 
 #### Protected Content:
+
 - 🔒 `.env` - Ignored by git, contains real secrets
 - 🔒 `dist/` - Ignored by git, build artifacts
 - 🔒 `node_modules/` - Ignored by git

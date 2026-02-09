@@ -266,9 +266,10 @@ if ('serviceWorker' in navigator) {
 
 ---
 
-## File Structure
+### File Structure
 
-### Image Component Hierarchy
+#### Image Component Hierarchy
+
 ```
 src/app/components/Card/
 ├── CardImage.tsx              # Enhanced Component
@@ -277,7 +278,8 @@ src/app/components/Card/
     └── CardMenu.tsx          # No direct image usage
 ```
 
-### Usage Locations
+#### Usage Locations
+
 ```
 Card Images Used In:
 ├── Game Interface
@@ -295,6 +297,7 @@ Card Images Used In:
 ```
 
 ### Supporting Systems
+
 ```
 Image System Files:
 ├── public/sw.js                          # Service worker cache logic
