@@ -1,9 +1,8 @@
-// import { MultiSelect } from "@/app/components/Multiselect";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CardDocument } from "@/client/interfaces/Card.mongo";
 import { fetchCards, fetchFilterOptions } from "@/client/utils/api.utils";
 import { Input } from "@/client/ui/input";
-import { Card, CardContent} from "@/client/ui/card";
+import { Card, CardContent } from "@/client/ui/card";
 import { Button } from "@/client/ui/button";
 import { MultiSelect } from "@/client/ui/multiselect";
 import { SearchCardTile } from "./CardTile";
@@ -32,6 +31,7 @@ export default function SearchPane({
   const [rarity, setRarity] = useState<string[]>([]);
   const [set, setSet] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const horizontalScrollRef = useRef<HTMLDivElement | null>(null);
 
   // Debounce search query
   useEffect(() => {
@@ -60,22 +60,6 @@ export default function SearchPane({
     getCards();
     getFilterOptions();
   }, [legion, debouncedQuery, page, pageSize, type, rarity, set, deckLegion]);
-
-  // Preload search result images with debouncing
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (cards.length > 0) {
-        console.log(`[SearchPane] Preloading ${Math.min(cards.length, 20)} search result images`);
-        try {
-          preloadSearchResults(cards);
-        } catch (error) {
-          console.warn('[SearchPane] Preload failed:', error);
-        }
-      }
-    }, 300);
-    return () => clearTimeout(timeoutId);
-  }, [cards]);
-
 
   const handleLegionSelect = (legionVal: string[]) => {
     resetPage();
@@ -128,6 +112,9 @@ export default function SearchPane({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = 0;
     }
+    if (horizontalScrollRef.current) {
+      horizontalScrollRef.current.scrollLeft = 0;
+    }
   }
 
   const filterOptionsForDeckLegion = useMemo(() => {
@@ -137,9 +124,44 @@ export default function SearchPane({
       legion: [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"],
     };
   }, [filterOptions, deckLegion]);
+
+  const preloadNextPage = () => {
+    fetchCards({
+      legion: deckLegion && legion.length === 0 ? [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"] : legion,
+      query: debouncedQuery,
+      page: page + 1,
+      pageSize,
+      type,
+      rarity,
+      set
+    }).then(res => {
+      if (res?.cards) {
+        preloadSearchResults(res.cards);
+      } else {
+        console.warn('[SearchPane] Scroll-triggered preload returned no cards');
+      }
+    }).catch(error => {
+      console.warn('[SearchPane] Scroll-triggered preload failed:', error);
+    });
+  }
+
   const handleOnScroll = (e) => {
     e.preventDefault();
     e.currentTarget.scrollLeft += e.deltaY;
+    const scrollPercent = e.currentTarget.scrollLeft / (e.currentTarget.scrollWidth - e.currentTarget.clientWidth);
+    // Trigger next page preload when user scrolls 80% to the right
+    if (scrollPercent > 0.8 && total > pageSize * page) {
+        preloadNextPage();
+    }
+  }
+
+  const handleVerticalScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const scrollPercent = scrollTop / (scrollHeight - clientHeight);
+    // Trigger next page preload when user scrolls 80% down
+    if (scrollPercent > 0.8 && total > pageSize * page) {
+        preloadNextPage();
+    }
   }
 
   return (
@@ -179,9 +201,9 @@ export default function SearchPane({
                 Prev
               </Button>
             )}
-              <div className="text-center text-xs text-gray-300">
+            <div className="text-center text-xs text-gray-300">
               Page {page} of {total / pageSize > 0 ? Math.ceil(total / pageSize) : 1} ({total} cards)
-              </div>
+            </div>
             {total / pageSize > page && (
               <Button onClick={nextPage} size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs">
                 Next
@@ -191,7 +213,7 @@ export default function SearchPane({
         </div>
 
         {/* Cards List - Scrollable with smaller card sizes to match deck */}
-        <div className="grow lg:overflow-auto">
+        <div ref={scrollRef} onScroll={handleVerticalScroll} className="grow lg:overflow-auto">
           {cards.length === 0 ? (
             <div className="text-center py-2 h-full flex flex-col items-center justify-center">
               <div className="w-6 h-6 bg-gray-700/50 rounded-full flex items-center justify-center mb-1">
@@ -204,30 +226,28 @@ export default function SearchPane({
             </div>
           ) : (
             <div
-              ref={scrollRef}
             >
-              {gallery ? <div onWheel={handleOnScroll} className="flex flex-wrap overflow-x-hidden overflow-y-auto">
+              {gallery ? <div onWheel={handleVerticalScroll} className="flex flex-wrap overflow-x-hidden overflow-y-auto">
                 {cards.map((card, index) => (
                   <div
                     key={card.toString() + index}
-                    className="w-full xs:w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 cursor-pointer max-h-full inline-block box-border relative"
+                    className="w-full xs:w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/10 cursor-pointer max-h-full inline-block box-border relative"
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
-                    
+
                     <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
                   </div>
                 ))}
-              </div> : <div onWheel={handleOnScroll} className="lg:flex lg:justify-center lg:flex-wrap h-full overflow-x-scroll overflow-y-hidden lg:overflow-x-hidden lg:overflow-y-auto whitespace-nowrap">
-                {cards.map((card, index) => (
-                  <div
-                    key={card.toString() + index}
-                    className="w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-1/5 cursor-pointer max-h-full inline-block box-border"
-                    onClick={(e) => handleSearchedCardClick(e, card)}
-                  >
-                    
-                    <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
-                  </div>
-                ))}
+              </div> : <div ref={horizontalScrollRef} onWheel={handleOnScroll} className="lg:flex lg:justify-center lg:flex-wrap h-full overflow-x-scroll overflow-y-hidden lg:overflow-x-hidden lg:overflow-y-auto whitespace-nowrap">{cards.map((card, index) => (
+                <div
+                  key={card.toString() + index}
+                  className="w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-1/5 cursor-pointer max-h-full inline-block box-border"
+                  onClick={(e) => handleSearchedCardClick(e, card)}
+                >
+
+                  <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
+                </div>
+              ))}
               </div>}
             </div>
           )}

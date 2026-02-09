@@ -3,8 +3,8 @@
 
 const CACHE_NAME = 'legions-card-images-v1';
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
-const MAX_CONCURRENT_REQUESTS = 10;
-const BATCH_SIZE = 40;
+const MAX_CONCURRENT_REQUESTS = 20;
+const BATCH_SIZE = 10;
 const STORAGE_QUOTA_THRESHOLD = 0.8; // Use max 80% of available storage
 
 // Track concurrent requests to avoid overwhelming network

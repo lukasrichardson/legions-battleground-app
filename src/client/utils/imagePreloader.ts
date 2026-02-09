@@ -131,6 +131,9 @@ class ImagePreloader {
 
   // Preload multiple images with Service Worker integration
   async preloadImages(urls: string[], options: PreloadOptions = {}): Promise<void> {
+    // Track user activity
+    sessionStorage.setItem('lastPreloadTime', Date.now().toString());
+    
     const { priority = 'normal' } = options;
     
     if (!urls.length) return;
@@ -265,12 +268,36 @@ export const preloadSearchResults = async (searchResults: Array<{ featured_image
 };
 
 export const preloadAllCardsBackground = async (allCards: Array<{ featured_image?: string }>) => {
+  // Only run if user is idle (no recent preload activity)
+  const lastPreload = sessionStorage.getItem('lastPreloadTime');
+  const now = Date.now();
+  
+  if (lastPreload && now - parseInt(lastPreload) < 30000) { // 30 seconds cooldown
+    console.log('[Preloader] Skipping background preload - recent activity');
+    return;
+  }
+
   const imageUrls = allCards
     .map(card => card.featured_image)
     .filter((url): url is string => !!url);
   
-  // Start background preloading after a delay
-  setTimeout(async () => {
-    await imagePreloader.preloadImages(imageUrls, { priority: 'low' });
-  }, 3000);
+  console.log(`[Background] Starting background preload of ${imageUrls.length} cards`);
+  
+  // Process in small batches with delays to not interfere with user actions
+  const batchSize = 25;
+  for (let i = 0; i < imageUrls.length; i += batchSize) {
+    const batch = imageUrls.slice(i, i + batchSize);
+    
+    // Wait for user inactivity before each batch
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Check if there's recent user activity
+    // const currentLastPreload = sessionStorage.getItem('lastPreloadTime');
+    // if (currentLastPreload && now !== parseInt(currentLastPreload)) {
+    //   console.log('[Background] Stopping background preload - user became active');
+    //   break;
+    // }
+    
+    await imagePreloader.preloadImages(batch, { priority: 'normal' });
+  }
 };

@@ -41,13 +41,14 @@ export default function CardImage({
     <>
       <Image
         className={className}
-        style={{ width: '100%', height: '100%', opacity: imageLoaded ? 1 : 0 }}
+        style={{ width: '100%', height: '100%', opacity: imageLoaded ? 1 : 0.5 }}
         fill
         src={src}
         alt={alt}
         unoptimized
         onLoad={handleLoad}
         onError={handleError}
+        loading="eager"
       />
       {!imageLoaded && <div className="card-image-loading w-full h-full rounded" />}
     </>

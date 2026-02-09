@@ -17,7 +17,7 @@ import Modal from "../components/Modals/Modal";
 import { PreGamePhase } from "@/client/redux/phaseSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from "@/client/enums/GameEvent";
-import { preloadGameImages } from "@/client/utils/imagePreloader";
+import { preloadSearchResults } from "@/client/utils/imagePreloader";
 
 function Page() {
   const gameState = useAppSelector((state) => state.gameState);
@@ -58,17 +58,53 @@ function Page() {
   // Determine if phase modals should be shown (not in sandbox mode)
   const showPhaseModals = !gameState.game.sandboxMode;
 
-  // Preload game images when game state is available
+  // Staged preloading of game images based on priority
   useEffect(() => {
-    if (gameState.game) {
-      console.log('[PlayArea] Preloading game images');
-      try {
-        preloadGameImages(gameState.game);
-      } catch (error) {
-        console.warn('[PlayArea] Preload failed:', error);
+    if (gameState?.game?.started) {
+      // Stage 1: Critical images first (what user sees immediately)
+      
+      const criticalImages = [
+        ...(gameState?.game?.p1PlayerWarriors?.flat() || []),
+        ...(gameState?.game?.p1PlayerFortifieds?.flat() || []),
+        ...(gameState?.game?.p1PlayerUnifieds?.flat() || []),
+        ...(gameState?.game?.p2PlayerWarriors?.flat() || []),
+        ...(gameState?.game?.p2PlayerFortifieds?.flat() || []),
+        ...(gameState?.game?.p2PlayerUnifieds?.flat() || []),
+        ...(gameState?.game?.p1PlayerWarlord || []),
+        ...(gameState?.game?.p1PlayerGuardian || []),
+        ...(gameState?.game?.p2PlayerWarlord || []),
+        ...(gameState?.game?.p2PlayerGuardian || [])
+      ].filter(Boolean);
+      
+      if (criticalImages.length > 0) {
+        console.log(`[Game] Preloading ${criticalImages.length} critical game images`);
+        preloadSearchResults(criticalImages.map(card => ({ featured_image: card.img })));
       }
+
+      // Stage 2: Player hand (likely to be played soon) - delayed
+      setTimeout(() => {
+        const playerHand = gameState.side === 'p1' ? gameState?.game?.p1PlayerHand || [] : gameState?.game?.p2PlayerHand || [];
+        if (playerHand.length > 0) {
+          console.log(`[Game] Preloading ${playerHand.length} hand images`);
+          preloadSearchResults(playerHand.map(card => ({ featured_image: card.img })));
+        }
+      }, 1000);
+
+      // Stage 3: Deck preview (low priority) - heavily delayed
+      setTimeout(() => {
+        const backgroundImages = [
+          ...(gameState?.game?.p1PlayerDeck?.slice(0, 5) || []),
+          ...(gameState?.game?.p2PlayerDeck?.slice(0, 5) || []),
+          ...(gameState?.game?.p1PlayerDiscard?.slice(0, 3) || []),
+          ...(gameState?.game?.p2PlayerDiscard?.slice(0, 3) || [])
+        ];
+        if (backgroundImages.length > 0) {
+          console.log(`[Game] Preloading ${backgroundImages.length} background game images`);
+          preloadSearchResults(backgroundImages.map(card => ({ featured_image: card.img })));
+        }
+      }, 5000);
     }
-  }, [gameState.game]);
+  }, [gameState?.game, gameState?.game?.started, gameState?.side]);
 
   const rpsContent = useCallback(() => {
     const hasChosen = p1 ? !!p1RPSChoice : !!p2RPSChoice;
