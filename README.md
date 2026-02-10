@@ -6,7 +6,7 @@
 
 ## 🎮 Features
 
-- **User Authentication:** OAuth sign-in with GitHub and Google via NextAuth.js
+- **User Authentication:** OAuth sign-in with GitHub, Google, and Discord via NextAuth.js
 - **Personal Deck Libraries:** User-specific deck ownership and management with inline editing
 - **Real-time Multiplayer:** Live game state synchronization via Socket.IO
 - **Dual Game Modes:** Normal structured gameplay and Sandbox mode for unrestricted testing
@@ -38,9 +38,9 @@
 **Full-Stack Monorepo:**
 - **Frontend:** Next.js 15+ with TypeScript, Tailwind CSS, Redux Toolkit
 - **Backend:** Express.js 5.1+ server with Socket.IO and MongoDB
-- **Authentication:** NextAuth.js with OAuth (GitHub/Google) and user-specific data isolation
+- **Authentication:** NextAuth.js with OAuth (GitHub/Google/Discord) and user-specific data isolation
 - **Real-time:** WebSocket communication for live multiplayer
-- **Database:** MongoDB for persistent game rooms, user decks, and state (using 'test' database for development)
+- **Database:** MongoDB for persistent game rooms, user decks, and state (using 'legions_battleground_db' database in production)
 - **Shared Types:** Consolidated TypeScript interfaces and enums between client/server
 - **Deployment:** Single process hybrid Next.js + Express setup
 
@@ -50,14 +50,14 @@
 
 ```
 public/                    # Static assets (card images)
-scripts/                   # Utility scripts (fetchCards.ts for MongoDB card data seeding)
+scripts/                   # Utility scripts (fetchCards.ts for MongoDB card data seeding, updateCardsInDecks.ts for card updates)
 src/
 ├── app/                   # Next.js App Router (Frontend)
 │   ├── api/auth/         # NextAuth authentication routes
 │   ├── cards/           # Card browsing pages with advanced filtering
 │   ├── components/       # UI components (Card, Modals, PlayArea, Table, auth)
-│   │   ├── Card/        # Card display components (Card.tsx, CardInner.tsx, CardMenu.tsx, CardPreview.tsx)
-│   │   ├── Modals/      # Modal components (Create/Join Room, Deck Management, Card Pile, Help, Preview Deck with Import)
+│   │   ├── Card/        # Card display components (Card.tsx, CardImage.tsx, CardInner.tsx, CardMenu.tsx, CardPreview.tsx)
+│   │   ├── Modals/      # Modal components (Create/Join Room, Deck Management, Card Pile, Help, PerformanceDashboard, Preview Deck with Import)
 │   │   ├── PlayArea/    # Game interface components (PlayArea.tsx, Toolbar.tsx, Components.tsx)
 │   │   ├── Table/       # Room table display components
 │   │   ├── auth/        # Authentication UI components (AuthButtons.tsx)
@@ -206,7 +206,8 @@ src/
 
 6. **Seed MongoDB with card data:**
    ```bash
-   node scripts/fetchCards.ts
+   node scripts/fetchCards.ts       # Seed MongoDB with card data from Legions ToolBox API
+   node scripts/updateCardsInDecks.ts # Update existing decks with latest card data
    ```
 
 ---
@@ -445,7 +446,7 @@ src/
 - `GET /api/filterOptions` - Get available filter options for cards
 
 ### NextAuth API Routes
-- `/api/auth/[...nextauth]` - Authentication endpoints (Google, GitHub OAuth)
+- `/api/auth/[...nextauth]` - Authentication endpoints (Google, GitHub, Discord OAuth)
 - `/api/auth/signin` - Sign in page
 - `/api/auth/signout` - Sign out endpoint
 - `/api/auth/session` - Current session information
@@ -548,6 +549,8 @@ docker run -p 3000:3000 legions-battleground
 - `GOOGLE_CLIENT_SECRET` - Google OAuth client secret  
 - `GITHUB_CLIENT_ID` - GitHub OAuth client ID
 - `GITHUB_CLIENT_SECRET` - GitHub OAuth client secret
+- `DISCORD_CLIENT_ID` - Discord OAuth client ID
+- `DISCORD_CLIENT_SECRET` - Discord OAuth client secret
 
 ### Production Setup
 - **Platform:** Render.com (current deployment)

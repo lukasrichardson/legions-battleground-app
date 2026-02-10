@@ -39,6 +39,8 @@ GOOGLE_CLIENT_ID=your-google-oauth-client-id
 GOOGLE_CLIENT_SECRET=your-google-oauth-secret
 GITHUB_CLIENT_ID=your-github-oauth-client-id  
 GITHUB_CLIENT_SECRET=your-github-oauth-secret
+DISCORD_CLIENT_ID=your-discord-oauth-client-id
+DISCORD_CLIENT_SECRET=your-discord-oauth-secret
 MONGO_URL=your-mongodb-connection-string
 ```
 

@@ -35,44 +35,53 @@ The Legions Battleground image system is designed around **card images** served 
 
 ## Image Components
 
-### CardImage.tsx (Legacy)
+### CardImage.tsx
 **Location**: `src/app/components/Card/CardImage.tsx`
 
-Original image component with basic loading states:
+Current enhanced component with performance monitoring and service worker integration:
+
 ```tsx
-// Simple fade-in loading with unoptimized flag
-<Image
-  unoptimized
-  onLoad={() => setImageLoaded(true)}
-  style={{ opacity: imageLoaded ? 1 : 0 }}
-/>
+export default function CardImage({ src, alt, className }: CardImageProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [loadStartTime] = useState(Date.now());
+
+  const handleLoad = () => {
+    setImageLoaded(true);
+    // Detect actual cache status using Performance API
+    if (typeof src === 'string') {
+      setTimeout(() => {
+        const fromCache = serviceWorkerMonitor.detectCacheHit(src);
+        serviceWorkerMonitor.trackImageLoad(src, loadStartTime, fromCache);
+      }, 10);
+    }
+  };
+
+  return (
+    <>
+      <Image
+        className={className}
+        style={{ opacity: imageLoaded ? 1 : 0.5 }}
+        fill
+        src={src}
+        alt={alt}
+        unoptimized
+        onLoad={handleLoad}
+        onError={handleError}
+      />
+      {!imageLoaded && <div className="card-image-loading" />}
+    </>
+  );
+}
 ```
 
 **Features**:
-- Fade-in transition on load
-- Loading placeholder (`card-image-loading` div)
-- Error handling with same placeholder
+- Performance tracking with service worker monitoring
+- Cache hit detection using Performance API
+- Load time measurement for optimization
+- Fade-in transition on load (opacity 0.5 → 1.0)
+- Loading placeholder with consistent styling
+- Error handling with fallback placeholder
 - `unoptimized={true}` for cost control
-
-### CardImage.tsx (Enhanced)
-**Location**: `src/app/components/Card/CardImage.tsx`
-
-Enhanced component with performance monitoring:
-```tsx
-// Adds performance tracking while maintaining identical behavior
-const handleLoad = () => {
-  setImageLoaded(true);
-  serviceWorkerMonitor.trackImageLoad(src, loadStartTime, false);
-};
-```
-
-**Features**:
-- **Identical styling** to CardImage
-- Performance tracking integration
-- Load time monitoring
-- Service worker effectiveness measurement
-- Same fade-in transition and placeholder
-- `unoptimized={true}` maintained
 
 **Usage Pattern**:
 ```tsx

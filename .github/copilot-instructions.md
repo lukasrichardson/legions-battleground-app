@@ -1,25 +1,24 @@
-
 # Copilot Instructions for Legions Battleground
 
 ## Project Overview
 - **Full-Stack Next.js Monorepo** for "Legions Realms At War" card game battleground
 - **Frontend:** Next.js 15+ with TypeScript, Tailwind CSS 4.1+, Redux Toolkit, and React DnD
 - **Backend:** Express.js 5.1+ server with Socket.IO 4.8+ real-time multiplayer and MongoDB 6.20+ database
-- **Authentication:** NextAuth.js 4.24+ OAuth (GitHub/Google) with user-specific deck ownership
+- **Authentication:** NextAuth.js 4.24+ OAuth (GitHub/Google/Discord) with user-specific deck ownership
 - **Architecture:** Hybrid Next.js + Express setup with shared TypeScript interfaces
 - **Game Type:** Real-time multiplayer digital card game simulator with personal deck management
 - **Game Modes:** Dual-mode system with Normal (structured) and Sandbox (unrestricted) gameplay
 
 ## Monorepo Structure
 ```
-scripts/                   # Utility scripts (fetchCards.ts for MongoDB card data seeding)
+scripts/                   # Utility scripts (fetchCards.ts for MongoDB card data seeding, updateCardsInDecks.ts for card updates)
 src/
 ├── app/                    # Next.js App Router frontend
 │   ├── api/auth/          # NextAuth authentication routes
 │   ├── cards/             # Card browsing pages with advanced filtering
 │   ├── components/        # UI components organized by feature
-│   │   ├── Card/          # Card display components (Card.tsx, CardInner.tsx, CardMenu.tsx, CardPreview.tsx)
-│   │   ├── Modals/        # Modal components (Create/Join Room, Deck Management, Card Pile, Help, etc.)
+│   │   ├── Card/          # Card display components (Card.tsx, CardImage.tsx, CardInner.tsx, CardMenu.tsx, CardPreview.tsx)
+│   │   ├── Modals/        # Modal components (Create/Join Room, Deck Management, Card Pile, Help, PerformanceDashboard, etc.)
 │   │   ├── PlayArea/      # Game interface components (PlayArea.tsx, Toolbar.tsx, Components.tsx)
 │   │   ├── Table/         # Room table display components
 │   │   ├── auth/          # Authentication UI components (AuthButtons.tsx)
@@ -51,7 +50,7 @@ src/
 │   ├── constants/         # Game constants and initial state (InitialGameState.ts, cardMenu.constants.ts)
 │   ├── data/              # Card data (cards.ts)
 │   ├── enums/             # Client-specific enums (GameEvent, MenuItemAction, RoomEvent)
-│   ├── hooks/             # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize, useClientSettings)
+│   ├── hooks/             # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize, useClientSettings, useBackgroundPreload)
 │   ├── interfaces/        # TypeScript interfaces (Card, GameState, IMenuItem)
 │   ├── lib/               # Utility functions (utils.ts for className merging)
 │   ├── redux/             # State management with multiple slices
@@ -172,7 +171,7 @@ src/
 - **Client Settings:** Configurable UI preferences including hover menu controls and other client-side settings with localStorage persistence
 
 ## Database & External APIs
-- **MongoDB:** Game rooms, player data, and persistent game states with user-specific deck collections (using 'test' database for development)
+- **MongoDB:** Game rooms, player data, and persistent game states with user-specific deck collections (using 'legions_battleground_db' database in production, previously 'test' for development)
 - **Legions ToolBox API:** External deck data integration for importing to personal libraries with enhanced field mapping
 - **Images:** Remote card images from legionstoolbox.com
 
@@ -184,6 +183,7 @@ npm run build           # Build Next.js frontend + compile TypeScript server
 npm run start           # Start production server
 npm run lint            # ESLint checking
 node scripts/fetchCards.ts  # Seed MongoDB with card data from Legions ToolBox API
+node scripts/updateCardsInDecks.ts  # Update card data in existing decks with latest card information
 ```
 
 ## Shared Architecture Patterns
@@ -199,7 +199,9 @@ node scripts/fetchCards.ts  # Seed MongoDB with card data from Legions ToolBox A
 - **Database:** MongoDB for persistent rooms and game data
 - **External API:** Legions ToolBox for deck imports and card data
 - **Asset Loading:** Next.js Image optimization for remote card images
-- **Deployment:** Dockerized with health check monitoring- **Client Settings:** Persistent UI preferences via clientSettingsSlice and localStorage
+- **Deployment:** Dockerized with health check monitoring
+- **Client Settings:** Persistent UI preferences via clientSettingsSlice and localStorage
+
 ## Game-Specific Patterns
 - **Card Actions:** Client UI → Redux action → Socket event → Server validation → MongoDB → Broadcast
 - **Room Management:** REST API for room creation, Socket.IO for real-time room events
@@ -244,7 +246,9 @@ node scripts/fetchCards.ts  # Seed MongoDB with card data from Legions ToolBox A
 - **Backend Query Building:** Dynamic MongoDB query construction for multiple filter criteria
 
 ## Component Architecture Patterns
-- **Card Components:** Modular card display system with CardInner.tsx for reusable card logic
+- **Card Components:** Modular card display system with CardInner.tsx for reusable card logic and CardImage.tsx for optimized image rendering
+- **Performance Monitoring:** PerformanceDashboard.tsx modal for real-time service worker telemetry and image preloading statistics
+- **Service Worker Integration:** Enhanced image caching and performance monitoring via serviceWorkerMonitor.ts utility
 - **Drag & Drop System:** React DnD integration with zone index tracking for multi-zone card arrays
 - **Modals:** Centralized modal components with consistent styling and behavior, streamlined UI without header icons for cleaner presentation
 - **Deck Builder Components:** Specialized components for deck editing (CardTile.tsx, DeckEditorHeader.tsx, DeckGrid.tsx, SearchPane.tsx)
