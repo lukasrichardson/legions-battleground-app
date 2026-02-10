@@ -73,8 +73,8 @@ class ImagePreloader {
 
     try {
       await promise;
-      // Add memory management - limit to 3000 cached items
-      if (this.loadedImages.size > 3000) {
+      // Add memory management - limit to 2000 cached items
+      if (this.loadedImages.size > 2000) {
         const firstItem = this.loadedImages.values().next().value;
         this.loadedImages.delete(firstItem);
       }

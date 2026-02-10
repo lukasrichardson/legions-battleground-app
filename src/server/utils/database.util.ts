@@ -33,8 +33,8 @@ export const connectToDatabase = async (): Promise<MongoClient> => {
 };
 
 export const getDatabase = () => {
-  // return getMongoClient().db("legions_battleground_db");
-  return getMongoClient().db("test");
+  return getMongoClient().db("legions_battleground_db");
+  // return getMongoClient().db("test");
 };
 
 // Graceful shutdown function

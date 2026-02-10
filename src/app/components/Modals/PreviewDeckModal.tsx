@@ -15,6 +15,7 @@ interface ToolboxCard {
   image: string,
   type: string,
   id: string,
+  thumb: string,
 }
 
 interface ToolboxDeck {
@@ -64,7 +65,8 @@ export default function PreviewDeckModal() {
         for (let i = 0; i < card.qty; i++) {
           deckToSet.push({
             ...card,
-            image: card.image
+            image: card.image,
+            thumb: card.thumb,
           });
         }
       })
@@ -244,7 +246,7 @@ export default function PreviewDeckModal() {
                   card ?
                     <div key={card.id ?? 'card' + index.toString()} className="w-[90px] h-[120px] relative">
                       <CardImage
-                        src={card.image}
+                        src={card.thumb || card.image}
                         alt={`Card ${index + 1}`}
                         className="w-24 h-32 object-cover rounded-lg border border-white/20"
                       />

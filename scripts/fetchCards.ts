@@ -42,8 +42,8 @@ const main = async () => {
       let skipped = 0;
       let inserted = 0;
       for (let i = 0 ; i < cards.length ; i++) {
-        // const existingCard = await dbClient.db("legions_battleground_db").collection("cards").findOne({ id: cards[i].id });
-        const existingCard = await dbClient.db("test").collection("cards").findOne({ id: cards[i].id });
+        const existingCard = await dbClient.db("legions_battleground_db").collection("cards").findOne({ id: cards[i].id });
+        // const existingCard = await dbClient.db("test").collection("cards").findOne({ id: cards[i].id });
         if (existingCard) {
           skipped++;
           continue;
@@ -51,7 +51,7 @@ const main = async () => {
         const mappedCardToInsert = {
           id: cards[i].id,
           title: cards[i].title,
-          featured_image: cards[i].featured_image,
+          featured_image: cards[i].thumb,
           text: cards[i].content.text,
           content: {
             paragraphs: cards[i].content.paragraphs,
@@ -95,8 +95,8 @@ const main = async () => {
           permalink: cards[i].permalink,
           attack: cards[i].attack
         }
-        // dbClient.db("legions_battleground_db").collection("cards").insertOne(mappedCardToInsert)
-        dbClient.db("test").collection("cards").insertOne(mappedCardToInsert)
+        dbClient.db("legions_battleground_db").collection("cards").insertOne(mappedCardToInsert)
+        // dbClient.db("test").collection("cards").insertOne(mappedCardToInsert)
         inserted++;
       }
       console.log(`Finished processing cards. Skipped: ${skipped}, Inserted: ${inserted}`);
