@@ -1,10 +1,10 @@
 # Manual Test Instructions for Sandbox Mode Implementation
 
-## Test 1: Normal Mode (Default)
+## Test 1: Normal Mode 
 1. Go to http://localhost:3000
 2. Click "Create New Game"
 3. Fill in room name, your name, select a deck
-4. Leave "Sandbox Mode" unchecked (should be default)
+4. **Uncheck "Sandbox Mode"** (currently defaults to checked)
 5. Create the game
 6. Expected: RPS modal should appear
 7. Choose Rock/Paper/Scissors 
@@ -12,11 +12,11 @@
 9. After RPS, expect Mulligan modal to appear for winner
 10. Expected: Standard game flow with phase restrictions
 
-## Test 2: Sandbox Mode
+## Test 2: Sandbox Mode (Default)
 1. Go to http://localhost:3000 
 2. Click "Create New Game"
 3. Fill in room name, your name, select a deck
-4. Check "Sandbox Mode" checkbox
+4. Leave "Sandbox Mode" **checked** (this is now the default)
 5. Create the game
 6. Expected: RPS modal should appear (this is allowed)
 7. Choose Rock/Paper/Scissors

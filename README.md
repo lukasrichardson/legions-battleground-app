@@ -29,7 +29,7 @@
 - **Breadcrumb Navigation:** Enhanced navigation with breadcrumb components
 - **Responsive Design:** Mobile-friendly interface with adaptive layouts and automatic scaling for play area
 
-> **⚡ Latest:** Enhanced performance with intelligent image preloading system featuring connection-aware throttling, Service Worker integration, and memory management. Added client settings slice for UI preferences and improved modal system with streamlined components.
+> **⚡ Latest:** Enhanced performance with intelligent image preloading system featuring connection-aware throttling, Service Worker integration, and memory management. Added client settings slice for UI preferences including transparentOnBlur option, improved modal system with streamlined components, and useBackgroundPreload hook for automatic image preloading.
 
 ---
 
@@ -89,7 +89,7 @@ src/
 │   ├── constants/       # Game constants and initial state (InitialGameState.ts, cardMenu.constants.ts)
 
 │   ├── enums/          # Client-specific enums (GameEvent, MenuItemAction, RoomEvent)
-│   ├── hooks/          # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize)
+│   ├── hooks/          # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize, useClientSettings, useBackgroundPreload, useHandleCardEvents)
 │   ├── interfaces/     # TypeScript interfaces (Card, GameState, IMenuItem)
 │   ├── lib/            # Utility functions (utils.ts for className merging)
 │   ├── redux/          # State management (store, slices for game, modals, phases, sequences, client settings)
@@ -355,6 +355,44 @@ src/
 - `src/client/utils/imagePreloader.ts` - Core preloading system with NetworkInformation API integration
 - Usage in deck builder, game interface, and card browsing components
 - Service Worker integration for offline-capable image caching
+---
+
+## ⚙️ Client Settings Architecture
+
+### Settings Management
+- **Settings Store:** `clientSettingsSlice.ts` manages UI preferences with Redux Toolkit
+- **Persistent Storage:** `useClientSettings()` hook provides localStorage integration
+- **Available Settings:** 
+  - `hoverMenu` (boolean) - Controls whether card menus appear on hover
+  - `legacyMenu` (boolean) - Toggles between legacy and new menu styles
+  - `transparentOnBlur` (boolean) - Makes card modals transparent when not focused
+- **Real-time Updates:** Settings changes immediately affect UI without page refresh
+- **Hook Pattern:** Custom hook manages both state access and localStorage persistence
+- **Default Values:** `hoverMenu` and `legacyMenu` default to `true`, `transparentOnBlur` defaults to `false`
+
+### Usage Pattern
+```tsx
+const { hoverMenu, legacyMenu, transparentOnBlur, setHoverMenu, setLegacyMenu, setTransparentOnBlur } = useClientSettings();
+```
+
+### Implementation Files
+- `src/client/redux/clientSettingsSlice.ts` - Redux slice for settings state
+- `src/client/hooks/useClientSettings.ts` - Hook for settings management with localStorage
+- `src/app/components/PlayArea/Toolbar.tsx` - Settings controls in game toolbar
+- `src/app/components/Card/Card.tsx` - Settings usage for menu behavior
+- `src/app/components/Modals/Modal.tsx` - transparentOnBlur implementation
+---
+
+## 🔧 Client Settings Development Patterns
+
+### Settings Integration
+- **Settings Import:** Import from `src/client/redux/clientSettingsSlice.ts` for UI preference management
+- **Settings Hook:** Use `useClientSettings()` hook from `src/client/hooks/useClientSettings.ts` for full settings management
+- **State Access:** Use `useAppSelector((state) => state.clientSettings)` to access current settings
+- **Settings Updates:** Dispatch `setHoverMenu()`, `setLegacyMenu()`, `setTransparentOnBlur()` actions or use hook methods for real-time UI changes
+- **Persistent Settings:** Automatic localStorage persistence via useClientSettings hook
+- **Available Settings:** `hoverMenu` (boolean), `legacyMenu` (boolean), and `transparentOnBlur` (boolean) for UI behavior control
+- **Component Integration:** Add settings controls in toolbar or settings modals with immediate effect
 
 ---
 

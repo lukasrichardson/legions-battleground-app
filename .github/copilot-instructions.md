@@ -49,7 +49,7 @@ src/
 ├── client/                 # Client-side utilities (shared between frontend/backend)
 │   ├── constants/         # Game constants and initial state (InitialGameState.ts, cardMenu.constants.ts)
 │   ├── enums/             # Client-specific enums (GameEvent, MenuItemAction, RoomEvent)
-│   ├── hooks/             # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize, useClientSettings, useBackgroundPreload)
+│   ├── hooks/             # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize, useClientSettings, useBackgroundPreload, useHandleCardEvents)
 │   ├── interfaces/        # TypeScript interfaces (Card, GameState, IMenuItem)
 │   ├── lib/               # Utility functions (utils.ts for className merging)
 │   ├── redux/             # State management with multiple slices
@@ -279,10 +279,10 @@ node scripts/updateCardsInDecks.ts  # Update card data in existing decks with la
 ## Client Settings Architecture
 - **Settings Store:** `clientSettingsSlice.ts` manages UI preferences with Redux Toolkit
 - **Persistent Storage:** `useClientSettings()` hook provides localStorage integration
-- **Available Settings:** `hoverMenu` (boolean), `legacyMenu` (boolean) for UI behavior control
+- **Available Settings:** `hoverMenu` (boolean), `legacyMenu` (boolean), `transparentOnBlur` (boolean) for UI behavior control
 - **Real-time Updates:** Settings changes immediately affect UI without page refresh
 - **Hook Pattern:** Custom hook manages both state access and localStorage persistence
-- **Default Values:** settings default to `true` for both hover and legacy menu options
+- **Default Values:** `hoverMenu` and `legacyMenu` default to `true`, `transparentOnBlur` defaults to `false`
 
 ## Image Preloading Development Patterns
 - **Preloader Import:** Import `imagePreloader` singleton from `src/client/utils/imagePreloader.ts`
@@ -298,9 +298,9 @@ node scripts/updateCardsInDecks.ts  # Update card data in existing decks with la
 - **Settings Import:** Import from `src/client/redux/clientSettingsSlice.ts` for UI preference management
 - **Settings Hook:** Use `useClientSettings()` hook from `src/client/hooks/useClientSettings.ts` for full settings management
 - **State Access:** Use `useAppSelector((state) => state.clientSettings)` to access current settings
-- **Settings Updates:** Dispatch `setHoverMenu()`, `setLegacyMenu()` actions or use hook methods for real-time UI changes
+- **Settings Updates:** Dispatch `setHoverMenu()`, `setLegacyMenu()`, `setTransparentOnBlur()` actions or use hook methods for real-time UI changes
 - **Persistent Settings:** Automatic localStorage persistence via useClientSettings hook
-- **Available Settings:** `hoverMenu` (boolean) and `legacyMenu` (boolean) for UI behavior control
+- **Available Settings:** `hoverMenu` (boolean), `legacyMenu` (boolean), and `transparentOnBlur` (boolean) for UI behavior control
 - **Component Integration:** Add settings controls in toolbar or settings modals with immediate effect
 
 ## Authentication & User Management
