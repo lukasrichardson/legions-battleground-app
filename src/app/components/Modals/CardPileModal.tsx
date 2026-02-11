@@ -6,6 +6,7 @@ import Modal from "./Modal";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from '@/client/enums/GameEvent';
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
+import useClientSettings from "@/client/hooks/useClientSettings";
 
 const ModalConstants = {
   ShuffleBtnText: "shuffle",
@@ -28,6 +29,8 @@ export default function CardPileModal({closeModal}: {closeModal: () => void}) {
   const p1 = side === "p1";
   const resolvingEffectStep = sequences?.[0]?.items?.[0]?.effect?.[0];
   const waitingForUserInput = (p1 && resolving && resolvingEffectStep?.waitingForInput?.p1) || (!p1 && resolving && resolvingEffectStep?.waitingForInput?.p2);
+  
+  const { transparentOnBlur } = useClientSettings();
 
   const open = !!pileInViewTarget || waitingForUserInput;
   const {
@@ -266,6 +269,6 @@ export default function CardPileModal({closeModal}: {closeModal: () => void}) {
   }
 
   return (
-    <Modal open={open} closeModal={handleCloseModal} modalHeader={renderModalHeader()} modalContent={renderModalContent()}/>
+    <Modal open={open} closeModal={handleCloseModal} modalHeader={renderModalHeader()} modalContent={renderModalContent()} transparentOnBlur={transparentOnBlur}/>
   )
 }

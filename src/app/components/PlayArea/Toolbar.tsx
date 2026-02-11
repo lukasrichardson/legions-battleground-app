@@ -28,7 +28,7 @@ export default function Toolbar({ }) {
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
-  const { hoverMenu, setHoverMenu, legacyMenu, setLegacyMenu } = useClientSettings();
+  const { hoverMenu, setHoverMenu, legacyMenu, setLegacyMenu, transparentOnBlur, setTransparentOnBlur } = useClientSettings();
   const gameLogRef = useRef<HTMLDivElement>(null);
   const { side } = gameState;
   const p1 = side === "p1";
@@ -124,6 +124,10 @@ export default function Toolbar({ }) {
         <div>
           <label htmlFor="legacyMenu" className="text-xs mr-1">Use Legacy Menu:</label>
           <input name="legacyMenu" type="checkbox" checked={legacyMenu} onChange={() => setLegacyMenu(!legacyMenu)}/>
+        </div>
+        <div>
+          <label htmlFor="transparentOnBlur" className="text-xs mr-1">Transparent Card Modals:</label>
+          <input name="transparentOnBlur" type="checkbox" checked={transparentOnBlur} onChange={() => setTransparentOnBlur(!transparentOnBlur)}/>
         </div>
       </div>
     </div>

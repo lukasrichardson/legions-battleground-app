@@ -1,11 +1,13 @@
 import { useEffect } from "react";
-import { setHoverMenu, setLegacyMenu } from "../redux/clientSettingsSlice";
+import { setHoverMenu, setLegacyMenu, setTransparentOnBlur } from "../redux/clientSettingsSlice";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
 
 export default function useClientSettings() {
   const dispatch = useAppDispatch();
-  const hoverMenu = useAppSelector((state) => state.clientSettings.hoverMenu);
-  const legacyMenu = useAppSelector((state) => state.clientSettings.legacyMenu);
+  const clientSettings = useAppSelector((state) => state.clientSettings);
+  const hoverMenu = clientSettings.hoverMenu;
+  const legacyMenu = clientSettings.legacyMenu;
+  const transparentOnBlur = clientSettings.transparentOnBlur;
   const setHoverMenuSetting = (value: boolean) => {
     localStorage?.setItem('hoverMenu', value.toString());
     dispatch(setHoverMenu(value));
@@ -14,9 +16,18 @@ export default function useClientSettings() {
     localStorage?.setItem('legacyMenu', value.toString());
     dispatch(setLegacyMenu(value));
   }
+  const setTransparentOnBlurSetting = (value: boolean) => {
+    localStorage?.setItem('transparentOnBlur', value.toString());
+    dispatch(setTransparentOnBlur(value));
+  }
   useEffect(() => {
     const storedHoverMenu = localStorage?.getItem('hoverMenu');
     const storedLegacyMenu = localStorage?.getItem('legacyMenu');
+    const storedTransparentOnBlur = localStorage?.getItem('transparentOnBlur');
+    
+    if (storedTransparentOnBlur !== null) {
+      dispatch(setTransparentOnBlur(storedTransparentOnBlur === 'true'));
+    }
     if (storedHoverMenu !== null) {
       dispatch(setHoverMenu(storedHoverMenu === 'true'));
     }
@@ -24,5 +35,5 @@ export default function useClientSettings() {
       dispatch(setLegacyMenu(storedLegacyMenu === 'true'));
     }
   }, [dispatch]);
-  return { hoverMenu, legacyMenu, setHoverMenu: setHoverMenuSetting, setLegacyMenu: setLegacyMenuSetting }
+  return { hoverMenu, legacyMenu, transparentOnBlur, setHoverMenu: setHoverMenuSetting, setLegacyMenu: setLegacyMenuSetting, setTransparentOnBlur: setTransparentOnBlurSetting }
 }

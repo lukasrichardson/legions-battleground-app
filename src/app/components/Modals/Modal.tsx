@@ -6,12 +6,15 @@ export default function Modal({
   open, 
   closeModal, 
   modalHeader, 
-  modalContent
+  modalContent,
+  transparentOnBlur = false
 }: {
   open: boolean, 
   closeModal: () => void, 
   modalHeader: JSX.Element, 
-  modalContent: JSX.Element
+  modalContent: JSX.Element,
+  transparentOnBlur?: boolean
+
 }) {
   interface ModalState {
     top: number;
@@ -66,17 +69,17 @@ export default function Modal({
       {drag(
         <div
           ref={ref}
-          className={["relative max-w-[75%] max-h-[85%] bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-slate-900/95 border border-white/20 rounded-2xl shadow-2xl backdrop-blur-xl overflow-hidden flex flex-col pointer-events-auto",
+          className={["relative max-w-[75%] max-h-[85%] border border-white/20 rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto",
           ].join(" ")}
           style={{ transform: modalState ? `translate(${modalState.left}px, ${modalState.top}px)` : undefined }}
         >
           {/* Header */}
-          <div className="border-b border-white/10 px-6 hover:cursor-grab active:cursor-grabbing">
+          <div className="border-b border-white/10 px-6 hover:cursor-grab active:cursor-grabbing bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-slate-900/95">
             {modalHeader}
           </div>
           
           {/* Content */}
-          <div className="flex-1 overflow-y-auto min-h-0">
+          <div className={["flex-1 overflow-y-auto min-h-0 bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-slate-900/95", transparentOnBlur ? "opacity-20 hover:opacity-100" : ""].join(" ")}>
             <div className="p-6">
               {modalContent}
             </div>

@@ -3,9 +3,11 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 const initialState: {
   hoverMenu: boolean;
   legacyMenu: boolean;
+  transparentOnBlur: boolean;
 } = {
   hoverMenu: true,
-  legacyMenu: true
+  legacyMenu: true,
+  transparentOnBlur: false
 }
 
 const clientSettingsSlice = createSlice({
@@ -17,10 +19,13 @@ const clientSettingsSlice = createSlice({
     },
     setLegacyMenu: (state, action: PayloadAction<boolean>) => {
       state.legacyMenu = action.payload;
+    },
+    setTransparentOnBlur: (state, action: PayloadAction<boolean>) => {
+      state.transparentOnBlur = action.payload;
     }
   }
 });
 
-export const { setHoverMenu, setLegacyMenu } = clientSettingsSlice.actions;
+export const { setHoverMenu, setLegacyMenu, setTransparentOnBlur } = clientSettingsSlice.actions;
 
 export default clientSettingsSlice.reducer;
