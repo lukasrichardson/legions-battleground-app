@@ -37,7 +37,7 @@ NEXTAUTH_URL=https://your-domain.com
 NEXTAUTH_SECRET=your-long-random-string
 GOOGLE_CLIENT_ID=your-google-oauth-client-id
 GOOGLE_CLIENT_SECRET=your-google-oauth-secret
-GITHUB_CLIENT_ID=your-github-oauth-client-id  
+GITHUB_CLIENT_ID=your-github-oauth-client-id
 GITHUB_CLIENT_SECRET=your-github-oauth-secret
 DISCORD_CLIENT_ID=your-discord-oauth-client-id
 DISCORD_CLIENT_SECRET=your-discord-oauth-secret
@@ -47,7 +47,7 @@ MONGO_URL=your-mongodb-connection-string
 #### Safe Public Content:
 
 - ✅ README.md - No sensitive information
-- ✅ Source code - Uses environment variables properly  
+- ✅ Source code - Uses environment variables properly
 - ✅ Package.json - Standard dependencies only
 - ✅ Docker configuration - No secrets embedded
 - ✅ Documentation - Generic examples only

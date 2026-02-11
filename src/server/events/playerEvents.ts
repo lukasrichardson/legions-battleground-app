@@ -4,10 +4,16 @@ import { CARD_TYPE } from "@/shared/enums/CardType";
 import { PreGamePhase, NextPhaseP1Wins, NextPhaseP2Wins, GamePhase } from "../enums/Phases";
 import { games } from "../game/game";
 import { DeckResponse } from "../../shared/interfaces/DeckResponse";
-import { resetPlayersCards, fetchPlayerDeckById, p1WinsRPS, p2WinsRPS, drawCardP1, drawCardP2, resolveFirstItemInSequence, emitCurrentState, addSequenceItem } from "../utils/game.util";
+import { resetPlayersCards, fetchPlayerDeckById, p1WinsRPS, p2WinsRPS, drawCardP1, drawCardP2, resolveFirstItemInSequence, emitCurrentState, addSequenceItem, STARTING_HAND_SIZE } from "../utils/game.util";
 import { addGameLog } from "../utils/generateGameLog";
 
+// Simple RPS logic
+const RPS_BEATS = { Rock: "Scissors", Paper: "Rock", Scissors: "Paper" };
+const checkRpsWinner = (p1: string, p2: string) => 
+  p1 === p2 ? "tie" : RPS_BEATS[p1] === p2 ? "p1" : "p2";
+
 export const resetGame = async (roomId: string, action?: { p2DeckId?: string; p1DeckId?: string }) => {
+  if (!games[roomId]) return;
   // Preserve sandboxMode when resetting
   const currentSandboxMode = games[roomId]?.sandboxMode;
   
@@ -42,22 +48,19 @@ export const resetGame = async (roomId: string, action?: { p2DeckId?: string; p1
 //gameActions
 import { Server } from "socket.io";
 export const setRpsChoice = (roomId: string, action: "Rock" | "Paper" | "Scissors", player: { name: string; p1: boolean }, io: Server) => {
+  if (!games[roomId]) return;
   if (games[roomId].currentPhase === PreGamePhase.RPS) {
     if (action) {
       if (player.p1) {
         games[roomId].p1RPSChoice = action;
         if (games[roomId].p2RPSChoice) {
           // Both players have made their choices, determine the winner
-          if (games[roomId].p1RPSChoice === games[roomId].p2RPSChoice) {
-            // It's a tie, do nothing or handle tie logic if needed
+          const winner = checkRpsWinner(games[roomId].p1RPSChoice, games[roomId].p2RPSChoice);
+          if (winner === "tie") {
             games[roomId].gameLog = addGameLog(games[roomId].gameLog, "RPS Tie: Both players chose " + action);
             games[roomId].p1RPSChoice = null;
             games[roomId].p2RPSChoice = null;
-          } else if (
-            (games[roomId].p1RPSChoice === "Rock" && games[roomId].p2RPSChoice === "Scissors") ||
-            (games[roomId].p1RPSChoice === "Paper" && games[roomId].p2RPSChoice === "Rock") ||
-            (games[roomId].p1RPSChoice === "Scissors" && games[roomId].p2RPSChoice === "Paper")
-          ) {
+          } else if (winner === "p1") {
             games[roomId].gameLog = addGameLog(games[roomId].gameLog, "P1 Wins RPS: " + games[roomId].p1RPSChoice + " beats " + games[roomId].p2RPSChoice);
             p1WinsRPS(roomId, io);
           } else {
@@ -69,14 +72,10 @@ export const setRpsChoice = (roomId: string, action: "Rock" | "Paper" | "Scissor
         games[roomId].p2RPSChoice = action;
         if (games[roomId].p1RPSChoice) {
           // Both players have made their choices, determine the winner
-          if (games[roomId].p1RPSChoice === games[roomId].p2RPSChoice) {
-            // It's a tie, do nothing or handle tie logic if needed
+          const winner = checkRpsWinner(games[roomId].p1RPSChoice, games[roomId].p2RPSChoice);
+          if (winner === "tie") {
             games[roomId].gameLog = addGameLog(games[roomId].gameLog, "RPS Tie: Both players chose " + action);
-          } else if (
-            (games[roomId].p1RPSChoice === "Rock" && games[roomId].p2RPSChoice === "Scissors") ||
-            (games[roomId].p1RPSChoice === "Paper" && games[roomId].p2RPSChoice === "Rock") ||
-            (games[roomId].p1RPSChoice === "Scissors" && games[roomId].p2RPSChoice === "Paper")
-          ) {
+          } else if (winner === "p1") {
             games[roomId].gameLog = addGameLog(games[roomId].gameLog, "P1 Wins RPS: " + games[roomId].p1RPSChoice + " beats " + games[roomId].p2RPSChoice);
             p1WinsRPS(roomId, io);
           } else {
@@ -86,13 +85,11 @@ export const setRpsChoice = (roomId: string, action: "Rock" | "Paper" | "Scissor
         }
       }
     }
-
-  } else {
-    console.warn("setRpsChoice called in non-RPS phase");
   }
 }
 
-export const mulligan = (roomId: string, action: unknown, player: { name: string; p1: boolean }, io: Server) => {
+export const mulligan = (roomId: string, action: object, player: { name: string; p1: boolean }, io: Server) => {
+  if (!games[roomId]) return;
   if (player.p1) {
     games[roomId].p1Mulligan = true;
     [...games[roomId].p1PlayerHand].forEach(cardToMove => {
@@ -106,7 +103,7 @@ export const mulligan = (roomId: string, action: unknown, player: { name: string
         false
       );
     })
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < STARTING_HAND_SIZE; i++) {
       drawCardP1(roomId, player);
     }
   } else {
@@ -123,7 +120,7 @@ export const mulligan = (roomId: string, action: unknown, player: { name: string
         false
       );
     })
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < STARTING_HAND_SIZE; i++) {
       drawCardP2(roomId, player);
     }
   }
@@ -148,33 +145,38 @@ export const playerInput = (roomId: string, action: { selected: MoveCardActionIn
       }
     }
   } else {
-    console.warn("No sequence is currently being resolved");
+    // No sequence is currently being resolved - removed console.warn
   }
 }
 
 export const rollDie = (roomId: string, action: { side: "p1" | "p2" }) => {
+  if (!games[roomId]) return;
   const { side } = action;
   const result = Math.floor(Math.random() * 6) + 1;
   games[roomId].gameLog = addGameLog(games[roomId].gameLog, side + " player rolled a " + result);
 }
 
 export const sendChatMessage = (roomId: string, action: { message: string; side: "p1" | "p2" }) => {
+  if (!games[roomId]) return;
   const { message, side } = action;
   games[roomId].gameLog = addGameLog(games[roomId].gameLog, side + " player says: '" + message + "'");
 }
 
 export const setP1Viweing = (roomId: string, action: { cardTarget: CARD_TARGET, limit: number | null }) => {
+  if (!games[roomId]) return;
   games[roomId].p1Viewing = (action.limit ? "top " + action.limit + " of " : "") + action.cardTarget;
   games[roomId].gameLog = addGameLog(games[roomId].gameLog, "p1 viewing " + (action.limit ? "top " + action.limit + " of " : "") + action.cardTarget);
 }
 
 export const setP2Viewing = (roomId: string, action: { cardTarget: CARD_TARGET; limit: number | null }) => {
+  if (!games[roomId]) return;
   games[roomId].p2Viewing = (action.limit ? "top " + action.limit + " of " : "") + action.cardTarget;
   games[roomId].gameLog = addGameLog(games[roomId].gameLog, "p2 viewing " + (action.limit ? "top " + action.limit + " of " : "") + action.cardTarget);
 
 }
 
-export const goNextPhase = (roomId: string, action: unknown, player: { name?: string; p1?: boolean }, io: Server) => {
+export const goNextPhase = (roomId: string, action: object, player: { name?: string; p1?: boolean }, io: Server) => {
+  if (!games[roomId]) return;
   const nextPhaseMap = games[roomId].rpsWinner === "p1" ? NextPhaseP1Wins : NextPhaseP2Wins;
   const nextPhase = nextPhaseMap[games[roomId].currentPhase];
   if (nextPhase) {
@@ -327,7 +329,7 @@ export const goNextPhase = (roomId: string, action: unknown, player: { name?: st
         break;
     }
   } else {
-    console.warn("No next phase defined for current phase:", games[roomId].currentPhase);
+    // No next phase defined for current phase - removed console.warn
   }
 
 }

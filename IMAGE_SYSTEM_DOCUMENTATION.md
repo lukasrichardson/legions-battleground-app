@@ -95,7 +95,7 @@ export default function CardImage({ src, alt, className }: CardImageProps) {
 ### Component Migration Status
 All components now use `CardImage`:
 - ✅ `CardInner.tsx` - Main game cards
-- ✅ `CardPreview.tsx` - Card focus preview  
+- ✅ `CardPreview.tsx` - Card focus preview
 - ✅ `CardGallery.tsx` - Card browser preview
 - ✅ `PreviewDeckModal.tsx` - Deck preview cards
 - ✅ `Preview.tsx` - Deck builder preview
@@ -120,7 +120,7 @@ const MAX_CONCURRENT_REQUESTS = 5;
 
 #### Key Features
 - **Cache-First Strategy**: Serves cached images immediately when available
-- **Freshness Validation**: Checks cache timestamps against 7-day TTL  
+- **Freshness Validation**: Checks cache timestamps against 7-day TTL
 - **Throttled Requests**: Limits concurrent network requests to prevent overload
 - **Storage Management**: Automatic cache cleanup when storage quota exceeded
 - **Batch Preloading**: Processes image preloading in configurable batches
@@ -143,7 +143,7 @@ if (url.hostname === 'legionstoolbox.com' &&
 ### Registration & Activation
 Service worker automatically:
 1. **Installs** and skips waiting for immediate activation
-2. **Cleans** old cache versions on activation  
+2. **Cleans** old cache versions on activation
 3. **Claims** existing clients for immediate caching
 4. **Handles** fetch events for image requests only
 
@@ -177,7 +177,7 @@ interface ImageLoadMetric {
 - **Automatic cleanup** of oldest entries
 - **Session-based tracking** (resets on page reload)
 
-### PerformanceDashboard.tsx  
+### PerformanceDashboard.tsx
 **Location**: `src/app/components/Modals/PerformanceDashboard.tsx`
 
 Visual interface for monitoring cache effectiveness:
@@ -212,7 +212,7 @@ Intelligent preloading system with connection awareness:
 if (connectionInfo.effectiveType === 'slow-2g' || connectionInfo.effectiveType === '2g') {
   this.maxConcurrentRequests = 2;
 } else if (connectionInfo.effectiveType === '3g') {
-  this.maxConcurrentRequests = 3;  
+  this.maxConcurrentRequests = 3;
 } else {
   this.maxConcurrentRequests = 5;
 }
@@ -220,7 +220,7 @@ if (connectionInfo.effectiveType === 'slow-2g' || connectionInfo.effectiveType =
 
 #### Preloading Functions
 - **`preloadDeckImages()`**: Loads deck card images on deck view
-- **`preloadGameImages()`**: Loads game state card images  
+- **`preloadGameImages()`**: Loads game state card images
 - **`preloadSearchResults()`**: Loads search result card images
 - **`preloadAllCardsBackground()`**: Background loading of all cards
 
@@ -283,7 +283,7 @@ if ('serviceWorker' in navigator) {
 src/app/components/Card/
 ├── CardImage.tsx              # Enhanced Component
 └── CardInner.tsx             # Uses CardImage
-    ├── CardPreview.tsx       # Uses CardImage  
+    ├── CardPreview.tsx       # Uses CardImage
     └── CardMenu.tsx          # No direct image usage
 ```
 
@@ -295,7 +295,7 @@ Card Images Used In:
 │   ├── PlayArea/Components.tsx    # Game zone cards
 │   ├── Card/CardInner.tsx         # Individual game cards
 │   └── Card/CardPreview.tsx       # Focused card preview
-├── Card Browser  
+├── Card Browser
 │   └── cards/CardGallery.tsx      # Card hover preview
 ├── Deck Management
 │   ├── decks/[deckId]/Preview.tsx # Deck builder preview
@@ -335,7 +335,7 @@ Image System Files:
 - Cards in current play area
 - Hover preview images
 
-// Normal Priority (Lazy Load)  
+// Normal Priority (Lazy Load)
 - Cards in hand
 - Visible deck cards
 - Search results (first 20)
@@ -450,7 +450,7 @@ All image components maintain:
 ### Debug Tools
 
 #### Performance Dashboard
-- **Access**: Home page > "📊 Image Performance" button  
+- **Access**: Home page > "📊 Image Performance" button
 - **Shows**: Cache rates, load times, recent activity
 - **Actions**: Refresh stats, clear metrics
 
@@ -463,7 +463,7 @@ All image components maintain:
 ```javascript
 // Enable verbose logging in sw.js
 console.log('[SW] Cache hit:', url);
-console.log('[SW] Network fetch:', url);  
+console.log('[SW] Network fetch:', url);
 console.log('[SW] Preloading batch:', imageUrls.length);
 ```
 
@@ -493,7 +493,7 @@ console.log('[SW] Preloading batch:', imageUrls.length);
 - **Progressive Loading**: Different quality levels based on connection
 - **Offline Support**: Fallback images when network unavailable
 
-### Monitoring Enhancements  
+### Monitoring Enhancements
 - **Real-time Metrics**: Live dashboard updates via WebSocket
 - **Performance Alerts**: Notifications when cache hit rate drops
 - **Historical Tracking**: Long-term performance trend analysis

@@ -87,7 +87,7 @@ src/
 │   └── page.tsx         # Main page with modal management
 ├── client/              # Client-side utilities (shared between frontend/backend)
 │   ├── constants/       # Game constants and initial state (InitialGameState.ts, cardMenu.constants.ts)
-│   ├── data/           # Card data (cards.ts)
+
 │   ├── enums/          # Client-specific enums (GameEvent, MenuItemAction, RoomEvent)
 │   ├── hooks/          # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize)
 │   ├── interfaces/     # TypeScript interfaces (Card, GameState, IMenuItem)
@@ -118,14 +118,9 @@ src/
 │   │   ├── serviceWorkerMonitor.ts # Service Worker performance monitoring
 │   │   └── string.util.ts     # String utility functions
 ├── server/             # Backend (Express + Socket.IO)
-│   ├── cards/          # Card schema, effects, keywords, utilities
-│   │   ├── card.schema.ts        # Card data schema
+│   ├── cards/          # Card effects and keywords
 │   │   ├── CardEffects.constants.ts  # Card effect definitions
-│   │   ├── generateCards.util.ts # Card generation utilities
-│   │   ├── Keywords.ts           # Keyword system implementation
-│   │   ├── new_card.schema.ts    # New card schema definitions
-│   │   ├── shuffleDeck.util.ts   # Deck shuffling utilities
-│   │   └── string.utils.ts       # Card-specific string utilities
+│   │   └── Keywords.ts           # Keyword system implementation
 │   ├── enums/          # Server-side enums (phases, events)
 │   │   ├── GameEvent.ts          # Game event enumeration
 │   │   ├── Phases.ts             # Game phases enumeration
@@ -218,7 +213,7 @@ src/
 
 2. **Create a Room:** Click "Create New Game" and provide:
    - Room name and password
-   - Your player name  
+   - Your player name
    - Deck ID from your personal deck library or [Legions ToolBox](https://legionstoolbox.com/my-decks)
    - **Game Mode:** Choose between Normal (structured) or Sandbox (unrestricted) mode
 
@@ -546,7 +541,7 @@ docker run -p 3000:3000 legions-battleground
 - `NEXTAUTH_SECRET` - NextAuth.js secret key for JWT signing
 - `NEXTAUTH_URL` - Application URL for OAuth redirects
 - `GOOGLE_CLIENT_ID` - Google OAuth client ID
-- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret  
+- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
 - `GITHUB_CLIENT_ID` - GitHub OAuth client ID
 - `GITHUB_CLIENT_SECRET` - GitHub OAuth client secret
 - `DISCORD_CLIENT_ID` - Discord OAuth client ID

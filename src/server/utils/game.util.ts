@@ -14,6 +14,8 @@ import {ALL_KEYWORDS, KeywordTrigger} from "../cards/Keywords";
 import { Server } from "socket.io";
 import axios from "axios";
 
+export const STARTING_HAND_SIZE = 6;
+
 export const fetchToolboxDeckById = async ({ deckId }: { deckId: string }) => {
   try {
     const response = await axios.get(`https://legionstoolbox.com/index.php/wp-json/lraw/v1/decks?deck=${deckId}`, {
@@ -188,48 +190,41 @@ export const drawCardP2 = (roomId: string, player: { name: string; p1: boolean }
 }
 
 export const p1WinsRPS = (roomId: string, io: Server) => {
-  games[roomId].rpsWinner = "p1"; // Assuming the first game in games is the one to update
+  games[roomId].rpsWinner = "p1";
   goNextPhase(roomId, {}, {}, io);
 }
 export const p2WinsRPS = (roomId: string, io: Server) => {
-  games[roomId].rpsWinner = "p2"; // Assuming the first game in games is the one to update
+  games[roomId].rpsWinner = "p2";
   goNextPhase(roomId, {}, {}, io);
 }
 
 export const addSequenceItem = (roomId: string, payload: SequenceItem) => {
-  if (games[roomId].sequences.length === 0) {
+  if (!games[roomId]?.sequences?.length) {
     games[roomId].sequences.push({ items: [payload] });
   } else games[roomId].sequences[games[roomId].sequences.length - 1].items.push(payload);
-  // handle cost logic here
 }
 
-export const resolveFirstItemInSequence = (roomId: string, io) => {
-  if (games[roomId].sequences.length === 0) {
+export const resolveFirstItemInSequence = (roomId: string, io: Server) => {
+  if (!games[roomId]?.sequences?.length) {
     return;
   }
-  //means at least 1 sequence exists
 
   if (!games[roomId].resolving) {
-    // If no sequence is being resolved, start resolving the first sequence
     games[roomId].resolving = true;
   } else {
-    // If a sequence is already being resolved, 
 
   }
   
   const firstSequence = games[roomId].sequences[0];
   if (firstSequence.items.length > 0) {
     const sequenceItemToResolve = firstSequence.items[0];
-    // sequenceItemToResolve?.effect?.forEach((effect, index) => {
     let selected = null;
     for (const effect of sequenceItemToResolve?.effect) {
       switch (effect.type) {
         case StepType.ChooseCards:
-          // In sandbox mode, skip waiting for input and auto-resolve
           if (games[roomId].sandboxMode && (effect.waitingForInput?.p1 || effect.waitingForInput?.p2 || effect.waitingForInput?.controller)) {
-            // Auto-resolve: clear waiting for input and continue
             effect.waitingForInput = undefined;
-            effect.selected = []; // Set empty selection to continue
+            effect.selected = [];
           } else if (effect.waitingForInput?.p1 || effect.waitingForInput?.p2 || effect.waitingForInput?.controller) {
             return emitCurrentState(roomId, io);
           }
@@ -302,31 +297,23 @@ export const resolveFirstItemInSequence = (roomId: string, io) => {
           break;
       }
     }
-    //add on resolution effect triggers to next sequence
-    //
-    //remove resolved item from sequence
+    
     firstSequence.items.shift();
     if (firstSequence.items.length === 0) {
-      // if no items left in sequence, remove the sequence
       games[roomId].sequences.shift();
       if (games[roomId].sequences.length === 0) {
-        // if no sequences left, stop resolving
         games[roomId].resolving = false;
         if (games[roomId].currentPhase === PreGamePhase.P1Guardian || games[roomId].currentPhase === PreGamePhase.P2Guardian || games[roomId].currentPhase === GamePhase.P1Countdown || games[roomId].currentPhase === GamePhase.P2Countdown) {
           goNextPhase(roomId, {}, {}, io);
         }
       } else {
-        // if there are still sequences left, resolve the next sequence
         resolveFirstItemInSequence(roomId, io);
       }
     } else {
-      // if there are still items left in the sequence, resolve the next item
       resolveFirstItemInSequence(roomId, io);
     }
   } else {
-    // empty sequence
     games[roomId].sequences.shift();
-
   }
   emitCurrentState(roomId, io);
   

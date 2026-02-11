@@ -43,13 +43,17 @@ export default function SearchPane({
 
   useEffect(() => {
     if (deckLegion) {
-      setLegion([deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"]);
+      if (deckLegion === "Bounty" || deckLegion === "bounty") {
+        setLegion(["Bounty"]);
+      } else {
+        setLegion([deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"]);
+      }
     }
   }, [deckLegion]);
 
   useEffect(() => {
     const getCards = async () => {
-      const res = await fetchCards({ legion: deckLegion && legion.length === 0 ? [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"] : legion, query: debouncedQuery, page, pageSize, type, rarity, set });
+      const res = await fetchCards({ legion: deckLegion && legion.length === 0 ? (deckLegion === "Bounty" || deckLegion === "bounty" ? ["Bounty"] : [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"]) : legion, query: debouncedQuery, page, pageSize, type, rarity, set });
       if (res?.cards) {
         setCards(res.cards);
       }
@@ -121,13 +125,13 @@ export default function SearchPane({
     if (!deckLegion) return filterOptions;
     return {
       ...filterOptions,
-      legion: [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"],
+      legion: (deckLegion === "Bounty" || deckLegion === "bounty") ? ["Bounty"] : [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"],
     };
   }, [filterOptions, deckLegion]);
 
   const preloadNextPage = () => {
     fetchCards({
-      legion: deckLegion && legion.length === 0 ? [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"] : legion,
+      legion: deckLegion && legion.length === 0 ? (deckLegion === "Bounty" || deckLegion === "bounty" ? ["Bounty"] : [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"]) : legion,
       query: debouncedQuery,
       page: page + 1,
       pageSize,
@@ -151,7 +155,7 @@ export default function SearchPane({
     const scrollPercent = e.currentTarget.scrollLeft / (e.currentTarget.scrollWidth - e.currentTarget.clientWidth);
     // Trigger next page preload when user scrolls 80% to the right
     if (scrollPercent > 0.8 && total > pageSize * page) {
-        preloadNextPage();
+      preloadNextPage();
     }
   }
 
@@ -160,7 +164,7 @@ export default function SearchPane({
     const scrollPercent = scrollTop / (scrollHeight - clientHeight);
     // Trigger next page preload when user scrolls 80% down
     if (scrollPercent > 0.8 && total > pageSize * page) {
-        preloadNextPage();
+      preloadNextPage();
     }
   }
 
@@ -238,7 +242,7 @@ export default function SearchPane({
                     <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
                   </div>
                 ))}
-              </div> : <div ref={horizontalScrollRef} onWheel={handleOnScroll} className="lg:flex lg:justify-center lg:flex-wrap h-full overflow-x-scroll overflow-y-hidden lg:overflow-x-hidden lg:overflow-y-auto whitespace-nowrap">{cards.map((card, index) => (
+              </div> : <div ref={horizontalScrollRef} onWheel={handleOnScroll} className="lg:flex lg:items-start lg:justify-start lg:flex-wrap h-full overflow-x-scroll overflow-y-hidden lg:overflow-x-hidden lg:overflow-y-auto whitespace-nowrap">{cards.map((card, index) => (
                 <div
                   key={card.toString() + index}
                   className="w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-1/5 cursor-pointer max-h-full inline-block box-border"

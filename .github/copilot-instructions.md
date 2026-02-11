@@ -48,7 +48,6 @@ src/
 │   └── page.tsx           # Main page with modal management
 ├── client/                 # Client-side utilities (shared between frontend/backend)
 │   ├── constants/         # Game constants and initial state (InitialGameState.ts, cardMenu.constants.ts)
-│   ├── data/              # Card data (cards.ts)
 │   ├── enums/             # Client-specific enums (GameEvent, MenuItemAction, RoomEvent)
 │   ├── hooks/             # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize, useClientSettings, useBackgroundPreload)
 │   ├── interfaces/        # TypeScript interfaces (Card, GameState, IMenuItem)
@@ -80,14 +79,9 @@ src/
 │   │   └── string.util.ts # String utility functions
 │   └── socket.js          # Socket.IO client setup
 ├── server/                 # Express backend with Socket.IO and MongoDB
-│   ├── cards/             # Card schema, effects, keywords, utilities
-│   │   ├── card.schema.ts # Card data schema
+│   ├── cards/             # Card effects and keywords
 │   │   ├── CardEffects.constants.ts # Card effect definitions
-│   │   ├── generateCards.util.ts # Card generation utilities
-│   │   ├── Keywords.ts    # Keyword system implementation
-│   │   ├── new_card.schema.ts # New card schema definitions
-│   │   ├── shuffleDeck.util.ts # Deck shuffling utilities
-│   │   └── string.utils.ts # Card-specific string utilities
+│   │   └── Keywords.ts    # Keyword system implementation
 │   ├── enums/             # Server-side enums (phases, events)
 │   │   ├── GameEvent.ts   # Game event enumeration
 │   │   ├── Phases.ts      # Game phases enumeration
@@ -328,7 +322,7 @@ node scripts/updateCardsInDecks.ts  # Update card data in existing decks with la
 interface IOServer extends Server { }
 interface CustomSocket extends Socket { room?: string; }
 
-// Express Extensions  
+// Express Extensions
 interface ExpressApp extends Express { }
 interface AuthenticatedRequest extends Request { userId?: string; user?: object; }
 
