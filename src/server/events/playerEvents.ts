@@ -162,7 +162,7 @@ export const sendChatMessage = (roomId: string, action: { message: string; side:
   games[roomId].gameLog = addGameLog(games[roomId].gameLog, side + " player says: '" + message + "'");
 }
 
-export const setP1Viweing = (roomId: string, action: { cardTarget: CARD_TARGET, limit: number | null }) => {
+export const setP1Vieweing = (roomId: string, action: { cardTarget: CARD_TARGET, limit: number | null }) => {
   if (!games[roomId]) return;
   games[roomId].p1Viewing = (action.limit ? "top " + action.limit + " of " : "") + action.cardTarget;
   games[roomId].gameLog = addGameLog(games[roomId].gameLog, "p1 viewing " + (action.limit ? "top " + action.limit + " of " : "") + action.cardTarget);
