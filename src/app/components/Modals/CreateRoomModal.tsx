@@ -33,7 +33,7 @@ export default function CreateRoomModal() {
   const [roomPassword, setRoomPassword] = useState("");
   const [sandboxMode, setSandboxMode] = useState(true);
   const [deckId, setDeckId] = useState("");
-  const [decks, setDecks] = useState<{name: string, _id: string}[]>([]);
+  const [decks, setDecks] = useState<{ name: string, _id: string }[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -50,13 +50,13 @@ export default function CreateRoomModal() {
 
   const handleCreateRoom = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     // Check authentication before proceeding
     if (!isAuthenticated) {
       setError("Please sign in to create a room");
       return;
     }
-    
+
     setLoading(true);
     try {
       const res = await axios.post(`${window.location.origin}/createRoom`, {
@@ -86,7 +86,7 @@ export default function CreateRoomModal() {
   }
 
   const getDecks = async () => {
-    fetchDecks((param: {name: string, _id: string}[]) => {setDecks(param)});
+    fetchDecks((param: { name: string, _id: string }[]) => { setDecks(param) });
   }
 
   useEffect(() => {
@@ -106,8 +106,8 @@ export default function CreateRoomModal() {
       <p className="text-lg text-white font-medium mt-6">{LoadingText}</p>
       <div className="flex space-x-1 mt-4">
         <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
       </div>
     </div>
   );
@@ -232,8 +232,8 @@ export default function CreateRoomModal() {
             )}
 
             {/* Submit Button */}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               disabled={loading}
             >

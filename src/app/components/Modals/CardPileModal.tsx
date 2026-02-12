@@ -18,52 +18,53 @@ interface ExtendedCardInterface extends CardInterface {
   newTarget?: CARD_TARGET | null; // new target for the card if selected, used for resolving effects
   targetIndex: number | null;
 }
-export default function CardPileModal({closeModal}: {closeModal: () => void}) {
+export default function CardPileModal({ closeModal }: { closeModal: () => void }) {
   const [tab, setTab] = useState<string>("All");
   const [search, setSearch] = useState<string>("");
   const [selected, setSelected] = useState<ExtendedCardInterface[] | null>([]);
+
   const gameState = useAppSelector((state) => state.gameState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
+  const { transparentOnBlur } = useClientSettings();
+
   const { sequences, resolving } = sequenceState;
   const { pileInViewTarget, pileInViewIndex, side, pileInViewLimit, topXCards } = gameState;
   const p1 = side === "p1";
   const resolvingEffectStep = sequences?.[0]?.items?.[0]?.effect?.[0];
   const waitingForUserInput = (p1 && resolving && resolvingEffectStep?.waitingForInput?.p1) || (!p1 && resolving && resolvingEffectStep?.waitingForInput?.p2);
-  
-  const { transparentOnBlur } = useClientSettings();
-
   const open = !!pileInViewTarget || waitingForUserInput;
   const {
     ShuffleBtnText,
     CloseShuffleBtnText,
     CloseBtnText
   } = ModalConstants;
+
   useEffect(() => {
     if (!open) {
       setSelected([]);
       setSearch("");
     }
   }
-  , [open]);
+    , [open]);
   if (!open) return null;
 
   const shuffle = () => {
-    emitGameEvent({type: GAME_EVENT.shuffleTargetPile, data: { cardTarget: pileInViewTarget, targetIndex: (pileInViewIndex || undefined)}});
+    emitGameEvent({ type: GAME_EVENT.shuffleTargetPile, data: { cardTarget: pileInViewTarget, targetIndex: (pileInViewIndex || undefined) } });
   }
-  
-  
+
+
   let cardPile: CardInterface[] = pileInViewTarget
     ? (pileInViewIndex != undefined
-        ? (gameState.game[pileInViewTarget as keyof typeof gameState.game] as CardInterface[][])[pileInViewIndex]
-        : gameState.game[pileInViewTarget as keyof typeof gameState.game] as CardInterface[])
+      ? (gameState.game[pileInViewTarget as keyof typeof gameState.game] as CardInterface[][])[pileInViewIndex]
+      : gameState.game[pileInViewTarget as keyof typeof gameState.game] as CardInterface[])
     : [] as CardInterface[];
-  
+
   if (waitingForUserInput) {
     // pileInViewTarget = resolvingEffectStep.from[0].target; // update the target to the one we are selecting from
     cardPile = [];
     for (const targetObject of resolvingEffectStep.from || []) {
       if (targetObject.targetIndex || targetObject.targetIndex === 0) {
-        cardPile.push(...((gameState.game[targetObject.target as keyof typeof gameState.game] as CardInterface[][])[targetObject.targetIndex]).map(item =>({
+        cardPile.push(...((gameState.game[targetObject.target as keyof typeof gameState.game] as CardInterface[][])[targetObject.targetIndex]).map(item => ({
           ...item,
           target: targetObject.target,
           targetIndex: targetObject.targetIndex,
@@ -72,7 +73,7 @@ export default function CardPileModal({closeModal}: {closeModal: () => void}) {
         if ([CARD_TARGET.P1_PLAYER_FORTIFIED, CARD_TARGET.P2_PLAYER_FORTIFIED, CARD_TARGET.P1_PLAYER_UNIFIED, CARD_TARGET.P2_PLAYER_UNIFIED, CARD_TARGET.P1_PLAYER_WARRIOR, CARD_TARGET.P2_PLAYER_WARRIOR].includes(targetObject.target)) {
           (gameState.game[targetObject.target as keyof typeof gameState.game] as CardInterface[][]).forEach((zone, index) => {
             if (zone.length === 0) return; // skip empty zones
-            cardPile.push(...zone.map((item) =>({
+            cardPile.push(...zone.map((item) => ({
               ...item,
               target: targetObject.target,
               targetIndex: index, // use the index of the zone as targetIndex
@@ -94,24 +95,24 @@ export default function CardPileModal({closeModal}: {closeModal: () => void}) {
   if (pileInViewLimit) {
     cardPile = topXCards || [];
   }
-  
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   }
-  
+
   const handleCloseModal = () => {
     setSearch("");
     setTab("All");
     closeModal();
-    emitGameEvent({type: side === "p1" ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: {cardTarget: null, limit: null}})
+    emitGameEvent({ type: side === "p1" ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget: null, limit: null } })
   }
 
   const closeAndShuffle = () => {
-    emitGameEvent({type: GAME_EVENT.shuffleTargetPile, data: { cardTarget: pileInViewTarget, targetIndex: (pileInViewIndex || undefined)}});
+    emitGameEvent({ type: GAME_EVENT.shuffleTargetPile, data: { cardTarget: pileInViewTarget, targetIndex: (pileInViewIndex || undefined) } });
     handleCloseModal();
   }
 
-  const renderModalHeader = () => !waitingForUserInput ?(
+  const renderModalHeader = () => !waitingForUserInput ? (
     <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between bg-gradient-to-r from-white/5 to-transparent">
       <div className="flex items-center gap-2">
         <button
@@ -166,7 +167,7 @@ export default function CardPileModal({closeModal}: {closeModal: () => void}) {
     } else {
       setSelected([...(selected ?? []), {
         ...card,
-        newTarget: isOneTarget ? resolvingEffectStep.to?.[0].target : isBounceEffect ? (card.target.includes("p1") ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND): null
+        newTarget: isOneTarget ? resolvingEffectStep.to?.[0].target : isBounceEffect ? (card.target.includes("p1") ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND) : null
       }]);
     }
   }
@@ -174,12 +175,14 @@ export default function CardPileModal({closeModal}: {closeModal: () => void}) {
   const handleConfirmSelected = () => {
     const newSelected = selected?.map(selectedCard => ({
       id: selectedCard.id,
-      from:{target: selectedCard.target, targetIndex: selectedCard.targetIndex},
+      from: { target: selectedCard.target, targetIndex: selectedCard.targetIndex },
       target: selectedCard.newTarget || (p1 ? resolvingEffectStep.to?.find(to => to.target.includes("p1"))?.target : resolvingEffectStep.to?.find(to => to.target.includes("p2"))?.target) || null, // default to p1 player deck if no target found
     }))
-    emitGameEvent({type: GAME_EVENT.playerInput, data: {
-      selected: newSelected,
-    }});
+    emitGameEvent({
+      type: GAME_EVENT.playerInput, data: {
+        selected: newSelected,
+      }
+    });
   }
 
   const renderModalContent = () => {
@@ -269,6 +272,6 @@ export default function CardPileModal({closeModal}: {closeModal: () => void}) {
   }
 
   return (
-    <Modal open={open} closeModal={handleCloseModal} modalHeader={renderModalHeader()} modalContent={renderModalContent()} transparentOnBlur={transparentOnBlur}/>
+    <Modal open={open} closeModal={handleCloseModal} modalHeader={renderModalHeader()} modalContent={renderModalContent()} transparentOnBlur={transparentOnBlur} />
   )
 }

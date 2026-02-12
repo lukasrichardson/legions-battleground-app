@@ -1,4 +1,4 @@
-import Breadcrumbs from "../decks/components/Breadcrumbs";
+import Breadcrumbs from "./Breadcrumbs";
 import { usePathname } from "next/navigation";
 
 export default function FullPage({ children, showBreadcrumbs }: { children: React.ReactNode, showBreadcrumbs?: boolean }) {

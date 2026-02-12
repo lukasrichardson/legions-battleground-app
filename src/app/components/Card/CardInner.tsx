@@ -6,18 +6,9 @@ import { MouseEventHandler, useMemo, useCallback } from "react";
 import { useDrag } from 'react-dnd';
 import CardMenuComponent from '@/app/components/Card/CardMenu';
 import IMenuItem from "@/client/interfaces/IMenuItem";
-import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
-import { GAME_EVENT } from "@/client/enums/GameEvent";
-import { changeP1AP, changeP1Health, changeP2AP, changeP2Health } from "@/client/redux/gameStateSlice";
-import { emitGameEvent } from "@/client/utils/emitEvent";
+import { useAppSelector } from "@/client/redux/hooks";
 import CardImage from "./CardImage";
-
-// const CARD_DIMENSIONS = {
-//   HEIGHT: 100,
-//   WIDTH: 75,
-//   IMAGE_HEIGHT: 108,
-//   IMAGE_WIDTH: 81,
-// } as const;
+import useHandlePlayerEvents from "@/client/hooks/useHandlePlayerEvents";
 
 const PILE_OFFSETS = {
   LEFT: 15,
@@ -68,6 +59,10 @@ interface CardInnerProps {
   handleDecreaseOtherModifier?: () => void;
   handleIncreaseCooldown?: () => void;
   handleDecreaseCooldown?: () => void;
+  handleHealthDecrease?: () => void;
+  handleHealthIncrease?: () => void;
+  handleAPDecrease?: () => void;
+  handleAPIncrease?: () => void;
 }
 
 export default function CardInner({
@@ -96,44 +91,15 @@ export default function CardInner({
 }: CardInnerProps) {
   const gameState = useCardGameState(cardTarget);
   const clientSettings = useAppSelector(state => state.clientSettings);
-  const dispatch = useAppDispatch();
-
+  
   const { p1Side, p1Card, playerHealth, playerAP, game } = gameState;
   const pileOfCard = (zoneIndex || zoneIndex === 0) ? game[cardTarget as keyof typeof game][zoneIndex] as CardInterface[] | undefined : game[cardTarget as keyof typeof game] as CardInterface[] | undefined;
   const inPileOfMinTwo = pileOfCard && pileOfCard.length >= 2;
-  const healthGameEvent = p1Card ? GAME_EVENT.changeP1Health : GAME_EVENT.changeP2Health;
-  const apGameEvent = p1Card ? GAME_EVENT.changeP1AP : GAME_EVENT.changeP2AP;
-  /* eslint-disable */
-  const healthGameFunction: Function = p1Card ? changeP1Health : changeP2Health;
-  const apGameFunction: Function = p1Card ? changeP1AP : changeP2AP;
-  /* eslint-enable */
-
-  // Memoized event handlers
-  const handleHealthDecrease = useCallback((e: React.MouseEvent) => {
-    dispatch(healthGameFunction(-1));
-    emitGameEvent({ type: healthGameEvent, data: -1 });
-    e.stopPropagation();
-  }, [dispatch, healthGameFunction, healthGameEvent]);
-
-  const handleHealthIncrease = useCallback((e: React.MouseEvent) => {
-    dispatch(healthGameFunction(1));
-    emitGameEvent({ type: healthGameEvent, data: 1 });
-    e.stopPropagation();
-  }, [dispatch, healthGameFunction, healthGameEvent]);
-
-  const handleAPDecrease = useCallback((e: React.MouseEvent) => {
-    dispatch(apGameFunction(-5));
-    emitGameEvent({ type: apGameEvent, data: -5 });
-    e.stopPropagation();
-  }, [dispatch, apGameFunction, apGameEvent]);
-
-  const handleAPIncrease = useCallback((e: React.MouseEvent) => {
-    dispatch(apGameFunction(5));
-    emitGameEvent({ type: apGameEvent, data: 5 });
-    e.stopPropagation();
-  }, [dispatch, apGameFunction, apGameEvent]);
+ 
+  
   const rotated = p1Side ? (!p1Card && !inPileView) : (p1Card && !inPileView);
 
+  const { handleHealthDecrease, handleHealthIncrease, handleAPDecrease, handleAPIncrease } = useHandlePlayerEvents(p1Card);
   // Reset loading state when image source changes
   const imageSrc = !faceUp ? back_of_card : card.img;
 
@@ -150,7 +116,6 @@ export default function CardInner({
   const attackModifierNegative = attackModifierExists && (card.attackModifier || 0) < 0;
   const otherModifierExists = card.otherModifier !== undefined && card.otherModifier !== 0;
   // const otherModifierNegative = otherModifierExists && (card.otherModifier || 0) < 0;
-  const cooldownExists = card.cooldown != null;
 
   const cardVisibilitySettings = useMemo(() => ({
     cardInView: ![
@@ -244,23 +209,20 @@ export default function CardInner({
               {(otherModifierExists || focused) && <span className="mx-auto">cnt{otherModifierExists && <span>{card.otherModifier}</span>}</span>}
               {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseOtherModifier?.() }}>↑</span>}
             </div>
+
           </>}
-          {hasCooldown && <div className="absolute bottom-0 bg-[#f5f5f5] rounded flex items-center justify-center text-black w-full">
-            {<span className="cursor-pointer" onClick={(e) => { e.stopPropagation(); handleDecreaseCooldown?.(); }}>↓</span>}
-            {cooldownExists && <span>{"CD "}{card.cooldown}</span>}
-            {<span className="cursor-pointer" onClick={(e) => { e.stopPropagation(); handleIncreaseCooldown?.(); }}>↑</span>}
-          </div>}
-          {isWarlord && <div className="absolute top-0 bg-[#f5f5f5] rounded flex items-center justify-center text-black w-full">
-            {<span className="cursor-pointer" onClick={handleHealthDecrease}>↓</span>}
-            <span>{"DCM "}{p1Card ? playerHealth.p1 : playerHealth.p2}</span>
-            {<span className="cursor-pointer" onClick={handleHealthIncrease}>↑</span>}
-          </div>}
-          {isGuardian && <div className="absolute bottom-0 bg-[#f5f5f5] rounded flex items-center justify-center text-black w-full">
-            {<span className="cursor-pointer" onClick={handleAPDecrease}>↓</span>}
-            <span>{"AP "}{p1Card ? playerAP.p1 : playerAP.p2}</span>
-            {<span className="cursor-pointer" onClick={handleAPIncrease}>↑</span>}
-          </div>}
+          {hasCooldown && renderCardAddOn((e) =>{e?.stopPropagation();handleDecreaseCooldown?.()}, (e) => {e?.stopPropagation();handleIncreaseCooldown?.()}, `CD ${card.cooldown}`, false)}
+          {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true)}
+          {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false)}
         </div>)}
     </Popover>
   )
 }
+
+const renderCardAddOn = (handleDecrease, handleIncrease, text, top) => (
+  <div className={`absolute ${top ? "top-0" : "bottom-0"} bg-[#f5f5f5] rounded flex items-center justify-between text-black w-full`}>
+    {<span className="cursor-pointer" onClick={handleDecrease}>↓</span>}
+    <span>{text}</span>
+    {<span className="cursor-pointer" onClick={handleIncrease}>↑</span>}
+  </div>
+)

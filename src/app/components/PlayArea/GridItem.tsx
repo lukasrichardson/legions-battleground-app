@@ -110,7 +110,6 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
     }),
     [cardTarget, side, sequences, resolving, currentPhase, turnNumber, targetIndex] // dependencies for the drop hook
   )
-  // const isP2PlayerCards = cardTarget.includes("p2");
   return (
     drop(
       <div
@@ -122,7 +121,6 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
           isOver && canDrop ? "border-green-400 bg-green-400/10 scale-[1.02]" : "",
           isOver && !canDrop ? "border-red-400 bg-red-400/10" : "",
           canDrop && !isOver ? "border-blue-400/50" : "",
-          // !isP2PlayerCards ? "bg-[#1d1e18] text-white" : "",
         ].join(" ")}
       >
         {children}

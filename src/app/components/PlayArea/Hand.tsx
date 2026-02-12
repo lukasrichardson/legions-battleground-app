@@ -49,7 +49,6 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
     }),
     [cardTarget, viewing]
   )
-  // const isP2PlayerCards = cardTarget.includes("p2");
   const playerHand = (p1Side && cardTarget === CARD_TARGET.P1_PLAYER_HAND) || (!p1Side && cardTarget === CARD_TARGET.P2_PLAYER_HAND);
 
   return (
@@ -58,7 +57,6 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
         "relative flex justify-center w-full",
         "h-[10%]",
         !playerHand ? "-translate-y-[20%]" : "",
-        // !isP2PlayerCards ? "bg-[#1d1e18] text-white" : "",
       ].join(" ")}
       >
         {(viewing && viewing != "null") && (

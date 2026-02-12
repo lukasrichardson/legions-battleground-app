@@ -1,9 +1,9 @@
 
 "use client";
 import { useAppSelector } from "@/client/redux/hooks";
-// import Image from "next/image";
 import CardImage from "./CardImage";
 
+//preview for toolbar in game. deck builder and gallery have their own versions of preview
 export default function CardPreview({}) {
   const gameState = useAppSelector((state) => state.gameState);
   if (!gameState.cardInFocus && !gameState.previousCardInFocus) return null;

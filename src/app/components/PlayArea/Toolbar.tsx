@@ -1,5 +1,4 @@
 
-// Tailwind-only toolbar replacing CSS module styling
 import { openHelpModal,
   // openSetDecksModal
 } from "@/client/redux/modalsSlice";

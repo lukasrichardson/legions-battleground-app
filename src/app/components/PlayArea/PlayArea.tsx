@@ -51,14 +51,6 @@ export default function PlayArea({ }) {
     p1PlayerGuardian,
     p1PlayerTokens,
     p1PlayerRevealed,
-
-    // p2PlayerHealth,
-    // p1PlayerHealth,
-    // p2PlayerAP,
-    // p1PlayerAP,
-    // p2DeckFromServer,
-    // p1DeckFromServer,
-    // sandboxMode
   } = gameState.game;
   const { side } = gameState;
   const p1 = side === "p1";
@@ -76,13 +68,9 @@ export default function PlayArea({ }) {
         {renderCardRowUpsideDown(p1 ? p2PlayerFortifieds : p1PlayerFortifieds, p1 ? CARD_TARGET.P2_PLAYER_FORTIFIED : CARD_TARGET.P1_PLAYER_FORTIFIED, "Fortified")}
         {renderCardZone(p1 ? p2PlayerGuardian : p1PlayerGuardian, p1 ? CARD_TARGET.P2_PLAYER_GUARDIAN : CARD_TARGET.P1_PLAYER_GUARDIAN, "Guardian")}
         {renderCardZone(p1 ? p2PlayerRevealed : p1PlayerRevealed, p1 ? CARD_TARGET.P2_PLAYER_REVEALED : CARD_TARGET.P1_PLAYER_REVEALED, "Revealed")}
-        {/* {renderAP(p1 ? p2PlayerAP : p1PlayerAP, p1 ? GAME_EVENT.changeP2AP : GAME_EVENT.changeP1AP, !p1, dispatch)} */}
-        {/* {renderDeckNameZone(p1 ? p2DeckFromServer : p1DeckFromServer, !p1)} */}
         {renderCardZone(p1 ? p2PlayerDiscard : p1PlayerDiscard, p1 ? CARD_TARGET.P2_PLAYER_DISCARD : CARD_TARGET.P1_PLAYER_DISCARD, "Discard")}
         {renderCardRowUpsideDown(p1 ? p2PlayerUnifieds : p1PlayerUnifieds, p1 ? CARD_TARGET.P2_PLAYER_UNIFIED : CARD_TARGET.P1_PLAYER_UNIFIED, "Unified")}
         {renderCardZone(p1 ? p2PlayerSynergy : p1PlayerSynergy, p1 ? CARD_TARGET.P2_PLAYER_SYNERGY : CARD_TARGET.P1_PLAYER_SYNERGY, "Synergy")}
-        {/* replace health grid item with revealed grid item to save space */}
-        {/* {renderHealth(p1 ? p2PlayerHealth : p1PlayerHealth, p1 ? GAME_EVENT.changeP2Health : GAME_EVENT.changeP1Health, !p1, dispatch)} */}
         {renderCardZone(p1 ? p2PlayerTokens : p1PlayerTokens, p1 ? CARD_TARGET.P2_PLAYER_TOKENS : CARD_TARGET.P1_PLAYER_TOKENS, "Tokens")}
         {renderDeckZone(p1 ? p2PlayerDeck[0] : p1PlayerDeck[0], p1 ? CARD_TARGET.P2_PLAYER_DECK : CARD_TARGET.P1_PLAYER_DECK, p1)}
         {renderCardRowUpsideDown(p1 ? p2PlayerWarriors : p1PlayerWarriors, p1 ? CARD_TARGET.P2_PLAYER_WARRIOR : CARD_TARGET.P1_PLAYER_WARRIOR, "Warrior")}
@@ -114,16 +102,13 @@ export default function PlayArea({ }) {
         {renderCardRow(p1 ? p1PlayerWarriors : p2PlayerWarriors, p1 ? CARD_TARGET.P1_PLAYER_WARRIOR : CARD_TARGET.P2_PLAYER_WARRIOR, "Warrior")}
         {renderDeckZone(p1 ? p1PlayerDeck[0] : p2PlayerDeck[0], p1 ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK, p1)}
         {renderCardZone(p1 ? p1PlayerTokens : p2PlayerTokens, p1 ? CARD_TARGET.P1_PLAYER_TOKENS : CARD_TARGET.P2_PLAYER_TOKENS, "Tokens")}
-        {/* {renderHealth(p1 ? p1PlayerHealth : p2PlayerHealth, p1 ? GAME_EVENT.changeP1Health : GAME_EVENT.changeP2Health, p1, dispatch)} */}
         {renderCardZone(p1 ? p1PlayerSynergy : p2PlayerSynergy, p1 ? CARD_TARGET.P1_PLAYER_SYNERGY : CARD_TARGET.P2_PLAYER_SYNERGY, "Synergy")}
         {renderCardRow(p1 ? p1PlayerUnifieds : p2PlayerUnifieds, p1 ? CARD_TARGET.P1_PLAYER_UNIFIED : CARD_TARGET.P2_PLAYER_UNIFIED, "Unified")}
         {renderCardZone(p1 ? p1PlayerDiscard : p2PlayerDiscard, p1 ? CARD_TARGET.P1_PLAYER_DISCARD : CARD_TARGET.P2_PLAYER_DISCARD, "Discard")}
         {renderCardZone(p1 ? p1PlayerRevealed : p2PlayerRevealed, p1 ? CARD_TARGET.P1_PLAYER_REVEALED : CARD_TARGET.P2_PLAYER_REVEALED, "Revealed")}
-        {/* {renderAP(p1 ? p1PlayerAP : p2PlayerAP, p1 ? GAME_EVENT.changeP1AP : GAME_EVENT.changeP2AP, p1, dispatch)} */}
         {renderCardZone(p1 ? p1PlayerGuardian : p2PlayerGuardian, p1 ? CARD_TARGET.P1_PLAYER_GUARDIAN : CARD_TARGET.P2_PLAYER_GUARDIAN, "Guardian")}
         {renderCardRow(p1 ? p1PlayerFortifieds : p2PlayerFortifieds, p1 ? CARD_TARGET.P1_PLAYER_FORTIFIED : CARD_TARGET.P2_PLAYER_FORTIFIED, "Fortified")}
         {renderCardZone(p1 ? p1PlayerEradication : p2PlayerEradication, p1 ? CARD_TARGET.P1_PLAYER_ERADICATION : CARD_TARGET.P2_PLAYER_ERADICATION, "Eradication")}
-        {/* {renderDeckNameZone(p1 ? p1DeckFromServer : p2DeckFromServer, p1)} */}
       </div>
       {renderHand(p1 ? p1PlayerHand : p2PlayerHand, p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND, p1)}
     </div>

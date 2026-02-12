@@ -28,7 +28,7 @@ export default function CreateDeckModal({
   const [selectedLegion, setSelectedLegion] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [filterOptions, setFilterOptions] = useState({legion: []});
+  const [filterOptions, setFilterOptions] = useState({ legion: [] });
 
   const {
     LoadingText,
@@ -45,12 +45,12 @@ export default function CreateDeckModal({
 
   const handleCreateDeck = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!deckName.trim()) {
       setError("Deck name is required");
       return;
     }
-    
+
     if (!selectedLegion) {
       setError("Please select a legion");
       return;
@@ -60,19 +60,12 @@ export default function CreateDeckModal({
     setError("");
 
     try {
-      const newDeck: {_id: string, id: string} = await createDeck({ name: deckName.trim(), legion: selectedLegion }, () => null);
-      // Reset form
+      const newDeck: { _id: string, id: string } = await createDeck({ name: deckName.trim(), legion: selectedLegion }, () => null);
       setDeckName("");
       setSelectedLegion("");
       setError("");
-      
-      // Close modal
       closeModal();
-      
-      
-      // Navigate to the new deck
       router.push(`/decks/${newDeck._id || newDeck.id}`);
-      
     } catch (err) {
       console.error("Error creating deck:", err);
       setError("Failed to create deck. Please try again.");
@@ -105,8 +98,8 @@ export default function CreateDeckModal({
       <p className="text-lg text-white font-medium mt-6">{LoadingText}</p>
       <div className="flex space-x-1 mt-4">
         <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
       </div>
     </div>
   );
@@ -134,11 +127,10 @@ export default function CreateDeckModal({
                 name="deckName"
                 autoComplete="off"
                 autoFocus
-                className={`bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-12 transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                  error && !deckName.trim() 
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                className={`bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-12 transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 ${error && !deckName.trim()
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                     : 'focus:border-blue-500 focus:ring-blue-500/20'
-                }`}
+                  }`}
                 placeholder="Enter deck name"
                 required
                 disabled={loading}
@@ -151,17 +143,16 @@ export default function CreateDeckModal({
                 {LegionLabelText} <span className="text-red-400">*</span>
               </label>
               <Select value={selectedLegion} onValueChange={setSelectedLegion} disabled={loading}>
-                <SelectTrigger className={`bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-12 transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                  error && !selectedLegion 
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                <SelectTrigger className={`bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-12 transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 ${error && !selectedLegion
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                     : 'focus:border-blue-500 focus:ring-blue-500/20'
-                }`}>
+                  }`}>
                   <SelectValue placeholder={SelectLegionPlaceholder} />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-white/20 text-white">
                   {filterOptions?.legion?.map((legion) => (
-                    <SelectItem 
-                      key={legion} 
+                    <SelectItem
+                      key={legion}
                       value={legion}
                       className="text-white hover:bg-white/10 focus:bg-white/10"
                     >
@@ -185,8 +176,8 @@ export default function CreateDeckModal({
             )}
 
             {/* Submit Button */}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:scale-95 text-white font-semibold py-4 text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               disabled={loading}
             >

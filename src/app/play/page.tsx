@@ -344,7 +344,6 @@ function Page() {
           <PlayArea />
           <CardPileModal closeModal={closePileInView} />
           <SetDecksModal closeModal={handleCloseSetDecksModal} />
-          {/* <CardPreview /> */}
           <HelpModal />
           <PlunderModal
             closeModal={handleClosePlunderModal}
