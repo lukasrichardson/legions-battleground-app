@@ -1,7 +1,14 @@
 import { users,  } from "../game/game";
 import { RoomsCollection } from "../../shared/interfaces/RoomInterface";
 import { IOServer, CustomSocket } from "../interfaces/SocketTypes";
-import { handleSocketDisconnect, handleSocketGameEvent, handleSocketJoinGame, handleSocketRoomEvent } from "../utils/socket.util";
+import { 
+  handleSocketDisconnect,
+  handleSocketGameEvent,
+  handleSocketJoinGame,
+  handleSocketRoomEvent
+} from "../utils/socket.util.clean";
+//old file
+// } from "../utils/socket.util";
 
 export const rooms: RoomsCollection = {};
 

@@ -2,6 +2,12 @@ import { Server, Socket as SocketIOSocket } from 'socket.io';
 import { GAME_EVENT } from '../enums/GameEvent';
 import { ROOM_EVENT } from '../enums/RoomEvent';
 
+
+export interface JoinGamePayload {
+  roomName: string;
+  playerName: string;
+  deckId: string;
+}
 export interface GameEventPayload {
   type: GAME_EVENT;
   data?: unknown;

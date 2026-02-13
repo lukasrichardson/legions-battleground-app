@@ -113,7 +113,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   }
 
   const renderModalHeader = () => !waitingForUserInput ? (
-    <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between bg-gradient-to-r from-white/5 to-transparent">
+    <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-2">
         <button
           className="px-3 py-1.5 text-xs font-medium uppercase tracking-wide rounded-md border border-white/20 bg-white/5 hover:bg-white/10 text-white/90"
