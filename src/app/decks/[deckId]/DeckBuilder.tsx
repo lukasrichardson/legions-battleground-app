@@ -10,6 +10,7 @@ import { fetchDeckById, patchDeckById } from "@/client/utils/api.utils";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { preloadDeckImages } from "@/client/utils/imagePreloader";
 import FullPage from "@/app/components/FullPage";
+import { CARD_TYPE } from "@/shared/enums/CardType";
 
 export default function DeckBuilder() {
   const params = useParams<{ deckId: string }>()
@@ -73,18 +74,22 @@ export default function DeckBuilder() {
     deck.cards_in_deck.forEach(card => {
       counts[card.id] = (counts[card.id] || 0) + 1;
     });
+    const warriors = deck.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.WARRIOR);
+    const unifieds = deck.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.UNIFIED);
+    const fortifieds = deck.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.FORTIFIED);
+    const restOfDeck = deck.cards_in_deck.filter(item => ![CARD_TYPE.WARRIOR.toString(), CARD_TYPE.UNIFIED.toString(), CARD_TYPE.FORTIFIED.toString()].includes(item?.card_type?.names?.[0]));
     const sortedDeck = {
       ...deck,
-      cards_in_deck: deck.cards_in_deck.sort((a, b) => {
-        const frequencyCompare = counts[b.id] - counts[a.id];
-        if (frequencyCompare !== 0) return frequencyCompare;
-        // Sort by card type first, then by name
-        const typeA = a.card_type.names[0];
-        const typeB = b.card_type.names[0];
-        if (typeA < typeB) return 1;
-        if (typeA > typeB) return -1;
-        return a.title.localeCompare(b.title);
-      })
+      cards_in_deck: [...warriors.sort((a, b) => {
+        return counts[b.id] - counts[a.id];
+      }), ...unifieds.sort((a, b) => {
+        return counts[b.id] - counts[a.id];
+      }), ...fortifieds.sort((a, b) => {
+        return counts[b.id] - counts[a.id];
+      }), ...restOfDeck.sort((a, b) => {
+        return counts[b.id] - counts[a.id];
+      })]
+      
     };
     setSaving(true);
     patchDeckById(deck._id.toString(), sortedDeck, (deckRes) =>{

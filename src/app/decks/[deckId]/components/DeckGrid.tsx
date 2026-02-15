@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import { Button } from "@/client/ui/button";
 import { CardInDeck, DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { CARD_TYPE } from "@/shared/enums/CardType";
+import useClientSettings from "@/client/hooks/useClientSettings";
 
 const renderLeftSideSection = (cards: CardDocument[], handleDeckCardClick, setHoveredCard) => {
   if (!cards || cards.length === 0) return null;
@@ -36,7 +37,7 @@ const renderLeftSideSection = (cards: CardDocument[], handleDeckCardClick, setHo
   )
 }
 
-const renderDeckSection = (cards: CardDocument[], handleDeckCardClick, setHoveredCard) => {
+const renderDeckSection = (cards: CardDocument[], handleDeckCardClick, setHoveredCard, useGroupedView) => {
   if (!cards || cards.length === 0) return null;
 
   // Group cards by name to apply grouping styling
@@ -49,7 +50,7 @@ const renderDeckSection = (cards: CardDocument[], handleDeckCardClick, setHovere
     return groups;
   }, {});
 
-  return (
+  return useGroupedView ? (
     <>
       {Object.entries(groupedCards).map(([name, cardGroup]) => (
         <div key={name} className="inline-block w-1/4 xs:w-1/6 sm:w-1/8 lg:w-1/10 xl:w-1/14 max-w-40 py-1 box-border">
@@ -64,15 +65,23 @@ const renderDeckSection = (cards: CardDocument[], handleDeckCardClick, setHovere
         </div>
       ))}
     </>
+  ) : (
+    <>
+      {cards.map((card, index) => (
+        <div key={card.id.toString() + index} className="inline-block w-1/4 xs:w-1/6 sm:w-1/8 lg:w-1/10 xl:w-1/14 max-w-40 py-1 box-border">
+          <DeckCardTile card={card} index={index} onContextMenu={handleDeckCardClick} onMouseEnter={setHoveredCard} />
+        </div>
+      ))}
+    </>
   )
 }
 
 const renderSectionStructure = (name: string, cards: CardInDeck[], renderSubSection: (cards: CardInDeck[]) => JSX.Element) => (
   cards && cards.length > 0 && (
     <div>
-      <h3 className="text-sm font-semibold text-white">
-        {name} ({cards.length})
-      </h3>
+      <span className="text-xs font-semibold text-white">
+        {name}
+      </span>
       <div className="flex flex-wrap">
         {renderSubSection(cards)}
       </div>
@@ -105,24 +114,28 @@ export default function DeckGrid({
   const guardians = deck?.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.GUARDIAN);
   const tokens = deck?.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.TOKEN);
 
+  const { deckbuild_groupedView, setDeckbuildGroupedView } = useClientSettings();
+
   const handleDeckCardClick = async (e, card) => {
     e.preventDefault();
     handleRemoveCardFromDeck(card);
   }
 
-  const renderSection = (cards) => renderDeckSection(cards, handleDeckCardClick, setHoveredCard);
+  const renderSection = (cards) => renderDeckSection(cards, handleDeckCardClick, setHoveredCard, deckbuild_groupedView);
   const renderLeftSection = (cards) => renderLeftSideSection(cards, handleDeckCardClick, setHoveredCard);
+
+  const handleGroupedViewToggle = () => {
+    setDeckbuildGroupedView(!deckbuild_groupedView);
+  }
   return (
     <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
       <CardHeader className="p-2 pb-1">
         <CardTitle className="flex items-center justify-between text-xs">
           <span className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-green-500 rounded flex items-center justify-center">
-              <svg className="w-1.5 h-1.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            Main Deck: {mainDeck?.length} Cards
+            Main: {mainDeck?.length}
+            <span>|  Warriors: {warriors?.length}</span>
+            <span>|  Unified: {unifieds?.length}</span>
+            <span>|  Fortified: {fortifieds?.length}</span>
           </span>
           <span></span>
           <div className="flex items-center gap-2">
@@ -135,6 +148,10 @@ export default function DeckGrid({
             >
               {saving ? "Saving..." : "Sort"}
             </Button>
+            <input type="checkbox" id="groupedView" checked={deckbuild_groupedView} onChange={handleGroupedViewToggle} />
+            <label htmlFor="groupedView" className="text-xs cursor-pointer">
+              Grouped View
+            </label>
           </div>
         </CardTitle>
       </CardHeader>
@@ -149,7 +166,7 @@ export default function DeckGrid({
               </div>
               <p className="text-gray-400 text-sm">Loading deck...</p>
             </div>
-          ) : (
+          ) : deckbuild_groupedView ? (
             <div className="space-y-2">
               <div className="flex flex-wrap">
                 {renderSectionStructure(CARD_TYPE.WARLORD, warlords, renderLeftSection)}
@@ -177,6 +194,17 @@ export default function DeckGrid({
                 </div>
               )}
             </div>
+          ) : (
+            <>
+            <div className="rounded bg-white/20 relative">
+              <span className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 italic">LEFT SIDE</span>
+              {renderSection([...warlords, ...veilRealms, ...synergies, ...guardians])}
+            </div>
+            <div className="rounded bg-white/20 relative mt-2 min-h-1/2">
+              <span className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 italic">MAIN DECK</span>
+              {renderSection(mainDeck)}
+            </div>
+            </>
           )}
         </div>
       </CardContent>

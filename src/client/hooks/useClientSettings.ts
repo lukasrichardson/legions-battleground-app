@@ -1,13 +1,11 @@
 import { useEffect } from "react";
-import { setHoverMenu, setLegacyMenu, setTransparentOnBlur } from "../redux/clientSettingsSlice";
+import { setHoverMenu, setLegacyMenu, setTransparentOnBlur, setDeckbuildGroupedView } from "../redux/clientSettingsSlice";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
 
 export default function useClientSettings() {
   const dispatch = useAppDispatch();
   const clientSettings = useAppSelector((state) => state.clientSettings);
-  const hoverMenu = clientSettings.hoverMenu;
-  const legacyMenu = clientSettings.legacyMenu;
-  const transparentOnBlur = clientSettings.transparentOnBlur;
+  const { hoverMenu, legacyMenu, transparentOnBlur, deckbuild_groupedView } = clientSettings;
   const setHoverMenuSetting = (value: boolean) => {
     localStorage?.setItem('hoverMenu', value.toString());
     dispatch(setHoverMenu(value));
@@ -20,11 +18,16 @@ export default function useClientSettings() {
     localStorage?.setItem('transparentOnBlur', value.toString());
     dispatch(setTransparentOnBlur(value));
   }
+  const setDeckbuildGroupedViewSetting = (value: boolean) => {
+    localStorage?.setItem('deckbuildGroupedView', value.toString());
+    dispatch(setDeckbuildGroupedView(value));
+  }
   useEffect(() => {
     const storedHoverMenu = localStorage?.getItem('hoverMenu');
     const storedLegacyMenu = localStorage?.getItem('legacyMenu');
     const storedTransparentOnBlur = localStorage?.getItem('transparentOnBlur');
-    
+    const storedDeckbuildGroupedView = localStorage?.getItem('deckbuildGroupedView');
+
     if (storedTransparentOnBlur !== null) {
       dispatch(setTransparentOnBlur(storedTransparentOnBlur === 'true'));
     }
@@ -34,6 +37,9 @@ export default function useClientSettings() {
     if (storedLegacyMenu !== null) {
       dispatch(setLegacyMenu(storedLegacyMenu === 'true'));
     }
+    if (storedDeckbuildGroupedView !== null) {
+      dispatch(setDeckbuildGroupedView(storedDeckbuildGroupedView === 'true'));
+    }
   }, [dispatch]);
-  return { hoverMenu, legacyMenu, transparentOnBlur, setHoverMenu: setHoverMenuSetting, setLegacyMenu: setLegacyMenuSetting, setTransparentOnBlur: setTransparentOnBlurSetting }
+  return { hoverMenu, legacyMenu, transparentOnBlur, deckbuild_groupedView, setHoverMenu: setHoverMenuSetting, setLegacyMenu: setLegacyMenuSetting, setTransparentOnBlur: setTransparentOnBlurSetting, setDeckbuildGroupedView: setDeckbuildGroupedViewSetting }
 }

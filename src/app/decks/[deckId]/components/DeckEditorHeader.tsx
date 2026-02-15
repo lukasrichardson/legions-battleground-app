@@ -78,14 +78,11 @@ export default function DeckEditorHeader({
 
   return (
     <div className="space-y-1">
-      {/* Title and Deck Selector */}
       <div className="text-center">
         <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
           Deck Editor
         </h1>
         <span className="text-sm text-gray-400">Left Click to add cards, Right Click to remove cards</span>
-
-        {/* Deck Selector */}
         <div className="flex items-center justify-center gap-1 flex-wrap">
           <span className="text-white/70 text-xs">{deck?.legion || ""}</span>
           <Select value={deck?._id?.toString()} onValueChange={handleDeckChange} disabled={loading}>
@@ -166,7 +163,6 @@ export default function DeckEditorHeader({
             </button>
         </div>
       </div>
-
     </div>
   )
 }

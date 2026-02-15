@@ -83,7 +83,7 @@ export function MultiSelect({
         onClick={() => setOpen(o => !o)}
         className={`
           w-auto inline-flex items-center justify-between gap-2 rounded-xl border
-          bg-gray-400 text-black px-3 py-2 text-sm shadow-sm ring-1 ring-black/5
+          bg-gray-400 text-black p-1 text-sm shadow-sm ring-1 ring-black/5
           hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500
           disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
         `}
@@ -104,9 +104,9 @@ export function MultiSelect({
       {open && (
         <div
           ref={menuRef}
-          className="fixed z-50 mt-2 w-64 rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5"
+          className="fixed z-50 mt-2 rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5"
         >
-          <div className="flex items-center justify-between px-3 py-2 border-b">
+          <div className="flex items-center justify-between px-2 py-1 border-b">
             <button
               type="button"
               className="text-xs rounded-md px-2 py-1 hover:bg-gray-500 cursor-pointer text-black w-full"

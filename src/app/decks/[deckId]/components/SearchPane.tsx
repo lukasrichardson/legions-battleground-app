@@ -15,14 +15,14 @@ export default function SearchPane({
   gallery = false
 }: {
   setHoveredCard: (card: CardDocument | null) => void,
-  handleAddCardToDeck: (card) => void,
+  handleAddCardToDeck: (card: CardDocument) => void,
   deckLegion: string | null,
   gallery?: boolean
 }) {
   const [legion, setLegion] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [cards, setCards] = useState([]);
+  const [cards, setCards] = useState<CardDocument[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(50);
@@ -33,7 +33,6 @@ export default function SearchPane({
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const horizontalScrollRef = useRef<HTMLDivElement | null>(null);
 
-  // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query);
@@ -173,7 +172,9 @@ export default function SearchPane({
       <CardContent className="p-2 pt-0 h-full flex flex-col overflow-hidden">
         {/* Search and Filters - Compact for mobile */}
         <div className="space-y-1 mb-2 flex-1/4">
+          <label htmlFor="search-input" className="text-xs">Search</label>
           <Input
+            id="search-input"
             value={query}
             onChange={handleSearchChange}
             placeholder="Search cards..."
@@ -183,7 +184,7 @@ export default function SearchPane({
           {/* Only show filters on larger screens to save space on mobile */}
           <div className="hidden lg:block">
             {(Object.keys(filterOptionsForDeckLegion).length > 0) && (
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {Object.keys(filterOptionsForDeckLegion).map((key) => (
                   <MultiSelect
                     key={key}
@@ -217,7 +218,7 @@ export default function SearchPane({
         </div>
 
         {/* Cards List - Scrollable with smaller card sizes to match deck */}
-        <div ref={scrollRef} onScroll={handleVerticalScroll} className="grow lg:overflow-auto">
+        <div ref={scrollRef} onScroll={handleVerticalScroll} className="grow lg:overflow-auto shadow-black shadow-2xl">
           {cards.length === 0 ? (
             <div className="text-center py-2 h-full flex flex-col items-center justify-center">
               <div className="w-6 h-6 bg-gray-700/50 rounded-full flex items-center justify-center mb-1">
@@ -242,16 +243,25 @@ export default function SearchPane({
                     <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
                   </div>
                 ))}
-              </div> : <div ref={horizontalScrollRef} onWheel={handleOnScroll} className="lg:flex lg:items-start lg:justify-start lg:flex-wrap h-full overflow-x-scroll overflow-y-hidden lg:overflow-x-hidden lg:overflow-y-auto whitespace-nowrap">{cards.map((card, index) => (
-                <div
-                  key={card.toString() + index}
-                  className="w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-1/5 cursor-pointer max-h-full inline-block box-border"
-                  onClick={(e) => handleSearchedCardClick(e, card)}
-                >
-
-                  <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
-                </div>
-              ))}
+              </div> : <div ref={horizontalScrollRef} onWheel={handleOnScroll} className="lg:flex lg:items-start lg:justify-start lg:flex-wrap h-full overflow-x-scroll overflow-y-hidden lg:overflow-x-hidden lg:overflow-y-auto whitespace-nowrap">
+                {cards.map((card, index) => (
+                  <div
+                    key={card.toString() + index}
+                    className="inline-block w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-full cursor-pointer max-h-full lg:flex justify-start items-start overflow-hidden bg-white/20 rounded p-1 pr-0.5 my-0.5"
+                    onClick={(e) => handleSearchedCardClick(e, card)}
+                  >
+                    <div className="w-full lg:w-1/5 xl:w-1/7 h-full">
+                      <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
+                    </div>
+                    <div className="hidden w-4/5 lg:flex flex-col xl:w-6/7 h-full justify-between">
+                      <span className="text-wrap text-sm font-extrabold tracking-tighter underline">{card.title}</span>
+                      <span className="text-wrap text-xs font-semibold">{card.legion.names[0]}: {card.card_type.names[0]}</span>
+                      <div className="flex justify-between"><span className="text-wrap text-xs">{card.rarity.names[0]}</span>
+                        <span className="text-wrap text-xs">{card.card_code}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>}
             </div>
           )}

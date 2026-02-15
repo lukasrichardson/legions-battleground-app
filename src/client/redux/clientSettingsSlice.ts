@@ -4,10 +4,12 @@ const initialState: {
   hoverMenu: boolean;
   legacyMenu: boolean;
   transparentOnBlur: boolean;
+  deckbuild_groupedView: boolean;
 } = {
   hoverMenu: true,
   legacyMenu: true,
-  transparentOnBlur: false
+  transparentOnBlur: false,
+  deckbuild_groupedView: false
 }
 
 const clientSettingsSlice = createSlice({
@@ -22,10 +24,13 @@ const clientSettingsSlice = createSlice({
     },
     setTransparentOnBlur: (state, action: PayloadAction<boolean>) => {
       state.transparentOnBlur = action.payload;
+    },
+    setDeckbuildGroupedView: (state, action: PayloadAction<boolean>) => {
+      state.deckbuild_groupedView = action.payload;
     }
   }
 });
 
-export const { setHoverMenu, setLegacyMenu, setTransparentOnBlur } = clientSettingsSlice.actions;
+export const { setHoverMenu, setLegacyMenu, setTransparentOnBlur, setDeckbuildGroupedView } = clientSettingsSlice.actions;
 
 export default clientSettingsSlice.reducer;
