@@ -171,7 +171,7 @@ export default function SearchPane({
     <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
       <CardContent className="p-2 pt-0 h-full flex flex-col overflow-hidden">
         {/* Search and Filters - Compact for mobile */}
-        <div className="space-y-1 mb-2 flex-1/4">
+        <div className="space-y-1 mb-2">
           <label htmlFor="search-input" className="text-xs">Search</label>
           <Input
             id="search-input"
