@@ -77,7 +77,6 @@ function Page() {
       ].filter(Boolean);
       
       if (criticalImages.length > 0) {
-        console.log(`[Game] Preloading ${criticalImages.length} critical game images`);
         preloadSearchResults(criticalImages.map(card => ({ featured_image: card.img })));
       }
 
@@ -85,7 +84,6 @@ function Page() {
       setTimeout(() => {
         const playerHand = gameState.side === 'p1' ? gameState?.game?.p1PlayerHand || [] : gameState?.game?.p2PlayerHand || [];
         if (playerHand.length > 0) {
-          console.log(`[Game] Preloading ${playerHand.length} hand images`);
           preloadSearchResults(playerHand.map(card => ({ featured_image: card.img })));
         }
       }, 1000);
@@ -99,7 +97,6 @@ function Page() {
           ...(gameState?.game?.p2PlayerDiscard?.slice(0, 3) || [])
         ];
         if (backgroundImages.length > 0) {
-          console.log(`[Game] Preloading ${backgroundImages.length} background game images`);
           preloadSearchResults(backgroundImages.map(card => ({ featured_image: card.img })));
         }
       }, 5000);

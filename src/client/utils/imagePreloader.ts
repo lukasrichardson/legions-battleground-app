@@ -54,7 +54,6 @@ class ImagePreloader {
         this.maxConcurrentRequests = Math.min(this.maxConcurrentRequests, 2);
       }
       
-      console.log(`[Preloader] Adjusted for connection: ${connectionInfo.effectiveType}, maxConcurrent: ${this.maxConcurrentRequests}`);
     }
   }
 
@@ -142,11 +141,9 @@ class ImagePreloader {
     const unloadedUrls = urls.filter(url => url && !this.loadedImages.has(url));
     
     if (!unloadedUrls.length) {
-      console.log(`[Preloader] All ${urls.length} images already cached`);
       return;
     }
 
-    console.log(`[Preloader] Preloading ${unloadedUrls.length} images with ${priority} priority`);
 
     // Use Service Worker for background caching if available
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -180,7 +177,6 @@ class ImagePreloader {
       }
     }
 
-    console.log(`[Preloader] Completed preloading ${unloadedUrls.length} images`);
   }
 
   // Get appropriate batch size based on priority and connection
@@ -273,16 +269,13 @@ export const preloadAllCardsBackground = async (allCards: Array<{ featured_image
   const now = Date.now();
   
   if (lastPreload && now - parseInt(lastPreload) < 30000) { // 30 seconds cooldown
-    console.log('[Preloader] Skipping background preload - recent activity');
     return;
   }
 
   const imageUrls = allCards
     .map(card => card.featured_image)
     .filter((url): url is string => !!url);
-  
-  console.log(`[Background] Starting background preload of ${imageUrls.length} cards`);
-  
+    
   // Process in small batches with delays to not interfere with user actions
   const batchSize = 25;
   for (let i = 0; i < imageUrls.length; i += batchSize) {

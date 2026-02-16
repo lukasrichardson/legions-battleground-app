@@ -7,6 +7,8 @@ import { Button } from "@/client/ui/button";
 import { MultiSelect } from "@/client/ui/multiselect";
 import { SearchCardTile } from "./CardTile";
 import { preloadSearchResults } from "@/client/utils/imagePreloader";
+import { legionColours } from "@/client/constants/colours.constants";
+import { LEGIONS } from "@/client/constants/legions.constants";
 
 export default function SearchPane({
   setHoveredCard,
@@ -43,16 +45,25 @@ export default function SearchPane({
   useEffect(() => {
     if (deckLegion) {
       if (deckLegion === "Bounty" || deckLegion === "bounty") {
-        setLegion(["Bounty"]);
+        setLegion([LEGIONS.BOUNTY]);
       } else {
-        setLegion([deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"]);
+        setLegion([deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), LEGIONS.BOUNTY]);
       }
     }
   }, [deckLegion]);
 
   useEffect(() => {
     const getCards = async () => {
-      const res = await fetchCards({ legion: deckLegion && legion.length === 0 ? (deckLegion === "Bounty" || deckLegion === "bounty" ? ["Bounty"] : [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"]) : legion, query: debouncedQuery, page, pageSize, type, rarity, set });
+      const fetchCardsObject = {
+        legion: deckLegion && legion.length === 0 ? (deckLegion === "Bounty" || deckLegion === "bounty" ? [LEGIONS.BOUNTY] : [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), LEGIONS.BOUNTY]) : legion,
+        query: debouncedQuery,
+        page,
+        pageSize,
+        type,
+        rarity,
+        set
+      }
+      const res: { cards?: CardDocument[]; total?: number } = await fetchCards(fetchCardsObject);
       if (res?.cards) {
         setCards(res.cards);
       }
@@ -124,13 +135,13 @@ export default function SearchPane({
     if (!deckLegion) return filterOptions;
     return {
       ...filterOptions,
-      legion: (deckLegion === "Bounty" || deckLegion === "bounty") ? ["Bounty"] : [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"],
+      legion: (deckLegion === "Bounty" || deckLegion === "bounty") ? [LEGIONS.BOUNTY] : [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), LEGIONS.BOUNTY],
     };
   }, [filterOptions, deckLegion]);
 
   const preloadNextPage = () => {
     fetchCards({
-      legion: deckLegion && legion.length === 0 ? (deckLegion === "Bounty" || deckLegion === "bounty" ? ["Bounty"] : [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), "Bounty"]) : legion,
+      legion: deckLegion && legion.length === 0 ? (deckLegion === "Bounty" || deckLegion === "bounty" ? [LEGIONS.BOUNTY] : [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), LEGIONS.BOUNTY]) : legion,
       query: debouncedQuery,
       page: page + 1,
       pageSize,
@@ -167,6 +178,28 @@ export default function SearchPane({
     }
   }
 
+  const clearFilters = () => {
+    setLegion([]);
+    setType([]);
+    setRarity([]);
+    setSet([]);
+  }
+
+  useEffect(() => {
+    return () => {
+      setLegion([]);
+      setType([]);
+      setRarity([]);
+      setSet([]);
+      setCards([]);
+      setHoveredCard(null);
+      setTotal(0);
+      setPage(1);
+      setQuery("");
+      setDebouncedQuery("");
+    }
+  }, [setHoveredCard]);
+
   return (
     <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
       <CardContent className="p-2 pt-0 h-full flex flex-col overflow-hidden">
@@ -195,6 +228,9 @@ export default function SearchPane({
                     className="cursor-pointer text-xs"
                   />
                 ))}
+                <Button onClick={clearFilters} size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs">
+                Clear
+              </Button>
               </div>
             )}
           </div>
@@ -218,7 +254,7 @@ export default function SearchPane({
         </div>
 
         {/* Cards List - Scrollable with smaller card sizes to match deck */}
-        <div ref={scrollRef} onScroll={handleVerticalScroll} className="grow lg:overflow-auto shadow-black shadow-2xl">
+        <div ref={scrollRef} onScroll={handleVerticalScroll} className="grow overflow-auto shadow-black shadow-2xl">
           {cards.length === 0 ? (
             <div className="text-center py-2 h-full flex flex-col items-center justify-center">
               <div className="w-6 h-6 bg-gray-700/50 rounded-full flex items-center justify-center mb-1">
@@ -247,7 +283,8 @@ export default function SearchPane({
                 {cards.map((card, index) => (
                   <div
                     key={card.toString() + index}
-                    className="inline-block w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-full cursor-pointer max-h-full lg:flex justify-start items-start overflow-hidden bg-white/20 rounded p-1 pr-0.5 my-0.5"
+                    className="inline-block w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-full cursor-pointer max-h-full lg:flex justify-start items-start overflow-hidden rounded p-1 pr-0.5 my-0.5"
+                    
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
                     <div className="w-full lg:w-1/5 xl:w-1/7 h-full">
@@ -255,7 +292,7 @@ export default function SearchPane({
                     </div>
                     <div className="hidden w-4/5 lg:flex flex-col xl:w-6/7 h-full justify-between">
                       <span className="text-wrap text-sm font-extrabold tracking-tighter underline">{card.title}</span>
-                      <span className="text-wrap text-xs font-semibold">{card.legion.names[0]}: {card.card_type.names[0]}</span>
+                      <span className="text-wrap text-xs font-semibold w-fit p-0.5 my-0.5 rounded" style={{ backgroundColor: legionColours[card.legion.names[0]] ? `${legionColours[card.legion.names[0]]}` : "", color: card.legion.names[0] === LEGIONS.ANGELS ? "black" : "white" }}>{card.legion.names[0]} | {card.card_type.names[0]}</span>
                       <div className="flex justify-between"><span className="text-wrap text-xs">{card.rarity.names[0]}</span>
                         <span className="text-wrap text-xs">{card.card_code}</span>
                       </div>

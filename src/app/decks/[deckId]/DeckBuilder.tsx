@@ -33,7 +33,6 @@ export default function DeckBuilder() {
   // Preload deck images when deck is loaded
   useEffect(() => {
     if (deck?.cards_in_deck?.length) {
-      console.log(`[DeckBuilder] Preloading ${deck.cards_in_deck.length} deck images`);
       try {
         preloadDeckImages(deck.cards_in_deck);
       } catch (error) {

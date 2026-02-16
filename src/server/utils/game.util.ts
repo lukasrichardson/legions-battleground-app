@@ -28,15 +28,6 @@ export const fetchToolboxDeckById = async ({ deckId }: { deckId: string }) => {
       },
       timeout: 10000 // 10 second timeout
     });
-    
-    console.log("Toolbox API Response:", {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-      dataLength: response.data?.length,
-      environment: process.env.NODE_ENV || 'development',
-      responseData: response.data
-    });
 
     // Handle both 200 and 202 status codes
     if (response.status === 200 || response.status === 202) {
