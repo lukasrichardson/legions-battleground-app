@@ -2,7 +2,7 @@ import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CardInterface } from "@/client/interfaces/CardInterface";
 import { Popover } from "antd";
 import back_of_card from "PUBLIC/back_of_card.jpg";
-import { MouseEventHandler, useMemo, useCallback } from "react";
+import { MouseEventHandler, useMemo } from "react";
 import { useDrag } from 'react-dnd';
 import CardMenuComponent from '@/app/components/Card/CardMenu';
 import IMenuItem from "@/client/interfaces/IMenuItem";
@@ -17,23 +17,22 @@ const PILE_OFFSETS = {
 
 // Custom hook for game state selectors
 const useCardGameState = (cardTarget: CARD_TARGET) => {
-  return useAppSelector(useCallback((state) => {
-    const { game } = state.gameState;
-    const p1Card = cardTarget.includes("p1");
-    return {
-      p1Card,
-      p1Side: state.gameState.side === "p1",
-      playerHealth: {
-        p1: game.p1PlayerHealth,
-        p2: game.p2PlayerHealth,
-      },
-      playerAP: {
-        p1: game.p1PlayerAP,
-        p2: game.p2PlayerAP,
-      },
-      game,
-    };
-  }, [cardTarget]));
+  const gameState = useAppSelector(state => state.gameState);
+  const { game } = gameState;
+  const p1Card = cardTarget.includes("p1");
+  return {
+    p1Card,
+    p1Side: gameState.side === "p1",
+    playerHealth: {
+      p1: game.p1PlayerHealth,
+      p2: game.p2PlayerHealth,
+    },
+    playerAP: {
+      p1: game.p1PlayerAP,
+      p2: game.p2PlayerAP,
+    },
+    game,
+  };
 };
 
 interface CardInnerProps {
