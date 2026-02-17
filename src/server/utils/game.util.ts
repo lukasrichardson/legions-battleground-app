@@ -9,7 +9,9 @@ import { CARD_TARGET } from "../../shared/enums/CardTarget";
 import { SequenceItem, StepType } from "../interfaces/SequenceInterfaces";
 import { GamePhase, PreGamePhase } from "../enums/Phases";
 import { MoveCardActionInterface, moveCard, plunder } from "../events/cardEvents";
-import { resetGame, goNextPhase } from "../events/playerEvents";
+import {
+  // resetGame,
+  goNextPhase } from "../events/playerEvents";
 import {ALL_KEYWORDS, KeywordTrigger} from "../cards/Keywords";
 import { Server } from "socket.io";
 import axios from "axios";
@@ -150,7 +152,8 @@ export const setDeck = async (roomId: string, deckId: string, p1: boolean) => {
     if (games[roomId].p2DeckFromServer?.id === deckId) return;
     games[roomId].p2DeckFromServer = await fetchPlayerDeckById({ deckId });
   }
-  await resetGame(roomId);
+  // dont reset game on set deck temporary
+  // await resetGame(roomId);
 }
 
 export const drawCardP1 = (roomId: string, player: { name: string; p1: boolean }, index = 0) => {

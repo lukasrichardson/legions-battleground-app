@@ -31,7 +31,8 @@ export class GameService {
 
     resetPlayersCards(roomId, p1DeckResponse, p2DeckResponse);
     games[roomId].gameLog = addGameLog(games[roomId].gameLog, "Game Started");
-
+    
+    games[roomId].started = true;
     return games[roomId];
   }
 
