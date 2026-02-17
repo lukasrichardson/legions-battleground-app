@@ -165,6 +165,7 @@ export default function DeckBuilder() {
               handleRemoveCardFromDeck={handleRemoveCardFromDeck}
               handleSortClick={handleSortClick}
               saving={saving}
+              handleAddCardToDeck={handleAddCardToDeck}
             />
           </div>
           

@@ -6,7 +6,7 @@ import { CardInDeck, DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import useClientSettings from "@/client/hooks/useClientSettings";
 
-const renderLeftSideSection = (cards: CardDocument[], handleDeckCardClick, setHoveredCard) => {
+const renderLeftSideSection = (cards: CardDocument[], removeCardFromDeck, setHoveredCard, addCardToDeck) => {
   if (!cards || cards.length === 0) return null;
 
   // Group cards by name to apply grouping styling
@@ -26,9 +26,13 @@ const renderLeftSideSection = (cards: CardDocument[], handleDeckCardClick, setHo
           {cardGroup.map((card, index) => (
             <div
               key={card.id.toString() + index}
-              className={"[&:not(:first-child)]:-mt-[115%]"}
+              className={"[&:not(:first-child)]:-mt-[115%] relative"}
             >
-              <DeckCardTile card={card} index={index} onContextMenu={handleDeckCardClick} onMouseEnter={setHoveredCard} />
+              <div className="absolute w-full h-full opacity-0 hover:opacity-100 bg-white/20 z-50 flex items-center justify-around">
+                <div className="bg-red-800 hover:bg-red-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={(e) => removeCardFromDeck(e, card)}>-</div>
+                <div className="bg-green-800 hover:bg-green-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={() => addCardToDeck(card)}>+</div>
+              </div>
+              <DeckCardTile card={card} index={index} onContextMenu={removeCardFromDeck} onMouseEnter={setHoveredCard} />
             </div>
           ))}
         </div>
@@ -37,7 +41,7 @@ const renderLeftSideSection = (cards: CardDocument[], handleDeckCardClick, setHo
   )
 }
 
-const renderDeckSection = (cards: CardDocument[], handleDeckCardClick, setHoveredCard, useGroupedView) => {
+const renderDeckSection = (cards: CardDocument[], removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck) => {
   if (!cards || cards.length === 0) return null;
 
   // Group cards by name to apply grouping styling
@@ -57,9 +61,13 @@ const renderDeckSection = (cards: CardDocument[], handleDeckCardClick, setHovere
           {cardGroup.map((card, index) => (
             <div
               key={card.id.toString() + index}
-              className={"[&:not(:first-child)]:-mt-[115%]"}
+              className={"[&:not(:first-child)]:-mt-[115%] relative"}
             >
-              <DeckCardTile card={card} index={index} onContextMenu={handleDeckCardClick} onMouseEnter={setHoveredCard} />
+              <div className="absolute w-full h-full opacity-0 hover:opacity-100 bg-white/20 z-50 flex items-center justify-around">
+                <div className="bg-red-800 hover:bg-red-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={(e) => removeCardFromDeck(e, card)}>-</div>
+                <div className="bg-green-800 hover:bg-green-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={() => addCardToDeck(card)}>+</div>
+              </div>
+              <DeckCardTile card={card} index={index} onContextMenu={removeCardFromDeck} onMouseEnter={setHoveredCard} />
             </div>
           ))}
         </div>
@@ -68,8 +76,12 @@ const renderDeckSection = (cards: CardDocument[], handleDeckCardClick, setHovere
   ) : (
     <>
       {cards.map((card, index) => (
-        <div key={card.id.toString() + index} className="inline-block w-1/4 xs:w-1/6 sm:w-1/8 lg:w-1/10 xl:w-1/14 max-w-40 py-1 box-border">
-          <DeckCardTile card={card} index={index} onContextMenu={handleDeckCardClick} onMouseEnter={setHoveredCard} />
+        <div key={card.id.toString() + index} className="inline-block w-1/4 xs:w-1/6 sm:w-1/8 lg:w-1/10 xl:w-1/14 max-w-40 py-1 box-border relative">
+          <div className="absolute w-full h-full opacity-0 hover:opacity-100 bg-white/20 z-50 flex items-center justify-around">
+            <div className="bg-red-800 hover:bg-red-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={(e) => removeCardFromDeck(e, card)}>-</div>
+            <div className="bg-green-800 hover:bg-green-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={() => addCardToDeck(card)}>+</div>
+          </div>
+          <DeckCardTile card={card} index={index} onContextMenu={removeCardFromDeck} onMouseEnter={setHoveredCard} />
         </div>
       ))}
     </>
@@ -95,13 +107,15 @@ export default function DeckGrid({
   handleRemoveCardFromDeck,
   setHoveredCard,
   handleSortClick,
-  saving
+  saving,
+  handleAddCardToDeck
 }: {
   deck: DeckResponse | null,
   handleRemoveCardFromDeck: (card: CardDocument) => void,
   setHoveredCard: (card: CardDocument | null) => void,
   handleSortClick: () => void,
-  saving: boolean
+  saving: boolean,
+  handleAddCardToDeck: (card: CardDocument) => void
 }) {
 
   const mainDeck = deck?.cards_in_deck.filter(item => [CARD_TYPE.WARRIOR.toString(), CARD_TYPE.UNIFIED.toString(), CARD_TYPE.FORTIFIED.toString()].includes(item?.card_type?.names?.[0]));
@@ -121,8 +135,8 @@ export default function DeckGrid({
     handleRemoveCardFromDeck(card);
   }
 
-  const renderSection = (cards) => renderDeckSection(cards, handleDeckCardClick, setHoveredCard, deckbuild_groupedView);
-  const renderLeftSection = (cards) => renderLeftSideSection(cards, handleDeckCardClick, setHoveredCard);
+  const renderSection = (cards) => renderDeckSection(cards, handleDeckCardClick, setHoveredCard, deckbuild_groupedView, handleAddCardToDeck);
+  const renderLeftSection = (cards) => renderLeftSideSection(cards, handleDeckCardClick, setHoveredCard, handleAddCardToDeck);
 
   const handleGroupedViewToggle = () => {
     setDeckbuildGroupedView(!deckbuild_groupedView);
@@ -196,12 +210,12 @@ export default function DeckGrid({
             </div>
           ) : (
             <>
-            <div className="rounded bg-white/20 relative">
-              <span className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 italic">LEFT SIDE</span>
-              {renderSection([...warlords, ...veilRealms, ...synergies, ...guardians])}
+            <div className="rounded bg-white/20 relative min-h-1/12">
+              <span className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 italic z-50 pointer-events-none bg-black/20">LEFT SIDE and tokens</span>
+              {renderSection([...warlords, ...veilRealms, ...synergies, ...guardians, ...tokens])}
             </div>
             <div className="rounded bg-white/20 relative mt-2 min-h-1/2">
-              <span className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 italic">MAIN DECK</span>
+              <span className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 italic z-50 pointer-events-none bg-black/20">MAIN DECK</span>
               {renderSection(mainDeck)}
             </div>
             </>

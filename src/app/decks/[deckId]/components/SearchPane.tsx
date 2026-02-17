@@ -183,6 +183,9 @@ export default function SearchPane({
     setType([]);
     setRarity([]);
     setSet([]);
+    setPageAndScrollTop(1);
+    setQuery("");
+    setDebouncedQuery("");
   }
 
   useEffect(() => {

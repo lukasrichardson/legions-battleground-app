@@ -20,6 +20,7 @@ const ToolbarConstants = {
   ResetGameButtonText: "Reset Game",
   LeaveGameButtonText: "Leave Game",
   HelpButtonText: "Help/Instructions",
+  MulliganText: "Mulligan"
 }
 
 export default function Toolbar({ }) {
@@ -48,7 +49,8 @@ export default function Toolbar({ }) {
     RollDieButtonText,
     ResetGameButtonText,
     LeaveGameButtonText,
-    HelpButtonText
+    HelpButtonText,
+    MulliganText
   } = ToolbarConstants;
 
   const handleSwitchSide = () => {
@@ -116,6 +118,7 @@ export default function Toolbar({ }) {
         <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => emitGameEvent({ type: GAME_EVENT.resetGame, data: { p2DeckId: p2DeckFromServer?.id, p1DeckId: p1DeckFromServer?.id } })}>{ResetGameButtonText}</button>
         <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={handleLeaveGame}>{LeaveGameButtonText}</button>
         <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => dispatch(openHelpModal())}>{HelpButtonText}</button>
+        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => emitGameEvent({ type: GAME_EVENT.mulligan, data: null })}>{MulliganText}</button>
         <div>
           <label htmlFor="hoverMenu" className="text-xs mr-1">Show Menu On Hover:</label>
           <input name="hoverMenu" type="checkbox" checked={hoverMenu} onChange={() => setHoverMenu(!hoverMenu)}/>
