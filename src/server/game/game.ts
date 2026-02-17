@@ -4,7 +4,9 @@ import GameState from '../interfaces/GameState';
 import { GAME_EVENT } from '../enums/GameEvent';
 import { ROOM_EVENT } from '../enums/RoomEvent';
 // import { fetchInitialDecks, resetPlayersCards } from '../utils/game.util';
-import { clearselectedCard, conscript, decreaseCardAttackModifier, decreaseCardCooldown, decreaseCardOtherModifier, flipCard, increaseCardAttackModifier, increaseCardCooldown, increaseCardOtherModifier, moveCard, plunder, selectCard, shuffleTargetPile } from '../events/cardEvents';
+import { clearselectedCard, conscript, decreaseCardAttackModifier, decreaseCardCooldown, decreaseCardOtherModifier, flipCard, increaseCardAttackModifier, increaseCardCooldown, increaseCardOtherModifier,
+  // moveCard,
+  plunder, selectCard, shuffleTargetPile } from '../events/cardEvents';
 import { goNextPhase, mulligan, playerInput,
   // resetGame,
   rollDie, sendChatMessage, setP1Vieweing, setP2Viewing, setRpsChoice } from '../events/playerEvents';
@@ -46,7 +48,7 @@ export const gameEventMap: {
   [key: string]: (roomId: string, action: unknown, player: { name: string; p1: boolean }, io?: Server) => void
 } = {
   //cards
-  [GAME_EVENT.moveCard]: moveCard,
+  // [GAME_EVENT.moveCard]: moveCard,
   [GAME_EVENT.selectCard]: selectCard,
   [GAME_EVENT.clearSelectedCard]: clearselectedCard,
   [GAME_EVENT.flipCard]: flipCard,

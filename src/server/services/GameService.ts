@@ -7,8 +7,14 @@ import { rooms } from '../network/socketHandler';
 import { addGameLog } from '../utils/generateGameLog';
 import { initialState } from '../game/initialGameState';
 import { PreGamePhase } from '../enums/Phases';
+import { MoveCardActionInterface } from '../events/cardEvents';
+import { Server } from 'socket.io';
+import { CARD_TARGET } from '@/shared/enums/CardTarget';
+import { addCardToZone, removeCardFromZone } from '../utils/cardZone.util';
+import { CARD_TYPE } from '@/shared/enums/CardType';
 
 export class GameService {
+
   async startGame(roomId: string, deckId: string): Promise<GameStateData> {
     if (games[roomId]?.started) {
       return games[roomId];
@@ -64,6 +70,65 @@ export class GameService {
     games[roomId].sequences = [];
     games[roomId].resolving = false;
 
+    return games[roomId];
+  }
+
+  async moveCard(
+    roomId: string,
+    action: MoveCardActionInterface,
+    player: {
+      name: string,
+      p1: boolean
+    },
+    io: Server,
+    shouldLog: boolean = true
+  ): Promise<GameStateData> {
+    const { id, from, target, targetIndex }: MoveCardActionInterface = action;
+    let { bottom = false }: { bottom?: boolean } = action;
+  
+    // if target is player deck, toggle bottom (because decks are usually drawn from the top)
+    if ([CARD_TARGET.P2_PLAYER_DECK, CARD_TARGET.P1_PLAYER_DECK].includes(target)) bottom = !bottom;
+  
+    // Centralized removal
+    const removedToAdd = removeCardFromZone(
+      from.target,
+      roomId,
+      id,
+      from.targetIndex
+    );
+  
+    let cardToAdd = removedToAdd;
+    if (cardToAdd) {
+      if (cardToAdd.type === CARD_TYPE.FORTIFIED && target.includes("Fortified") && from.target.includes("Hand")) {
+        cardToAdd = { ...cardToAdd, faceUp: false };
+      }
+      if (
+        target === CARD_TARGET.P1_PLAYER_DECK ||
+        target === CARD_TARGET.P1_PLAYER_DISCARD ||
+        target === CARD_TARGET.P1_PLAYER_REVEALED ||
+        target === CARD_TARGET.P1_PLAYER_HAND ||
+        target === CARD_TARGET.P2_PLAYER_DECK ||
+        target === CARD_TARGET.P2_PLAYER_DISCARD ||
+        target === CARD_TARGET.P2_PLAYER_REVEALED ||
+        target === CARD_TARGET.P2_PLAYER_HAND
+      ) {
+        cardToAdd = { ...cardToAdd, faceUp: true };
+      }
+      // Centralized addition
+      addCardToZone(
+        target,
+        roomId,
+        cardToAdd,
+        targetIndex,
+        bottom
+      );
+    }
+    if (shouldLog) {
+      games[roomId].gameLog = addGameLog(
+        games[roomId].gameLog,
+        `${player.name} (${player.p1 ? "P1" : "P2"}) moved: ${cardToAdd?.name} from: ${from.target} to: ${target}${targetIndex != undefined ? " at index: " + targetIndex : ""}`
+      );
+    }
     return games[roomId];
   }
 

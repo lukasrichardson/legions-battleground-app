@@ -5,6 +5,7 @@ import { GameService } from './GameService';
 import { RoomService } from './RoomService';
 import { IOServer } from '../interfaces/SocketTypes';
 import IPlayer from './interfaces/IPlayer';
+import { MoveCardActionInterface } from '../events/cardEvents';
 
 export class EventHandler {
   private gameService = new GameService();
@@ -15,6 +16,11 @@ export class EventHandler {
       // Handle special cases with services
       if (eventType === GAME_EVENT.resetGame) {
         const gameState = await this.gameService.resetGame(roomId, data);
+        io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
+        io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
+        return;
+      } else if (eventType === GAME_EVENT.moveCard) {
+        const gameState = await this.gameService.moveCard(roomId, data as MoveCardActionInterface, player, io);
         io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
         io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
         return;

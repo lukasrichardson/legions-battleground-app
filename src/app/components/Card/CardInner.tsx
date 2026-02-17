@@ -134,6 +134,7 @@ export default function CardInner({
   }), [cardTarget]);
 
   const { cardInView, hasCooldown } = cardVisibilitySettings;
+  const isOnPlayersSide = (p1Side && cardTarget.includes("p1")) || (!p1Side && cardTarget.includes("p2"));
   const isPlayerHandCard = (p1Side && cardTarget === CARD_TARGET.P1_PLAYER_HAND) || (!p1Side && cardTarget === CARD_TARGET.P2_PLAYER_HAND);
 
   const isWarlord = useMemo(() => {
@@ -199,28 +200,28 @@ export default function CardInner({
               </>
           ) : <span>{card?.name}</span>}
           {(!cardInView && index === 0 && faceUp) && <>
-            <div className="absolute top-0 right-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full">
+            <div className={`absolute top-0 right-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
               {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseAttackModifier?.() }}>↓</span>}
               {(attackModifierExists || focused) && <span className=" mx-auto">{attackModifierExists && <span>{attackModifierNegative ? "" : "+"}{card.attackModifier}</span>}atk</span>}
               {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseAttackModifier?.() }}>↑</span>}
             </div>
-            <div className="absolute bottom-0 left-0 rounded flex items-center justify-between  text-white font-bold text-shadow-gray-950 text-shadow-lg w-full">
+            <div className={`absolute bottom-0 left-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
               {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseOtherModifier?.() }}>↓</span>}
               {(otherModifierExists || focused) && <span className="mx-auto">cnt{otherModifierExists && <span>{card.otherModifier}</span>}</span>}
               {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseOtherModifier?.() }}>↑</span>}
             </div>
 
           </>}
-          {hasCooldown && renderCardAddOn((e) =>{e?.stopPropagation();handleDecreaseCooldown?.()}, (e) => {e?.stopPropagation();handleIncreaseCooldown?.()}, `CD ${card.cooldown}`, false)}
-          {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true)}
-          {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false)}
+          {hasCooldown && renderCardAddOn((e) =>{e?.stopPropagation();handleDecreaseCooldown?.()}, (e) => {e?.stopPropagation();handleIncreaseCooldown?.()}, `CD ${card.cooldown}`, false, isOnPlayersSide)}
+          {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true, isOnPlayersSide)}
+          {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false, isOnPlayersSide)}
         </div>)}
     </Popover>
   )
 }
 
-const renderCardAddOn = (handleDecrease, handleIncrease, text, top) => (
-  <div className={`absolute ${top ? "top-0" : "bottom-0"} bg-[#f5f5f5] rounded flex items-center justify-between text-black w-full`}>
+const renderCardAddOn = (handleDecrease, handleIncrease, text, top, isOnPlayersSide) => (
+  <div className={`absolute ${top ? "top-0" : "bottom-0"} bg-[#f5f5f5] rounded flex items-center justify-between text-black w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
     {<span className="cursor-pointer" onClick={handleDecrease}>↓</span>}
     <span>{text}</span>
     {<span className="cursor-pointer" onClick={handleIncrease}>↑</span>}
