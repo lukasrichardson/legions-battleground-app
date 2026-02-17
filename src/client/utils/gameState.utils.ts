@@ -1,7 +1,7 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { CardInterface } from "@/client/interfaces/CardInterface";
-import {current} from "@reduxjs/toolkit";
+import { current } from "@reduxjs/toolkit";
 
 export const setState_reducer = (state, action) => {
   if (current(state).game.gameLog.length !== action.payload.gameLog.length) {
@@ -10,7 +10,7 @@ export const setState_reducer = (state, action) => {
       newLogs.push(action.payload.gameLog[action.payload.gameLog.length - i - 1]);
     }
   }
-  state.game = {...action.payload}
+  state.game = { ...action.payload }
 }
 
 export const focusCard_reducer = (state, action) => {
@@ -28,14 +28,25 @@ export const setPileInView_reducer = (state, action) => {
   if (action.payload.targetIndex != undefined) {
     state.pileInViewIndex = action.payload.targetIndex;
     if (action.payload.limit) {
-      state.topXCards = state.game[action.payload.cardTarget][action.payload.targetIndex].slice(0, action.payload.limit) as CardInterface[];
+      if (action.payload.bottom) {
+        const pile = state.game[action.payload.cardTarget][action.payload.targetIndex] as CardInterface[] | undefined;
+        state.topXCards = pile ? pile.slice(-action.payload.limit) as CardInterface[] : null;
+      } else {
+        state.topXCards = state.game[action.payload.cardTarget][action.payload.targetIndex].slice(0, action.payload.limit) as CardInterface[];
+      }
     }
   } else {
     if (action.payload.limit) {
-      state.topXCards = state.game[action.payload.cardTarget].slice(0, action.payload.limit) as CardInterface[];
+      if (action.payload.bottom) {
+        const pile = state.game[action.payload.cardTarget] as CardInterface[] | undefined;
+        state.topXCards = pile ? pile.slice(-action.payload.limit) as CardInterface[] : null;
+      } else {
+        state.topXCards = state.game[action.payload.cardTarget].slice(0, action.payload.limit) as CardInterface[];
+      }
     }
   }
 }
+
 export const clearPileInView_reducer = (state) => {
   state.pileInViewTarget = null;
   state.pileInViewIndex = null;

@@ -124,6 +124,7 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
         break;
     }
   }, [card, cardTarget, dispatch, zoneIndex, side]);
+
   const legacyonMenuItemClick = useCallback((items: IMenuItem[], key: string | number) => {
     const menuItemClicked: IMenuItem | undefined = items?.find((item) => item.key === key || item.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key)));
     switch (menuItemClicked?.menuAction) {
@@ -163,6 +164,12 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
         const viewXChild = menuItemClicked?.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key));
         emitGameEvent({ type: side === "p1" ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: viewXChild?.title } })
         dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewXChild?.title }));
+        closePopover();
+        break;
+      case MenuItemAction.VIEW_BOTTOM_X:
+        const viewBottomXChild = menuItemClicked?.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key));
+        emitGameEvent({ type: side === "p1" ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: viewBottomXChild?.title, bottom: true } })
+        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewBottomXChild?.title, bottom: true }));
         closePopover();
         break;
       case MenuItemAction.SHUFFLE:

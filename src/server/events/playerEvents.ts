@@ -162,16 +162,16 @@ export const sendChatMessage = (roomId: string, action: { message: string; side:
   games[roomId].gameLog = addGameLog(games[roomId].gameLog, side + " player says: '" + message + "'");
 }
 
-export const setP1Vieweing = (roomId: string, action: { cardTarget: CARD_TARGET, limit: number | null }) => {
+export const setP1Vieweing = (roomId: string, action: { cardTarget: CARD_TARGET, limit: number | null, bottom?: boolean }) => {
   if (!games[roomId]) return;
-  games[roomId].p1Viewing = (action.limit ? "top " + action.limit + " of " : "") + action.cardTarget;
-  games[roomId].gameLog = addGameLog(games[roomId].gameLog, "p1 viewing " + (action.limit ? "top " + action.limit + " of " : "") + action.cardTarget);
+  games[roomId].p1Viewing = (action.limit ? (action.bottom ? "bottom " : "top ") + action.limit + " of " : "") + action.cardTarget;
+  games[roomId].gameLog = addGameLog(games[roomId].gameLog, "p1 viewing " + (action.limit ? (action.bottom ? "bottom " : "top ") + action.limit + " of " : "") + action.cardTarget);
 }
 
-export const setP2Viewing = (roomId: string, action: { cardTarget: CARD_TARGET; limit: number | null }) => {
+export const setP2Viewing = (roomId: string, action: { cardTarget: CARD_TARGET; limit: number | null, bottom?: boolean }) => {
   if (!games[roomId]) return;
-  games[roomId].p2Viewing = (action.limit ? "top " + action.limit + " of " : "") + action.cardTarget;
-  games[roomId].gameLog = addGameLog(games[roomId].gameLog, "p2 viewing " + (action.limit ? "top " + action.limit + " of " : "") + action.cardTarget);
+  games[roomId].p2Viewing = (action.limit ? (action.bottom ? "bottom " : "top ") + action.limit + " of " : "") + action.cardTarget;
+  games[roomId].gameLog = addGameLog(games[roomId].gameLog, "p2 viewing " + (action.limit ? (action.bottom ? "bottom " : "top ") + action.limit + " of " : "") + action.cardTarget);
 
 }
 

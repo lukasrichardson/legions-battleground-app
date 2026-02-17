@@ -509,6 +509,85 @@ export const cardMenuItems: IMenuItem[] = [
     ]
   },
   {
+    key: "00001",
+    title: "VIEW_BOTTOM_X",
+    icon: null,
+    menuAction: MenuItemAction.VIEW_BOTTOM_X,
+    label: "View Bottom X Cards",
+    children: [
+      {
+        key: "00001.1",
+        title: 1,
+        icon: null,
+        menuAction: MenuItemAction.VIEW_BOTTOM_X,
+        label: "View Bottom 1 Card"
+      },
+      {
+        key: "00001.2",
+        title: 2,
+        icon: null,
+        menuAction: MenuItemAction.VIEW_BOTTOM_X,
+        label: "View Bottom 2 Cards"
+      },
+      {
+        key: "00001.3",
+        title: 3,
+        icon: null,
+        menuAction: MenuItemAction.VIEW_BOTTOM_X,
+        label: "View Bottom 3 Cards"
+      },
+      {
+        key: "00001.4",
+        title: 4,
+        icon: null,
+        menuAction: MenuItemAction.VIEW_BOTTOM_X,
+        label: "View Bottom 4 Cards"
+      },
+      {
+        key: "00001.5",
+        title: 5,
+        icon: null,
+        menuAction: MenuItemAction.VIEW_BOTTOM_X,
+        label: "View Bottom 5 Cards"
+      },
+      {
+        key: "00001.6",
+        title: 6,
+        icon: null,
+        menuAction: MenuItemAction.VIEW_BOTTOM_X,
+        label: "View Bottom 6 Cards"
+      },
+      {
+        key: "00001.7",
+        title: 7,
+        icon: null,
+        menuAction: MenuItemAction.VIEW_BOTTOM_X,
+        label: "View Bottom 7 Cards"
+      },
+      {
+        key: "00001.8",
+        title: 8,
+        icon: null,
+        menuAction: MenuItemAction.VIEW_BOTTOM_X,
+        label: "View Bottom 8 Cards"
+      },
+      {
+        key: "00001.9",
+        title: 9,
+        icon: null,
+        menuAction: MenuItemAction.VIEW_BOTTOM_X,
+        label: "View Bottom 9 Cards"
+      },
+      {
+        key: "00001.10",
+        title: 10,
+        icon: null,
+        menuAction: MenuItemAction.VIEW_BOTTOM_X,
+        label: "View Bottom 10 Cards"
+      },
+    ]
+  },
+  {
     key: "00000",
     title: "SHUFFLE",
     icon: null,

@@ -2,6 +2,7 @@ enum MenuItemAction {
   MOVE = "move",
   VIEW = "view",
   VIEW_TOP_X = "viewTopX",
+  VIEW_BOTTOM_X = "viewBottomX",
   SHUFFLE = "shuffle",
   FLIP = "flip",
   PLUNDER = "plunder",
