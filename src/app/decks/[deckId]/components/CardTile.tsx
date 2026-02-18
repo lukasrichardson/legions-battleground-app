@@ -32,7 +32,7 @@ export const renderCardTile = (card: { id: string | number; title: string; featu
   </div>)
 }
 
-export const DeckCardTile = ({ card, index, onContextMenu, onMouseEnter }: { card: { id: string | number; title: string; featured_image: string }, index: number, onContextMenu: (e: React.MouseEvent, card: { id: string | number; title: string; featured_image: string }) => void, onMouseEnter: (card: { id: string | number; title: string; featured_image: string }) => void }) => {
+export const DeckCardTile = ({ card, index, onContextMenu, onMouseEnter }: { card: CardDocument, index: number, onContextMenu: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void }) => {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const handleOnMouseEnter = () => {
     const timeoutId = setTimeout(() => {
@@ -55,8 +55,9 @@ export const DeckCardTile = ({ card, index, onContextMenu, onMouseEnter }: { car
     }
   }, [timeoutId]);
   return (
-    <div onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
-      {renderCardTile(card, index, handleOnMouseEnter)}
+      <div onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
+
+        {renderCardTile(card, index, handleOnMouseEnter)}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 
 import { openHelpModal,
-  // openSetDecksModal
+  openSetDecksModal
 } from "@/client/redux/modalsSlice";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { GAME_EVENT } from '@/client/enums/GameEvent';
@@ -44,7 +44,7 @@ export default function Toolbar({ }) {
 
   const {
     // GameLogHeaderText,
-    // ChangeDeckButtonText,
+    ChangeDeckButtonText,
     SwitchSideButtonText,
     RollDieButtonText,
     ResetGameButtonText,
@@ -112,7 +112,7 @@ export default function Toolbar({ }) {
       />
 
       <div className="mt-auto w-full flex flex-wrap gap-1 justify-between">
-        {/* <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10 pointer-events-none" onClick={() => dispatch(openSetDecksModal())} disabled>{ChangeDeckButtonText}</button> */}
+        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => dispatch(openSetDecksModal())}>{ChangeDeckButtonText}</button>
         <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={handleSwitchSide}>{SwitchSideButtonText + (p1 ? "P2" : "P1")}</button>
         <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => emitGameEvent({ type: GAME_EVENT.rollDie, data: { side } })}>{RollDieButtonText}</button>
         <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => emitGameEvent({ type: GAME_EVENT.resetGame, data: { p2DeckId: p2DeckFromServer?.id, p1DeckId: p1DeckFromServer?.id } })}>{ResetGameButtonText}</button>
