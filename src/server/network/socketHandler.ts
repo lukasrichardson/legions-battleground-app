@@ -7,8 +7,6 @@ import {
   handleSocketJoinGame,
   handleSocketRoomEvent
 } from "../utils/socket.util.clean";
-//old file
-// } from "../utils/socket.util";
 
 export const rooms: RoomsCollection = {};
 

@@ -1,4 +1,3 @@
 export enum ROOM_EVENT {
-  switchSide = "switchSide",
-  playerLeft = "playerLeft"
+  switchSide = "switchSide"
 }

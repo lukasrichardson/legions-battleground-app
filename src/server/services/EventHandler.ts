@@ -182,12 +182,6 @@ export class EventHandler {
           io.to(roomId).emit("roomEvent", roomState);
           return;
         }
-        case ROOM_EVENT.playerLeft: {
-          this.gameService.playerLeft(roomId, player);
-          const roomState = this.roomService.getRoom(roomId);
-          io.to(roomId).emit("roomEvent", roomState);
-          return;
-        }
         default: {
           console.error(`Unknown room event: ${eventType}`);
           return;

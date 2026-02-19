@@ -87,7 +87,7 @@ export default function Toolbar({ }) {
             <div className="text-sm text-center text-white/80 sticky top-0 bg-black/90">Logs</div>
             {gameLog.map((log, index) => (
               <div key={index} className="border border-white/10 rounded mb-1 p-1 flex flex-col-reverse">
-                <div key={index} className="text-xs text-white/80">{log}</div>
+                <div key={index} className="text-[11px] text-white/80">{log}</div>
               </div>
             ))}
           </>

@@ -2,10 +2,6 @@ import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CardInterface } from "../interfaces/CardInterface";
 import { games } from "../game/game";
 
-/**
- * Removes a card from a zone or subzone and returns it.
- * Handles both array and array-of-arrays zones.
- */
 export function removeCardFromZone(
   target: CARD_TARGET,
   roomId: string,
@@ -29,10 +25,6 @@ export function removeCardFromZone(
   }
 }
 
-/**
- * Adds a card to a zone or subzone at top or bottom.
- * Handles both array and array-of-arrays zones.
- */
 export function addCardToZone(
   target: CARD_TARGET,
   roomId: string,
@@ -58,8 +50,3 @@ export function addCardToZone(
   }
 }
 
-/**
- * Example usage in moveCard:
- *   const removed = removeCardFromZone(games[roomId][from.target], id, from.targetIndex);
- *   if (removed) addCardToZone(games[roomId][target], removed, targetIndex, bottom);
- */

@@ -22,6 +22,7 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
     
     if (sandboxMode) return true;
 
+    //aborted conscription logic, needs to be reworked with new sequence system
     const p1 = side === "p1";
     const { type, cardTarget: currentTarget } = card;
     if (!sequences.length) {

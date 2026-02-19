@@ -1,3 +1,4 @@
+//aborted work
 import {SequenceItem, StepType} from "../interfaces/SequenceInterfaces";
 import {CARD_TARGET} from "../../shared/enums/CardTarget";
 

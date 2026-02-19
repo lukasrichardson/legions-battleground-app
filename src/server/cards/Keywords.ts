@@ -1,3 +1,5 @@
+//aborted work
+
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { SequenceItem, StepType } from "../interfaces/SequenceInterfaces";

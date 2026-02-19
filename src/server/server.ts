@@ -2,8 +2,6 @@ import 'dotenv/config';
 import { createServer } from 'http'
 import { Server } from "socket.io";
 import { handleSocketConnection } from './network/socketHandler';
-// import cron from 'node-cron';
-// import axios from 'axios';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -38,14 +36,6 @@ connectToDatabase().then(() => {
     handleSocketConnection(io);
   
     routes(app);
-  
-    // cron.schedule('*/14 * * * *', () => {
-    //   if (process.env.NODE_ENV === 'production') {
-    //     axios.get(process.env.NEXTAUTH_URL + "/healthz")
-    //   } else {
-    //     axios.get(`http://localhost:${port}/healthz`);
-    //   }
-    // });
   
     // Handle all other requests with Next.js (after Express routes have been processed)
     // This should only catch requests that haven't been handled by our Express routes

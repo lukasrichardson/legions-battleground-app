@@ -6,12 +6,13 @@ import { GameService } from "../services/GameService";
 import { RoomService } from "../services/RoomService";
 import { EventHandler } from "../services/EventHandler";
 import { ROOM_EVENT } from "../enums/RoomEvent";
-import { validateJoinGame, validateGameEvent, validateRoomEvent, handleError } from "./validation.util";
+import ValidatorService from "../services/ValidatorService";
 
 // Create service instances
 const gameService = new GameService();
 const roomService = new RoomService();
 const eventHandler = new EventHandler();
+const validatorService = new ValidatorService();
 
 export const handleSocketJoinGame = async (
   io: IOServer,
@@ -20,7 +21,7 @@ export const handleSocketJoinGame = async (
 ) => {
   try {
     // Validate input
-    const validation = validateJoinGame(data);
+    const validation = validatorService.validateJoinGame(data);
     if (!validation.valid) {
       socket.emit('error', { message: validation.error });
       return;
@@ -58,7 +59,7 @@ export const handleSocketJoinGame = async (
     });
 
   } catch (error) {
-    const errorMsg = handleError(error, 'handleSocketJoinGame');
+    const errorMsg = validatorService.handleError(error, 'handleSocketJoinGame');
     socket.emit('error', { message: errorMsg });
   }
 };
@@ -75,7 +76,7 @@ export const handleSocketGameEvent = async (
 
   try {
     // Validate payload
-    const validation = validateGameEvent(payload);
+    const validation = validatorService.validateGameEvent(payload);
     if (!validation.valid) {
       socket.emit('error', { message: validation.error });
       return;
@@ -102,7 +103,7 @@ export const handleSocketGameEvent = async (
     );
 
   } catch (error) {
-    const errorMsg = handleError(error, 'handleSocketGameEvent');
+    const errorMsg = validatorService.handleError(error, 'handleSocketGameEvent');
     socket.emit('error', { message: errorMsg });
   }
 };
@@ -119,7 +120,7 @@ export const handleSocketRoomEvent = async (
 
   try {
     // Validate payload
-    const validation = validateRoomEvent(payload);
+    const validation = validatorService.validateRoomEvent(payload);
     if (!validation.valid) {
       socket.emit('error', { message: validation.error });
       return;
@@ -145,7 +146,7 @@ export const handleSocketRoomEvent = async (
     );
 
   } catch (error) {
-    const errorMsg = handleError(error, 'handleSocketRoomEvent');
+    const errorMsg = validatorService.handleError(error, 'handleSocketRoomEvent');
     socket.emit('error', { message: errorMsg });
   }
 };
