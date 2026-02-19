@@ -1,7 +1,7 @@
 import { MoveCardActionInterface, decreaseCardCooldown } from "./cardEvents";
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CARD_TYPE } from "@/shared/enums/CardType";
-import { PreGamePhase, NextPhaseP1Wins, NextPhaseP2Wins, GamePhase } from "../enums/Phases";
+import { PreGamePhase, NextPhaseP1Wins, NextPhaseP2Wins, GamePhase } from "../../shared/enums/Phases";
 import { games } from "../game/game";
 import { p1WinsRPS, p2WinsRPS, drawCardP1, drawCardP2, resolveFirstItemInSequence, emitCurrentState, addSequenceItem } from "../utils/game.util";
 import { addGameLog } from "../utils/generateGameLog";

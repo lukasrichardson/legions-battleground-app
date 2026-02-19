@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState} from "react";
 import { useParams} from 'next/navigation'
-import { CardDocument } from "@/client/interfaces/Card.mongo";
+import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import Preview from "./Preview";
 import DeckGrid from "./components/DeckGrid";
 import SearchPane from "./components/SearchPane";

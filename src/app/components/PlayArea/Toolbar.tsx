@@ -3,10 +3,10 @@ import { openHelpModal,
   openSetDecksModal
 } from "@/client/redux/modalsSlice";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
-import { GAME_EVENT } from '@/client/enums/GameEvent';
+import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { emitGameEvent, emitRoomEvent } from "@/client/utils/emitEvent";
 import { useRouter } from "next/navigation";
-import { ROOM_EVENT } from "@/client/enums/RoomEvent";
+import { ROOM_EVENT } from "@/shared/enums/RoomEvent";
 import { resetState } from "@/client/redux/gameStateSlice";
 import { useEffect, useRef } from "react";
 import CardPreview from "../Card/CardPreview";

@@ -1,4 +1,4 @@
-import { CardInterface } from "../../shared/interfaces/CardInterface";
+import { CardState } from "../../shared/interfaces/CardState";
 import { CardInDeck, DeckResponse } from "../../shared/interfaces/DeckResponse";
 import { CARD_TYPE } from "../../shared/enums/CardType";
 import { shuffle } from "./shuffleDeck.util";
@@ -121,9 +121,9 @@ const generateStartingCards = (deckFromServer: DeckResponse, p1: boolean) => {
       to: [{ target: p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND, targetIndex: null }]
     }]
   }];
-  const discard: CardInterface[] = [];
-  const eradication: CardInterface[] = [];
-  const revealed: CardInterface[] = [];
+  const discard: CardState[] = [];
+  const eradication: CardState[] = [];
+  const revealed: CardState[] = [];
   const { deck, hand } = generateDeckAndHand(warriorsFromServer, unnifiedsFromServer, fortifiedsFromServer);
   const playerDeck = [...deck];
   const playerHand = [...hand];
@@ -178,7 +178,7 @@ const generateGuardian = (cardsFromServer: CardInDeck[]) => {
 }
 
 const generateDeck = (warriors: CardInDeck[], unifieds: CardInDeck[], fortifieds: CardInDeck[]) => {
-  const deck: CardInterface[] = [];
+  const deck: CardState[] = [];
   [...warriors, ...unifieds, ...fortifieds].forEach(card => {
     const { title: name, card_code: code, featured_image: image, card_type: { names: [type] }, text } = card;
 
@@ -190,17 +190,17 @@ const generateDeck = (warriors: CardInDeck[], unifieds: CardInDeck[], fortifieds
   return shuffle(deck);
 }
 
-const generateDeckAndHand = (warriors: CardInDeck[], unifieds: CardInDeck[], fortifieds: CardInDeck[]): { deck: CardInterface[], hand: CardInterface[] } => {
+const generateDeckAndHand = (warriors: CardInDeck[], unifieds: CardInDeck[], fortifieds: CardInDeck[]): { deck: CardState[], hand: CardState[] } => {
   const deck = generateDeck(warriors, unifieds, fortifieds);
-  const hand: CardInterface[] = [];
+  const hand: CardState[] = [];
   for (let i = 0; i < 6; i++) {
-    hand.push(deck.pop() as CardInterface);
+    hand.push(deck.pop() as CardState);
   }
   return { deck, hand };
 }
 
 const generateTokens = (tokensFromServer: CardInDeck[]) => {
-  const tokens: CardInterface[] = [];
+  const tokens: CardState[] = [];
   tokensFromServer.forEach(token => {
     const { title: name, card_code: code, featured_image: image, card_type: { names: [type] }, text } = token;
     const generatedToken = generateCard({ name: name, code: code, img: image, type: (type as CARD_TYPE), text }, `${nextId}`);
@@ -210,7 +210,7 @@ const generateTokens = (tokensFromServer: CardInDeck[]) => {
   return tokens;
 }
 
-const generateCard = (card: CardInterface, id?: string): CardInterface => {
+const generateCard = (card: CardState, id?: string): CardState => {
   return {
     ...card,
     id,

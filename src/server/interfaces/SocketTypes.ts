@@ -1,6 +1,6 @@
 import { Server, Socket as SocketIOSocket } from 'socket.io';
-import { GAME_EVENT } from '../enums/GameEvent';
-import { ROOM_EVENT } from '../enums/RoomEvent';
+import { GAME_EVENT } from '@/shared/enums/GameEvent';
+import { ROOM_EVENT } from '@/shared/enums/RoomEvent';
 
 
 export interface JoinGamePayload {

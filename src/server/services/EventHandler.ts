@@ -1,12 +1,12 @@
 import { gameEventMap } from '../game/game';
-import { GAME_EVENT } from '../enums/GameEvent';
-import { ROOM_EVENT } from '../enums/RoomEvent';
+import { GAME_EVENT } from '@/shared/enums/GameEvent';
+import { ROOM_EVENT } from '@/shared/enums/RoomEvent';
 import { GameService } from './GameService';
 import { RoomService } from './RoomService';
 import { IOServer } from '../interfaces/SocketTypes';
 import IPlayer from './interfaces/IPlayer';
 import { MoveCardActionInterface } from '../events/cardEvents';
-import { CardInterface } from '../../shared/interfaces/CardInterface';
+import { CardState } from '../../shared/interfaces/CardState';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { CardService } from './CardService';
 
@@ -31,7 +31,7 @@ export class EventHandler {
           return;
         }
         case GAME_EVENT.selectCard: {
-          const gameState = this.cardService.selectCard(roomId, data as CardInterface);
+          const gameState = this.cardService.selectCard(roomId, data as CardState);
           io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
           io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
           return;

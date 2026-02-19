@@ -3,11 +3,11 @@ import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { emitGameEvent } from "../utils/emitEvent";
 import { MouseEventHandler, useCallback } from "react";
 import { clearSelectedCard, decreaseAttackModifier, decreaseCooldown, decreaseOtherModifier, increaseAttackModifier, increaseCooldown, increaseOtherModifier, selectCard } from "../redux/gameStateSlice";
-import { GAME_EVENT } from "../enums/GameEvent";
-import { CardInterface } from "@/shared/interfaces/CardInterface";
+import { GAME_EVENT } from "@/shared/enums/GameEvent";
+import { CardState } from "@/shared/interfaces/CardState";
 import { setCardInFocus, clearCardInFocus } from "../redux/clientGameStateSlice";
 
-export default function useHandleCardEvents(card: CardInterface, cardTarget: CARD_TARGET, hidden: boolean, inPileView: boolean, index?: number, zoneIndex?: number) {
+export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TARGET, hidden: boolean, inPileView: boolean, index?: number, zoneIndex?: number) {
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
   const { selectedCard } = gameState;

@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import { useAppSelector, useAppDispatch } from "@/client/redux/hooks";
 import { moveCard } from "@/client/redux/gameStateSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
-import { GAME_EVENT } from "@/client/enums/GameEvent";
+import { GAME_EVENT } from "@/shared/enums/GameEvent";
 
 export default function Hand({children, cardTarget}: {children: ReactNode, cardTarget: CARD_TARGET}) {
   const dispatch = useAppDispatch();

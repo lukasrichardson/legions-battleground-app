@@ -1,9 +1,9 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import GridItem from "./GridItem";
 import Card from "../Card/Card";
-import { CardInterface } from "@/shared/interfaces/CardInterface";
+import { CardState } from "@/shared/interfaces/CardState";
 
-export default function CardZone({ items, cardTarget, targetIndex, zoneName }: { items: CardInterface[], cardTarget: CARD_TARGET, targetIndex?: number, zoneName?: string }) {
+export default function CardZone({ items, cardTarget, targetIndex, zoneName }: { items: CardState[], cardTarget: CARD_TARGET, targetIndex?: number, zoneName?: string }) {
   const pileSize = items.length;
   if (cardTarget === CARD_TARGET.P2_PLAYER_DISCARD ||
     cardTarget === CARD_TARGET.P1_PLAYER_DISCARD ||

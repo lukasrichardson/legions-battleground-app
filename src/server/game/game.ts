@@ -1,6 +1,6 @@
 
 import { GameStateData } from '@/shared/interfaces/GameState';
-import { GAME_EVENT } from '../enums/GameEvent';
+import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { conscript } from '../events/cardEvents';
 import { goNextPhase, playerInput, setRpsChoice } from '../events/playerEvents';
 import { Server } from 'socket.io';

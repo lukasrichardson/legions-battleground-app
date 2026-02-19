@@ -4,7 +4,7 @@ import { useClickOutside } from "@/client/hooks/useClickOutside";
 import { useAppSelector } from "@/client/redux/hooks";
 import Modal from "./Modal";
 import { emitGameEvent } from "@/client/utils/emitEvent";
-import { GAME_EVENT } from '@/client/enums/GameEvent';
+import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
 import { fetchDecks } from "@/client/utils/api.utils";
 import { Button } from "@/client/ui/button";

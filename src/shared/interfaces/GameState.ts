@@ -1,7 +1,10 @@
-import { GamePhase, PreGamePhase } from "@/server/enums/Phases";
+import { GamePhase, PreGamePhase } from "@/shared/enums/Phases";
 import { DeckResponse } from "../../shared/interfaces/DeckResponse";
-import { CardInterface } from "@/shared/interfaces/CardInterface";
+import { CardState } from "@/shared/interfaces/CardState";
 import { SequenceState } from "@/server/interfaces/SequenceInterfaces";
+
+type SingleZonePile = CardState[];
+type MultiZonePile = SingleZonePile[];
 
 export interface GameStateData {
   started: boolean;
@@ -10,38 +13,38 @@ export interface GameStateData {
   p1PlayerHealth: number;
   p2PlayerAP: number;
   p1PlayerAP: number;
-  p2PlayerHand: CardInterface[];
-  p2PlayerDeck: CardInterface[];
-  p2PlayerDiscard: CardInterface[];
-  p2PlayerEradication: CardInterface[];
-  p2PlayerFortifieds: CardInterface[][];
-  p2PlayerUnifieds: CardInterface[][];
-  p2PlayerWarriors: CardInterface[][];
-  p2PlayerVeilRealm: CardInterface[];
-  p2PlayerWarlord: CardInterface[];
-  p2PlayerSynergy: CardInterface[];
-  p2PlayerGuardian: CardInterface[];
-  p2PlayerTokens: CardInterface[];
-  p2PlayerRevealed: CardInterface[];
+  p2PlayerHand: CardState[];
+  p2PlayerDeck: CardState[];
+  p2PlayerDiscard: SingleZonePile;
+  p2PlayerEradication: SingleZonePile;
+  p2PlayerFortifieds: MultiZonePile;
+  p2PlayerUnifieds: MultiZonePile;
+  p2PlayerWarriors: MultiZonePile;
+  p2PlayerVeilRealm: SingleZonePile;
+  p2PlayerWarlord: SingleZonePile;
+  p2PlayerSynergy: SingleZonePile;
+  p2PlayerGuardian: SingleZonePile;
+  p2PlayerTokens: SingleZonePile;
+  p2PlayerRevealed: SingleZonePile;
 
-  p1PlayerHand: CardInterface[];
-  p1PlayerDeck: CardInterface[];
-  p1PlayerDiscard: CardInterface[];
-  p1PlayerEradication: CardInterface[];
-  p1PlayerFortifieds: CardInterface[][];
-  p1PlayerUnifieds: CardInterface[][];
-  p1PlayerWarriors: CardInterface[][];
-  p1PlayerVeilRealm: CardInterface[];
-  p1PlayerWarlord: CardInterface[];
-  p1PlayerSynergy: CardInterface[];
-  p1PlayerGuardian: CardInterface[];
-  p1PlayerTokens: CardInterface[];
-  p1PlayerRevealed: CardInterface[];
+  p1PlayerHand: CardState[];
+  p1PlayerDeck: CardState[];
+  p1PlayerDiscard: SingleZonePile;
+  p1PlayerEradication: SingleZonePile;
+  p1PlayerFortifieds: MultiZonePile;
+  p1PlayerUnifieds: MultiZonePile;
+  p1PlayerWarriors: MultiZonePile;
+  p1PlayerVeilRealm: SingleZonePile;
+  p1PlayerWarlord: SingleZonePile;
+  p1PlayerSynergy: SingleZonePile;
+  p1PlayerGuardian: SingleZonePile;
+  p1PlayerTokens: SingleZonePile;
+  p1PlayerRevealed: SingleZonePile;
   
   deckFromServer: DeckResponse | null;
   p2DeckFromServer: DeckResponse | null;
   p1DeckFromServer: DeckResponse | null;
-  selectedCard: CardInterface | null;
+  selectedCard: CardState | null;
   p2Viewing: string | null;
   p1Viewing: string | null;
   currentPhase: PreGamePhase | GamePhase;

@@ -1,4 +1,4 @@
-import { PreGamePhase } from "@/server/enums/Phases";
+import { PreGamePhase } from "@/shared/enums/Phases";
 import { GameStateData } from "../interfaces/GameState";
 
 export const initialGameState: GameStateData = {

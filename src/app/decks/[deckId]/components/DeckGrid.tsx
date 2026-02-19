@@ -1,4 +1,4 @@
-import { CardDocument } from "@/client/interfaces/Card.mongo";
+import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import { Button } from "@/client/ui/button";
 import { CardInDeck, DeckResponse } from "@/shared/interfaces/DeckResponse";

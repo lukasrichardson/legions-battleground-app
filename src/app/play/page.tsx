@@ -15,7 +15,7 @@ import PlunderModal from "../components/Modals/PlunderModal";
 import Modal from "../components/Modals/Modal";
 import { PreGamePhase } from "@/client/redux/phaseSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
-import { GAME_EVENT } from "@/client/enums/GameEvent";
+import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { preloadSearchResults } from "@/client/utils/imagePreloader";
 import { clearPileInView } from "@/client/redux/clientGameStateSlice";
 

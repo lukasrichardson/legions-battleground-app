@@ -3,7 +3,7 @@ import { CARD_TYPE } from "@/shared/enums/CardType";
 import { IOServer } from "../interfaces/SocketTypes";
 import { MoveCardActionInterface } from "../events/cardEvents";
 import { games } from "../game/game";
-import { CardInterface } from "../../shared/interfaces/CardInterface";
+import { CardState } from "../../shared/interfaces/CardState";
 import { removeCardFromZone, addCardToZone } from "../utils/cardZone.util";
 import { addGameLog } from "../utils/generateGameLog";
 import { shuffle } from "../utils/shuffleDeck.util";
@@ -73,7 +73,7 @@ export class CardService {
     return games[roomId];
   }
 
-  selectCard(roomId: string, action: CardInterface): GameStateData {
+  selectCard(roomId: string, action: CardState): GameStateData {
     games[roomId].selectedCard = action;
     return games[roomId];
   }
@@ -86,9 +86,9 @@ export class CardService {
   flipCard(roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }): GameStateData {
     const { cardTarget, cardIndex, zoneIndex } = action;
     if (zoneIndex != undefined) {
-      (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].faceUp = !(games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].faceUp;
+      (games[roomId][cardTarget][zoneIndex] as CardState[])[cardIndex].faceUp = !(games[roomId][cardTarget][zoneIndex] as CardState[])[cardIndex].faceUp;
     } else {
-      (games[roomId][cardTarget][cardIndex] as CardInterface).faceUp = !(games[roomId][cardTarget][cardIndex] as CardInterface).faceUp;
+      (games[roomId][cardTarget][cardIndex] as CardState).faceUp = !(games[roomId][cardTarget][cardIndex] as CardState).faceUp;
     }
     games[roomId].gameLog = addGameLog(games[roomId].gameLog, "flipped card in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
     return games[roomId];
@@ -97,9 +97,9 @@ export class CardService {
   increaseCardAttackModifier(roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }): GameStateData {
     const { cardTarget, cardIndex, zoneIndex } = action;
     if (zoneIndex != undefined) {
-      (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].attackModifier += 1;
+      (games[roomId][cardTarget][zoneIndex] as CardState[])[cardIndex].attackModifier += 1;
     } else {
-      (games[roomId][cardTarget][cardIndex] as CardInterface).attackModifier += 1;
+      (games[roomId][cardTarget][cardIndex] as CardState).attackModifier += 1;
     }
     games[roomId].gameLog = addGameLog(games[roomId].gameLog, "increased card attack modifier in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
     return games[roomId];
@@ -108,9 +108,9 @@ export class CardService {
   decreaseCardAttackModifier(roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }): GameStateData {
     const { cardTarget, cardIndex, zoneIndex } = action;
     if (zoneIndex != undefined) {
-      (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].attackModifier -= 1;
+      (games[roomId][cardTarget][zoneIndex] as CardState[])[cardIndex].attackModifier -= 1;
     } else {
-      (games[roomId][cardTarget][cardIndex] as CardInterface).attackModifier -= 1;
+      (games[roomId][cardTarget][cardIndex] as CardState).attackModifier -= 1;
     }
     games[roomId].gameLog = addGameLog(games[roomId].gameLog, "decreased card attack modifier in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
     return games[roomId];
@@ -119,9 +119,9 @@ export class CardService {
   increaseCardOtherModifier(roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }): GameStateData {
     const { cardTarget, cardIndex, zoneIndex } = action;
     if (zoneIndex != undefined) {
-      (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].otherModifier += 1;
+      (games[roomId][cardTarget][zoneIndex] as CardState[])[cardIndex].otherModifier += 1;
     } else {
-      (games[roomId][cardTarget][cardIndex] as CardInterface).otherModifier += 1;
+      (games[roomId][cardTarget][cardIndex] as CardState).otherModifier += 1;
     }
     games[roomId].gameLog = addGameLog(games[roomId].gameLog, "increased card other modifier in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
     return games[roomId];
@@ -130,9 +130,9 @@ export class CardService {
   decreaseCardOtherModifier(roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }): GameStateData {
     const { cardTarget, cardIndex, zoneIndex } = action;
     if (zoneIndex != undefined) {
-      (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].otherModifier -= 1;
+      (games[roomId][cardTarget][zoneIndex] as CardState[])[cardIndex].otherModifier -= 1;
     } else {
-      (games[roomId][cardTarget][cardIndex] as CardInterface).otherModifier -= 1;
+      (games[roomId][cardTarget][cardIndex] as CardState).otherModifier -= 1;
     }
     games[roomId].gameLog = addGameLog(games[roomId].gameLog, "decreased card other modifier in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
     return games[roomId];
@@ -141,9 +141,9 @@ export class CardService {
   increaseCardCooldown(roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }): GameStateData {
     const { cardTarget, cardIndex, zoneIndex } = action;
     if (zoneIndex != undefined) {
-      (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].cooldown += 1;
+      (games[roomId][cardTarget][zoneIndex] as CardState[])[cardIndex].cooldown += 1;
     } else {
-      (games[roomId][cardTarget][cardIndex] as CardInterface).cooldown += 1;
+      (games[roomId][cardTarget][cardIndex] as CardState).cooldown += 1;
     }
     games[roomId].gameLog = addGameLog(games[roomId].gameLog, "increased card cooldown in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
     return games[roomId];
@@ -152,12 +152,12 @@ export class CardService {
   decreaseCardCooldown(roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }): GameStateData {
     const { cardTarget, cardIndex, zoneIndex } = action;
     if (zoneIndex != undefined) {
-      if ((games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].cooldown > 0) {
-        (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].cooldown -= 1;
+      if ((games[roomId][cardTarget][zoneIndex] as CardState[])[cardIndex].cooldown > 0) {
+        (games[roomId][cardTarget][zoneIndex] as CardState[])[cardIndex].cooldown -= 1;
       }
     } else {
-      if ((games[roomId][cardTarget][cardIndex] as CardInterface).cooldown > 0) {
-        (games[roomId][cardTarget][cardIndex] as CardInterface).cooldown -= 1;
+      if ((games[roomId][cardTarget][cardIndex] as CardState).cooldown > 0) {
+        (games[roomId][cardTarget][cardIndex] as CardState).cooldown -= 1;
       }
     }
     games[roomId].gameLog = addGameLog(games[roomId].gameLog, "decreased card cooldown in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
@@ -178,7 +178,7 @@ export class CardService {
         }
         break;
       default:
-        const shuffled = shuffle(games[roomId][action.cardTarget] as CardInterface[]);
+        const shuffled = shuffle(games[roomId][action.cardTarget] as CardState[]);
         games[roomId][action.cardTarget] = shuffled;
         break;
     }

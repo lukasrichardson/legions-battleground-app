@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { moveCard } from "@/client/redux/gameStateSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
-import { GAME_EVENT } from "@/client/enums/GameEvent";
+import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { GamePhase } from "@/client/redux/phaseSlice";
 
 

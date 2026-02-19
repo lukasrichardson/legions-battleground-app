@@ -1,13 +1,13 @@
 import { ObjectId } from "mongodb";
 import { DeckResponse } from "../../shared/interfaces/DeckResponse";
-import { CardInterface } from "../../shared/interfaces/CardInterface";
+import { CardState } from "../../shared/interfaces/CardState";
 import { getDatabase } from "./database.util";
 import { games } from "../game/game";
 import { generateStartingPlayersCards } from "./generateCards.util";
 import { addGameLog } from "./generateGameLog";
 import { CARD_TARGET } from "../../shared/enums/CardTarget";
 import { SequenceItem, StepType } from "../interfaces/SequenceInterfaces";
-import { GamePhase, PreGamePhase } from "../enums/Phases";
+import { GamePhase, PreGamePhase } from "../../shared/enums/Phases";
 import { MoveCardActionInterface, moveCard, plunder } from "../events/cardEvents";
 import { goNextPhase } from "../events/playerEvents";
 import {ALL_KEYWORDS, KeywordTrigger} from "../cards/Keywords";
@@ -257,7 +257,7 @@ export const resolveFirstItemInSequence = (roomId: string, io: Server) => {
                 if (ALL_KEYWORDS[keyword].sequenceItem) {
                   if (ALL_KEYWORDS[keyword].triggers.includes(KeywordTrigger.ETB)){
                     if (ALL_KEYWORDS[keyword].conditions?.length){
-                      if ((games[roomId][ALL_KEYWORDS[keyword].conditions[0].target] as CardInterface[])?.length >= ALL_KEYWORDS[keyword].conditions[0].minSize) {
+                      if ((games[roomId][ALL_KEYWORDS[keyword].conditions[0].target] as CardState[])?.length >= ALL_KEYWORDS[keyword].conditions[0].minSize) {
                         addSequenceItem(roomId, ALL_KEYWORDS[keyword].sequenceItem);
                       }
                     }

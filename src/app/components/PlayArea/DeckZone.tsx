@@ -1,11 +1,11 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
-import { CardInterface } from "@/shared/interfaces/CardInterface";
+import { CardState } from "@/shared/interfaces/CardState";
 import GridItem from "./GridItem";
 import Card from "../Card/Card";
 import { useAppSelector } from "@/client/redux/hooks";
 import { useEffect, useRef, useState } from "react";
 
-export default function DeckZone ({item, cardTarget, p1}: {item: CardInterface | null, cardTarget: CARD_TARGET, p1?: boolean}) {
+export default function DeckZone ({item, cardTarget, p1}: {item: CardState | null, cardTarget: CARD_TARGET, p1?: boolean}) {
   const [shuffle, setShuffle] = useState(false);
   const gridItemRef = useRef<HTMLDivElement>(null);
   const gameState = useAppSelector((state) => state.gameState);

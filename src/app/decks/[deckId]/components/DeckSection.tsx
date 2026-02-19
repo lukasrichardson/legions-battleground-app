@@ -1,4 +1,4 @@
-import { CardDocument } from "@/client/interfaces/Card.mongo";
+import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { DeckCardTile } from "./CardTile";
 
 export default function DeckSection({cards, removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck}: {cards: CardDocument[], removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, setHoveredCard: (card: CardDocument) => void, useGroupedView: boolean, addCardToDeck: (card: CardDocument) => void}) {

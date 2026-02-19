@@ -2,7 +2,7 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { games } from "../game/game";
-import { CardInterface } from "../../shared/interfaces/CardInterface";
+import { CardState } from "../../shared/interfaces/CardState";
 import { StepType } from "../interfaces/SequenceInterfaces";
 import { addSequenceItem, drawCardP1, drawCardP2, resolveFirstItemInSequence } from "../utils/game.util";
 import { addGameLog } from "../utils/generateGameLog";
@@ -111,12 +111,12 @@ export const conscript = (roomId: string, action: MoveCardActionInterface, playe
 export const decreaseCardCooldown = (roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }) => {
   const { cardTarget, cardIndex, zoneIndex } = action;
   if (zoneIndex != undefined) {
-    if ((games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].cooldown > 0) {
-      (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].cooldown -= 1;
+    if ((games[roomId][cardTarget][zoneIndex] as CardState[])[cardIndex].cooldown > 0) {
+      (games[roomId][cardTarget][zoneIndex] as CardState[])[cardIndex].cooldown -= 1;
     }
   } else {
-    if ((games[roomId][cardTarget][cardIndex] as CardInterface).cooldown > 0) {
-      (games[roomId][cardTarget][cardIndex] as CardInterface).cooldown -= 1;
+    if ((games[roomId][cardTarget][cardIndex] as CardState).cooldown > 0) {
+      (games[roomId][cardTarget][cardIndex] as CardState).cooldown -= 1;
     }
   }
   games[roomId].gameLog = addGameLog(games[roomId].gameLog, "decreased card cooldown in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));

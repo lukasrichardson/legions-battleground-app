@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { CardInterface } from "@/shared/interfaces/CardInterface";
+import { CardState } from "@/shared/interfaces/CardState";
 
 const clientGameStateSlice = createSlice({
   name: "clientGameState",
@@ -43,17 +43,17 @@ const clientGameStateSlice = createSlice({
         state.pileInViewIndex = targetIndex;
         if (limit) {
           if (bottom) {
-            state.topXCards = pile ? pile.slice(-limit) as CardInterface[] : null;
+            state.topXCards = pile ? pile.slice(-limit) as CardState[] : null;
           } else {
-            state.topXCards = pile ? pile.slice(0, limit) as CardInterface[] : null;
+            state.topXCards = pile ? pile.slice(0, limit) as CardState[] : null;
           }
         }
       } else {
         if (limit) {
           if (bottom) {
-            state.topXCards = pile ? pile.slice(-limit) as CardInterface[] : null;
+            state.topXCards = pile ? pile.slice(-limit) as CardState[] : null;
           } else {
-            state.topXCards = pile ? pile.slice(0, limit) as CardInterface[] : null;
+            state.topXCards = pile ? pile.slice(0, limit) as CardState[] : null;
           }
         }
       }

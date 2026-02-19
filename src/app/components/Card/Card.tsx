@@ -1,20 +1,20 @@
 import IMenuItem, { INewMenuItem } from '@/client/interfaces/IMenuItem';
 import { useCallback, useMemo, useState } from 'react';
-import { CardInterface } from "@/shared/interfaces/CardInterface";
+import { CardState } from "@/shared/interfaces/CardState";
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { useAppDispatch, useAppSelector } from '@/client/redux/hooks';
 import { moveCard, flipCard } from '@/client/redux/gameStateSlice';
 import { setPileInView } from '@/client/redux/clientGameStateSlice';
 
 import { cardMenuItems, deckMenuItems, newCardMenuItems } from '@/client/constants/cardMenu.constants';
-import { GAME_EVENT } from '@/client/enums/GameEvent';
+import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { emitGameEvent } from '@/client/utils/emitEvent';
 import MenuItemAction from '@/client/enums/MenuItemAction';
 import CardInner from './CardInner';
 import { openPlunderModal } from '@/client/redux/modalsSlice';
 import useHandleCardEvents from '@/client/hooks/useHandleCardEvents';
 
-export default function Card({ card, cardTarget, index, inPileView = false, zoneIndex, hidden = false }: { card: CardInterface, cardTarget: CARD_TARGET, index?: number, inPileView?: boolean, zoneIndex?: number, hidden?: boolean }) {
+export default function Card({ card, cardTarget, index, inPileView = false, zoneIndex, hidden = false }: { card: CardState, cardTarget: CARD_TARGET, index?: number, inPileView?: boolean, zoneIndex?: number, hidden?: boolean }) {
   const [isPopoverVisible, setIsPopoverVisible] = useState(false);
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);

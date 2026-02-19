@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { MouseEventHandler, useState } from "react";
 import Modal from "./Modal";
 import { emitGameEvent } from "@/client/utils/emitEvent";
-import { GAME_EVENT } from "@/client/enums/GameEvent";
+import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { moveCard } from "@/client/redux/gameStateSlice";
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import styles from "@/app/styles/modals.module.css";

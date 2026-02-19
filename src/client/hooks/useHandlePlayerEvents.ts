@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useAppDispatch } from "../redux/hooks";
-import { GAME_EVENT } from "../enums/GameEvent";
+import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { emitGameEvent } from "../utils/emitEvent";
 import { changeP1AP, changeP1Health, changeP2AP, changeP2Health } from "../redux/gameStateSlice";
 

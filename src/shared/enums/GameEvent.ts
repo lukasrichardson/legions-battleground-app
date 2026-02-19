@@ -24,7 +24,6 @@ export enum GAME_EVENT {
   setP1Viewing = "setP1Viewing",
   setP2Viewing = "setP2Viewing",
   plunder = "plunder",
-  //
   nextPhase = "nextPhase",
   setRpsChoice = "setRpsChoice",
   mulligan = "mulligan",

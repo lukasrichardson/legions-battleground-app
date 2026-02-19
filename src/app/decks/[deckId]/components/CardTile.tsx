@@ -1,5 +1,5 @@
 import CardImage from "@/app/components/Card/CardImage";
-import { CardDocument } from "@/client/interfaces/Card.mongo";
+import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { useEffect, useState } from "react";
 
 const renderHoverContent = (card, removeCardFromDeck, addCardToDeck) => (

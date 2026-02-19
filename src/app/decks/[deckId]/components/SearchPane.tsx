@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CardDocument } from "@/client/interfaces/Card.mongo";
+import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { fetchCards, fetchFilterOptions } from "@/client/utils/api.utils";
 import { Input } from "@/client/ui/input";
 import { Card, CardContent } from "@/client/ui/card";

@@ -1,5 +1,5 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
-import { CardInterface } from "@/shared/interfaces/CardInterface";
+import { CardState } from "@/shared/interfaces/CardState";
 import { Popover } from "antd";
 import back_of_card from "PUBLIC/back_of_card.jpg";
 import { MouseEventHandler, useMemo } from "react";
@@ -38,7 +38,7 @@ const useCardGameState = (cardTarget: CARD_TARGET) => {
 };
 
 interface CardInnerProps {
-  card: CardInterface;
+  card: CardState;
   selected: boolean;
   faceUp: boolean;
   cardTarget: CARD_TARGET;
@@ -94,7 +94,7 @@ export default function CardInner({
   const clientSettings = useAppSelector(state => state.clientSettings);
   
   const { p1Side, p1Card, playerHealth, playerAP } = gameState;
-  const pileOfCard = (zoneIndex || zoneIndex === 0) ? gameState[cardTarget as keyof typeof gameState][zoneIndex] as CardInterface[] | undefined : gameState[cardTarget as keyof typeof gameState] as CardInterface[] | undefined;
+  const pileOfCard = (zoneIndex || zoneIndex === 0) ? gameState[cardTarget as keyof typeof gameState][zoneIndex] as CardState[] | undefined : gameState[cardTarget as keyof typeof gameState] as CardState[] | undefined;
   const inPileOfMinTwo = pileOfCard && pileOfCard.length >= 2;
  
   

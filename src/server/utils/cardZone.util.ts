@@ -1,5 +1,5 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
-import { CardInterface } from "../../shared/interfaces/CardInterface";
+import { CardState } from "../../shared/interfaces/CardState";
 import { games } from "../game/game";
 
 export function removeCardFromZone(
@@ -7,20 +7,20 @@ export function removeCardFromZone(
   roomId: string,
   cardId: string,
   targetIndex?: number
-): CardInterface | null {
+): CardState | null {
   if (Array.isArray(games[roomId][target][0])) {
     // Array of arrays (e.g., fortified, unified, warrior)
     if (targetIndex === undefined) return null;
     const column = games[roomId][target][targetIndex];
-    const cardIdx = column.findIndex((c: CardInterface) => c.id === cardId);
+    const cardIdx = column.findIndex((c: CardState) => c.id === cardId);
     if (cardIdx === -1) return null;
     const [removed] = column.splice(cardIdx, 1);
     return removed || null;
   } else {
     // Simple array (e.g., hand, deck)
-    const cardIdx = (games[roomId][target] as CardInterface[]).findIndex((c: CardInterface) => c.id === cardId);
+    const cardIdx = (games[roomId][target] as CardState[]).findIndex((c: CardState) => c.id === cardId);
     if (cardIdx === -1) return null;
-    const [removed] = (games[roomId][target] as CardInterface[]).splice(cardIdx, 1);
+    const [removed] = (games[roomId][target] as CardState[]).splice(cardIdx, 1);
     return removed || null;
   }
 }
@@ -28,7 +28,7 @@ export function removeCardFromZone(
 export function addCardToZone(
   target: CARD_TARGET,
   roomId: string,
-  card: CardInterface,
+  card: CardState,
   targetIndex?: number,
   bottom: boolean = false
 ) {
@@ -43,9 +43,9 @@ export function addCardToZone(
   } else {
     // Simple array
     if (bottom) {
-      (games[roomId][target] as CardInterface[]).unshift(card);
+      (games[roomId][target] as CardState[]).unshift(card);
     } else {
-      (games[roomId][target] as CardInterface[]).push(card);
+      (games[roomId][target] as CardState[]).push(card);
     }
   }
 }

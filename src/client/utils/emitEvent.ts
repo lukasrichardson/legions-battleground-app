@@ -1,8 +1,8 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 import { SOCKET_PAYLOAD_TYPE } from "@/client/hooks/useSocket";
-import { GAME_EVENT } from '@/client/enums/GameEvent';
+import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { socket } from "@/client/socket";
-import { ROOM_EVENT } from "@/client/enums/RoomEvent";
+import { ROOM_EVENT } from "@/shared/enums/RoomEvent";
 
 export const emitGameEvent = ({type, data}: {type: GAME_EVENT, data: any}) => {
   socket.emit(SOCKET_PAYLOAD_TYPE.gameEvent, {type, data});

@@ -4,8 +4,8 @@ import {
 import { fetchInitialDecks, resetPlayersCards, fetchPlayerDeckById } from '../utils/game.util';
 import { rooms } from '../network/socketHandler';
 import { addGameLog } from '../utils/generateGameLog';
-import { initialState } from '../game/initialGameState';
-import { PreGamePhase } from '../enums/Phases';
+import { initialGameState } from '@/shared/constants/initialGameState';
+import { PreGamePhase } from '../../shared/enums/Phases';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { GameStateData } from '@/shared/interfaces/GameState';
 
@@ -16,7 +16,7 @@ export class GameService {
       return games[roomId];
     }
 
-    games[roomId] = { ...initialState };
+    games[roomId] = { ...initialGameState };
     games[roomId].sandboxMode = rooms[roomId]?.sandboxMode || false;
 
     console.log(`🎮 Game started for room: ${roomId}, sandbox mode: ${games[roomId].sandboxMode}`);

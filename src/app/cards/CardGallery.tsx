@@ -1,4 +1,4 @@
-import { CardDocument } from "@/client/interfaces/Card.mongo";
+import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { useState } from "react";
 import SearchPane from "../decks/[deckId]/components/SearchPane";
 import CardImage from "../components/Card/CardImage";

@@ -3,13 +3,13 @@ import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import DeckZone from "./DeckZone";
-import { GAME_EVENT } from "@/client/enums/GameEvent";
+import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { changeP1AP, changeP1Health, changeP2AP, changeP2Health } from "@/client/redux/gameStateSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import Hand from "./Hand";
 import Card from "../Card/Card";
 import CardZone from "./CardZone";
-import { CardInterface } from "@/shared/interfaces/CardInterface";
+import { CardState } from "@/shared/interfaces/CardState";
 
 export const renderDeckNameZone = (deck: DeckResponse | null, p1: boolean) => {
   return (
@@ -29,7 +29,7 @@ export const renderDeckNameZone = (deck: DeckResponse | null, p1: boolean) => {
   )
 }
 
-export const renderDeckZone = (item: CardInterface | null, cardTarget: CARD_TARGET, p1: boolean) => {
+export const renderDeckZone = (item: CardState | null, cardTarget: CARD_TARGET, p1: boolean) => {
   return (<DeckZone item={item} cardTarget={cardTarget} p1={p1} />)
 }
 
@@ -72,7 +72,7 @@ export const renderAP = (ap: number, gameEvent: GAME_EVENT, p1: boolean, dispatc
   </div>
 )}
 
-export const renderHand = (items: CardInterface[], cardTarget: CARD_TARGET, p1: boolean) => {
+export const renderHand = (items: CardState[], cardTarget: CARD_TARGET, p1: boolean) => {
   const hidden = p1 ? cardTarget === CARD_TARGET.P2_PLAYER_HAND : cardTarget === CARD_TARGET.P1_PLAYER_HAND;
   return (
     <Hand cardTarget={cardTarget}>
@@ -81,16 +81,16 @@ export const renderHand = (items: CardInterface[], cardTarget: CARD_TARGET, p1: 
   )
 }
 
-export const renderCardRow = (items: CardInterface[][], cardTarget: CARD_TARGET, zoneName?: string) => (
+export const renderCardRow = (items: CardState[][], cardTarget: CARD_TARGET, zoneName?: string) => (
   <>
     {items.map((item, index) => <CardZone items={item} cardTarget={cardTarget} targetIndex={index} zoneName={zoneName} key={index} />)}
   </>
 )
-export const renderCardRowUpsideDown = (items: CardInterface[][], cardTarget: CARD_TARGET, zoneName?: string) => (
+export const renderCardRowUpsideDown = (items: CardState[][], cardTarget: CARD_TARGET, zoneName?: string) => (
   <>
     {[...items].reverse().map((item, index) => <CardZone items={item} cardTarget={cardTarget} targetIndex={items.length - 1 - index} zoneName={zoneName} key={index} />)}
   </>
 )
-export const renderCardZone = (items: CardInterface[], cardTarget: CARD_TARGET, zoneName: string) => (
+export const renderCardZone = (items: CardState[], cardTarget: CARD_TARGET, zoneName: string) => (
   <CardZone items={items} cardTarget={cardTarget} zoneName={zoneName} />
 )

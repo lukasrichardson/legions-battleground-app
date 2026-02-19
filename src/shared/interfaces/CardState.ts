@@ -1,7 +1,7 @@
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { EffectStep } from "../../server/interfaces/SequenceInterfaces";
 
-export interface CardInterface {
+export interface CardState {
   id?: string;
   name?: string;
   type: CARD_TYPE;

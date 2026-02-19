@@ -2,7 +2,7 @@ import {
   // useAppDispatch, 
   useAppSelector } from "@/client/redux/hooks";
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
-// import { GAME_EVENT } from '@/client/enums/GameEvent';
+// import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import {
   // renderAP,
   renderCardRow,
