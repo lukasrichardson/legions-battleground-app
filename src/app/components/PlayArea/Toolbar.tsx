@@ -62,6 +62,10 @@ export default function Toolbar({ }) {
     dispatch(resetState());
   }
 
+  const handleEditDeck = () => {
+    window.open(`/decks/${p1 ? p1DeckFromServer?._id : p2DeckFromServer?._id}`, "_blank");
+  }
+
   useEffect(() => {
     gameLogRef.current?.scrollTo(0, gameLogRef.current.scrollHeight);
   }, [gameState.game.gameLog.length]);
@@ -119,6 +123,7 @@ export default function Toolbar({ }) {
         <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={handleLeaveGame}>{LeaveGameButtonText}</button>
         <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => dispatch(openHelpModal())}>{HelpButtonText}</button>
         <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => emitGameEvent({ type: GAME_EVENT.mulligan, data: null })}>{MulliganText}</button>
+        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={handleEditDeck}>Edit Deck</button>
         <div>
           <label htmlFor="hoverMenu" className="text-xs mr-1">Show Menu On Hover:</label>
           <input name="hoverMenu" type="checkbox" checked={hoverMenu} onChange={() => setHoverMenu(!hoverMenu)}/>

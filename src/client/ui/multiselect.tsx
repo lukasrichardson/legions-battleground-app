@@ -104,7 +104,7 @@ export function MultiSelect({
       {open && (
         <div
           ref={menuRef}
-          className="fixed z-50 mt-2 rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5"
+          className="fixed z-50 mt-2 rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5 overflow-auto"
         >
           <div className="flex items-center justify-between px-2 py-1 border-b">
             <button
@@ -117,7 +117,7 @@ export function MultiSelect({
             {value.length > 0 && (
               <button
                 type="button"
-                className="text-xs rounded-md px-2 py-1 hover:bg-gray-100 cursor-pointer"
+                className="text-xs rounded-md px-2 py-1 hover:bg-gray-100 cursor-pointer text-black"
                 onClick={clearAll}
               >
                 Clear

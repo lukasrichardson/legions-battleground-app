@@ -145,7 +145,7 @@ export default function CardInner({
 
   const cardStyles = useMemo(() => {
     const baseStyle = {
-      border: selected ? "thick blue dashed" : "none",
+      border: selected ? "thick orange dashed" : "none",
       boxSizing: "content-box" as const,
       scale: rotated ? -1 : 1,
       ['--index' as string]: index,

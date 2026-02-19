@@ -12,7 +12,7 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
   const { game: { p1Viewing, p2Viewing, sandboxMode}, side } = gameState;
   const p1Side = side === "p1";
   const viewing = cardTarget.includes("p1") ? p1Viewing : p2Viewing;
-  const [{}, drop] = useDrop(
+  const [{isOver, canDrop}, drop] = useDrop(
     () => ({
       accept: ["card"],
       canDrop: () => sandboxMode,
@@ -57,6 +57,9 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
         "relative flex justify-center w-full",
         "h-[10%]",
         !playerHand ? "-translate-y-[20%]" : "",
+        isOver && canDrop ? "border-green-400 bg-green-400/10 scale-[1.02]" : "",
+        isOver && !canDrop ? "border-red-400 bg-red-400/10" : "",
+        canDrop && !isOver ? "border-blue-400/50" : "",
       ].join(" ")}
       >
         {(viewing && viewing != "null") && (

@@ -1,17 +1,12 @@
-import { games,
-  //  startGame as originalStartGame
-   } from '../game/game';
+import {
+  games,
+} from '../game/game';
 import { GameStateData } from '../interfaces/GameState';
 import { fetchInitialDecks, resetPlayersCards, fetchPlayerDeckById } from '../utils/game.util';
 import { rooms } from '../network/socketHandler';
 import { addGameLog } from '../utils/generateGameLog';
 import { initialState } from '../game/initialGameState';
 import { PreGamePhase } from '../enums/Phases';
-import { MoveCardActionInterface } from '../events/cardEvents';
-import { Server } from 'socket.io';
-import { CARD_TARGET } from '@/shared/enums/CardTarget';
-import { addCardToZone, removeCardFromZone } from '../utils/cardZone.util';
-import { CARD_TYPE } from '@/shared/enums/CardType';
 
 export class GameService {
 
@@ -22,7 +17,7 @@ export class GameService {
 
     games[roomId] = { ...initialState };
     games[roomId].sandboxMode = rooms[roomId]?.sandboxMode || false;
-    
+
     console.log(`🎮 Game started for room: ${roomId}, sandbox mode: ${games[roomId].sandboxMode}`);
 
     const { p2Deck: p2DeckResponse, p1Deck: p1DeckResponse } = await fetchInitialDecks(deckId);
@@ -31,7 +26,7 @@ export class GameService {
 
     resetPlayersCards(roomId, p1DeckResponse, p2DeckResponse);
     games[roomId].gameLog = addGameLog(games[roomId].gameLog, "Game Started");
-    
+
     games[roomId].started = true;
     return games[roomId];
   }
@@ -43,7 +38,7 @@ export class GameService {
 
     const gameState = this.getGameState(roomId);
     const currentSandboxMode = gameState.sandboxMode;
-    
+
     games[roomId].sandboxMode = currentSandboxMode;
     games[roomId].gameLog = addGameLog([], "Game Started");
     games[roomId].p2PlayerAP = 0;
@@ -53,7 +48,7 @@ export class GameService {
     if (options?.p2DeckId && gameState.p2DeckFromServer?.id !== options.p2DeckId) {
       games[roomId].p2DeckFromServer = await fetchPlayerDeckById({ deckId: options.p2DeckId });
     }
-    
+
     if (options?.p1DeckId && gameState.p1DeckFromServer?.id !== options.p1DeckId) {
       games[roomId].p1DeckFromServer = await fetchPlayerDeckById({ deckId: options.p1DeckId });
     }
@@ -74,63 +69,12 @@ export class GameService {
     return games[roomId];
   }
 
-  async moveCard(
-    roomId: string,
-    action: MoveCardActionInterface,
-    player: {
-      name: string,
-      p1: boolean
-    },
-    io: Server,
-    shouldLog: boolean = true
-  ): Promise<GameStateData> {
-    const { id, from, target, targetIndex }: MoveCardActionInterface = action;
-    let { bottom = false }: { bottom?: boolean } = action;
-  
-    // if target is player deck, toggle bottom (because decks are usually drawn from the top)
-    if ([CARD_TARGET.P2_PLAYER_DECK, CARD_TARGET.P1_PLAYER_DECK].includes(target)) bottom = !bottom;
-  
-    // Centralized removal
-    const removedToAdd = removeCardFromZone(
-      from.target,
-      roomId,
-      id,
-      from.targetIndex
-    );
-  
-    let cardToAdd = removedToAdd;
-    if (cardToAdd) {
-      if (cardToAdd.type === CARD_TYPE.FORTIFIED && target.includes("Fortified") && from.target.includes("Hand")) {
-        cardToAdd = { ...cardToAdd, faceUp: false };
-      }
-      if (
-        target === CARD_TARGET.P1_PLAYER_DECK ||
-        target === CARD_TARGET.P1_PLAYER_DISCARD ||
-        target === CARD_TARGET.P1_PLAYER_REVEALED ||
-        target === CARD_TARGET.P1_PLAYER_HAND ||
-        target === CARD_TARGET.P2_PLAYER_DECK ||
-        target === CARD_TARGET.P2_PLAYER_DISCARD ||
-        target === CARD_TARGET.P2_PLAYER_REVEALED ||
-        target === CARD_TARGET.P2_PLAYER_HAND
-      ) {
-        cardToAdd = { ...cardToAdd, faceUp: true };
-      }
-      // Centralized addition
-      addCardToZone(
-        target,
-        roomId,
-        cardToAdd,
-        targetIndex,
-        bottom
-      );
+  playerLeft(roomId: string, player: { id: string; p1: boolean }) {
+    if (player.p1) {
+      games[roomId].p1Viewing = null;
+    } else {
+      games[roomId].p2Viewing = null;
     }
-    if (shouldLog) {
-      games[roomId].gameLog = addGameLog(
-        games[roomId].gameLog,
-        `${player.name} (${player.p1 ? "P1" : "P2"}) moved: ${cardToAdd?.name} from: ${from.target} to: ${target}${targetIndex != undefined ? " at index: " + targetIndex : ""}`
-      );
-    }
-    return games[roomId];
   }
 
   getGameState(roomId: string): GameStateData | null {

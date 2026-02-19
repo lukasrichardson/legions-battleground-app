@@ -1,4 +1,4 @@
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/client/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
 import { fetchDecks } from "@/client/utils/api.utils";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import axios from "axios";
@@ -84,14 +84,13 @@ export default function DeckEditorHeader({
         </h1>
         <span className="text-sm text-gray-400">Left Click to add cards, Right Click to remove cards</span>
         <div className="flex items-center justify-center gap-1 flex-wrap">
-          <span className="text-white/70 text-xs">{deck?.legion || ""}</span>
+          <span className="text-white/70 text-xs">{deck?.legion?.toLocaleUpperCase() || ""}</span>
           <Select value={deck?._id?.toString()} onValueChange={handleDeckChange} disabled={loading}>
             <SelectTrigger className="h-6 max-w-fit text-sm bg-white/10 border-white/20 text-white">
               <SelectValue placeholder={loading ? "Loading..." : "Select deck"} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>Your Decks</SelectLabel>
                 {error ? (
                   <div className="px-2 py-1 text-xs text-red-400">{error}</div>
                 ) : (

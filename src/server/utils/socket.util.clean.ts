@@ -5,7 +5,6 @@ import { GAME_EVENT } from "../enums/GameEvent";
 import { GameService } from "../services/GameService";
 import { RoomService } from "../services/RoomService";
 import { EventHandler } from "../services/EventHandler";
-import { roomEventMap } from "../game/game";
 import { ROOM_EVENT } from "../enums/RoomEvent";
 import { validateJoinGame, validateGameEvent, validateRoomEvent, handleError } from "./validation.util";
 
@@ -167,7 +166,7 @@ export const handleSocketDisconnect = async (
       
       if (room && room.players[socket.id]) {
         // Trigger player left event
-        roomEventMap[ROOM_EVENT.playerLeft](socket.room, room.players[socket.id]);
+        gameService.playerLeft(socket.room, room.players[socket.id]);
         
         // Remove player from room (this also cleans up empty rooms)
         roomService.leaveRoom(socket.room, socket.id);
