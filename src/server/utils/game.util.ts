@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { DeckResponse } from "../../shared/interfaces/DeckResponse";
-import { CardInterface } from "../interfaces/CardInterface";
+import { CardInterface } from "../../shared/interfaces/CardInterface";
 import { getDatabase } from "./database.util";
 import { games } from "../game/game";
 import { generateStartingPlayersCards } from "./generateCards.util";

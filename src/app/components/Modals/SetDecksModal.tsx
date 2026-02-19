@@ -25,7 +25,7 @@ export default function SetDecksModal({ closeModal }: { closeModal: () => void }
   useClickOutside(ref, closeModal as () => void);
   const modalState = useAppSelector((state) => state.modalsState);
   const gameState = useAppSelector((state) => state.gameState);
-  const { p2DeckFromServer, p1DeckFromServer } = gameState.game;
+  const { p2DeckFromServer, p1DeckFromServer } = gameState;
   const { setDecksModalOpen } = modalState;
   const open = setDecksModalOpen;
   const {
@@ -70,11 +70,9 @@ export default function SetDecksModal({ closeModal }: { closeModal: () => void }
     closeModal();
   }
   const handleP2DeckIdChange = (id: string) => {
-    console.log("setting p2 deck id to", id);
     setP2DeckId(id);
   }
   const handleP1DeckIdChange = (id: string) => {
-    console.log("setting p1 deck id to", id);
     setP1DeckId(id);
   }
 

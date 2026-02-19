@@ -6,7 +6,7 @@ import { RoomService } from './RoomService';
 import { IOServer } from '../interfaces/SocketTypes';
 import IPlayer from './interfaces/IPlayer';
 import { MoveCardActionInterface } from '../events/cardEvents';
-import { CardInterface } from '../interfaces/CardInterface';
+import { CardInterface } from '../../shared/interfaces/CardInterface';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { CardService } from './CardService';
 

@@ -114,7 +114,6 @@ export default function DeckGrid({
               {renderSectionStructure(CARD_TYPE.WARRIOR, warriors, renderSection)}
               {renderSectionStructure(CARD_TYPE.UNIFIED, unifieds, renderSection)}
               {renderSectionStructure(CARD_TYPE.FORTIFIED, fortifieds, renderSection)}
-              {renderSectionStructure(CARD_TYPE.TOKEN, tokens, renderSection)}
 
               {/* Empty State */}
               {(!deck.cards_in_deck || deck.cards_in_deck.length === 0) && (

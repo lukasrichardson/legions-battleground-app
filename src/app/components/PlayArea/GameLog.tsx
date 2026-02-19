@@ -3,9 +3,9 @@ import styles from "@/app/styles/toolbar.module.css";
 import { useEffect, useRef } from "react";
 
 export default function GameLog({}) {
-  const state = useAppSelector((state) => state.gameState);
+  const gameState = useAppSelector((state) => state.gameState);
   const gameLogRef = useRef<HTMLDivElement>(null);
-  const { gameLog } = state.game;
+  const { gameLog } = gameState;
   useEffect(() => {
     if (gameLogRef?.current) {
       gameLogRef.current.scrollTop = gameLogRef?.current?.scrollHeight;

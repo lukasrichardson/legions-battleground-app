@@ -1,5 +1,5 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
-import { CardInterface } from "../interfaces/CardInterface";
+import { CardInterface } from "../../shared/interfaces/CardInterface";
 import { games } from "../game/game";
 
 export function removeCardFromZone(

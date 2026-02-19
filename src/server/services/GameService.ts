@@ -1,13 +1,13 @@
 import {
   games,
 } from '../game/game';
-import { GameStateData } from '../interfaces/GameState';
 import { fetchInitialDecks, resetPlayersCards, fetchPlayerDeckById } from '../utils/game.util';
 import { rooms } from '../network/socketHandler';
 import { addGameLog } from '../utils/generateGameLog';
 import { initialState } from '../game/initialGameState';
 import { PreGamePhase } from '../enums/Phases';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
+import { GameStateData } from '@/shared/interfaces/GameState';
 
 export class GameService {
 

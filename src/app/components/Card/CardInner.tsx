@@ -1,5 +1,5 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
-import { CardInterface } from "@/client/interfaces/CardInterface";
+import { CardInterface } from "@/shared/interfaces/CardInterface";
 import { Popover } from "antd";
 import back_of_card from "PUBLIC/back_of_card.jpg";
 import { MouseEventHandler, useMemo } from "react";
@@ -18,20 +18,22 @@ const PILE_OFFSETS = {
 // Custom hook for game state selectors
 const useCardGameState = (cardTarget: CARD_TARGET) => {
   const gameState = useAppSelector(state => state.gameState);
-  const { game } = gameState;
+  const clientGameState = useAppSelector(state => state.clientGameState);
+  const { side } = clientGameState;
+  const { p1PlayerHealth, p2PlayerHealth, p1PlayerAP, p2PlayerAP } = gameState;
   const p1Card = cardTarget.includes("p1");
   return {
+    ...gameState,
     p1Card,
-    p1Side: gameState.side === "p1",
+    p1Side: side === "p1",
     playerHealth: {
-      p1: game.p1PlayerHealth,
-      p2: game.p2PlayerHealth,
+      p1: p1PlayerHealth,
+      p2: p2PlayerHealth,
     },
     playerAP: {
-      p1: game.p1PlayerAP,
-      p2: game.p2PlayerAP,
+      p1: p1PlayerAP,
+      p2: p2PlayerAP,
     },
-    game,
   };
 };
 
@@ -91,8 +93,8 @@ export default function CardInner({
   const gameState = useCardGameState(cardTarget);
   const clientSettings = useAppSelector(state => state.clientSettings);
   
-  const { p1Side, p1Card, playerHealth, playerAP, game } = gameState;
-  const pileOfCard = (zoneIndex || zoneIndex === 0) ? game[cardTarget as keyof typeof game][zoneIndex] as CardInterface[] | undefined : game[cardTarget as keyof typeof game] as CardInterface[] | undefined;
+  const { p1Side, p1Card, playerHealth, playerAP } = gameState;
+  const pileOfCard = (zoneIndex || zoneIndex === 0) ? gameState[cardTarget as keyof typeof gameState][zoneIndex] as CardInterface[] | undefined : gameState[cardTarget as keyof typeof gameState] as CardInterface[] | undefined;
   const inPileOfMinTwo = pileOfCard && pileOfCard.length >= 2;
  
   
@@ -220,7 +222,7 @@ export default function CardInner({
 }
 
 const renderCardAddOn = (handleDecrease, handleIncrease, text, top, isOnPlayersSide) => (
-  <div className={`absolute ${top ? "top-0" : "bottom-0"} bg-[#f5f5f5] rounded flex items-center justify-between text-black w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
+  <div className={`absolute ${top ? "top-0" : "bottom-0"} bg-[#f5f5f576] rounded flex items-center justify-between text-black w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
     {<span className="cursor-pointer" onClick={handleDecrease}>↓</span>}
     <span>{text}</span>
     {<span className="cursor-pointer" onClick={handleIncrease}>↑</span>}

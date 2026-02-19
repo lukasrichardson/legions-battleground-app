@@ -3,14 +3,14 @@ import { CARD_TYPE } from "@/shared/enums/CardType";
 import { IOServer } from "../interfaces/SocketTypes";
 import { MoveCardActionInterface } from "../events/cardEvents";
 import { games } from "../game/game";
-import { CardInterface } from "../interfaces/CardInterface";
-import { GameStateData } from "../interfaces/GameState";
+import { CardInterface } from "../../shared/interfaces/CardInterface";
 import { removeCardFromZone, addCardToZone } from "../utils/cardZone.util";
 import { addGameLog } from "../utils/generateGameLog";
 import { shuffle } from "../utils/shuffleDeck.util";
 import { drawCardP1, drawCardP2, STARTING_HAND_SIZE } from "../utils/game.util";
 import { renderNumberthSuffix } from "../utils/string.utils";
 import { goNextPhase } from "../events/playerEvents";
+import { GameStateData } from "@/shared/interfaces/GameState";
 
 export class CardService {
 

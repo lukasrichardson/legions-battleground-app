@@ -1,4 +1,4 @@
-import { CardInterface } from "@/client/interfaces/CardInterface";
+import { CardInterface } from "@/shared/interfaces/CardInterface";
 import Card from "@/app/components/Card/Card";
 import { MouseEventHandler, useEffect, useState } from "react";
 import { useAppSelector } from "@/client/redux/hooks";
@@ -24,11 +24,12 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   const [selected, setSelected] = useState<ExtendedCardInterface[] | null>([]);
 
   const gameState = useAppSelector((state) => state.gameState);
+  const clientGameState = useAppSelector((state) => state.clientGameState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
   const { transparentOnBlur } = useClientSettings();
 
+  const { side, topXCards, pileInViewTarget, pileInViewIndex, pileInViewLimit } = clientGameState;
   const { sequences, resolving } = sequenceState;
-  const { pileInViewTarget, pileInViewIndex, side, pileInViewLimit, topXCards } = gameState;
   const p1 = side === "p1";
   const resolvingEffectStep = sequences?.[0]?.items?.[0]?.effect?.[0];
   const waitingForUserInput = (p1 && resolving && resolvingEffectStep?.waitingForInput?.p1) || (!p1 && resolving && resolvingEffectStep?.waitingForInput?.p2);
@@ -55,8 +56,8 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
 
   let cardPile: CardInterface[] = pileInViewTarget
     ? (pileInViewIndex != undefined
-      ? (gameState.game[pileInViewTarget as keyof typeof gameState.game] as CardInterface[][])[pileInViewIndex]
-      : gameState.game[pileInViewTarget as keyof typeof gameState.game] as CardInterface[])
+      ? (gameState[pileInViewTarget as keyof typeof gameState] as CardInterface[][])[pileInViewIndex]
+      : gameState[pileInViewTarget as keyof typeof gameState] as CardInterface[])
     : [] as CardInterface[];
 
   if (waitingForUserInput) {
@@ -64,14 +65,14 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
     cardPile = [];
     for (const targetObject of resolvingEffectStep.from || []) {
       if (targetObject.targetIndex || targetObject.targetIndex === 0) {
-        cardPile.push(...((gameState.game[targetObject.target as keyof typeof gameState.game] as CardInterface[][])[targetObject.targetIndex]).map(item => ({
+        cardPile.push(...((gameState[targetObject.target as keyof typeof gameState] as CardInterface[][])[targetObject.targetIndex]).map(item => ({
           ...item,
           target: targetObject.target,
           targetIndex: targetObject.targetIndex,
         })) as ExtendedCardInterface[])
       } else {
         if ([CARD_TARGET.P1_PLAYER_FORTIFIED, CARD_TARGET.P2_PLAYER_FORTIFIED, CARD_TARGET.P1_PLAYER_UNIFIED, CARD_TARGET.P2_PLAYER_UNIFIED, CARD_TARGET.P1_PLAYER_WARRIOR, CARD_TARGET.P2_PLAYER_WARRIOR].includes(targetObject.target)) {
-          (gameState.game[targetObject.target as keyof typeof gameState.game] as CardInterface[][]).forEach((zone, index) => {
+          (gameState[targetObject.target as keyof typeof gameState] as CardInterface[][]).forEach((zone, index) => {
             if (zone.length === 0) return; // skip empty zones
             cardPile.push(...zone.map((item) => ({
               ...item,
@@ -81,7 +82,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
           })
           //todo: handle what happens if theres more than one card in a warrior/fortified/unified zone
         } else {
-          cardPile.push(...((gameState.game[targetObject.target as keyof typeof gameState.game] as CardInterface[]).map(item => ({
+          cardPile.push(...((gameState[targetObject.target as keyof typeof gameState] as CardInterface[]).map(item => ({
             ...item,
             target: targetObject.target,
             targetIndex: null, // no target index for non-column targets

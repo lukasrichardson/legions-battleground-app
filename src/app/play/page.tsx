@@ -1,6 +1,5 @@
 "use client";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
-import { clearPileInView } from "@/client/redux/gameStateSlice";
 import { closePlunderModal, closeSetDecksModal } from "@/client/redux/modalsSlice";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -18,9 +17,11 @@ import { PreGamePhase } from "@/client/redux/phaseSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from "@/client/enums/GameEvent";
 import { preloadSearchResults } from "@/client/utils/imagePreloader";
+import { clearPileInView } from "@/client/redux/clientGameStateSlice";
 
 function Page() {
   const gameState = useAppSelector((state) => state.gameState);
+  const clientGameState = useAppSelector((state) => state.clientGameState);
   const sequeunceState = useAppSelector((state) => state.sequenceState);
   const { sequences, resolving } = sequeunceState;
   const [phaseTriggerModal, setPhaseTriggerModal] = useState(true);
@@ -51,29 +52,29 @@ function Page() {
     }
   }, [rpsWinner]);
 
-  const { side } = gameState;
+  const { side } = clientGameState;
   const p1 = side === "p1";
   const mulliganPhase = p1 ? currentPhase === PreGamePhase.P1Mulligan : currentPhase === PreGamePhase.P2Mulligan;
 
   // Determine if phase modals should be shown (not in sandbox mode)
-  const showPhaseModals = !gameState.game.sandboxMode;
+  const showPhaseModals = !gameState?.sandboxMode;
 
   // Staged preloading of game images based on priority
   useEffect(() => {
-    if (gameState?.game?.started) {
+    if (gameState?.started) {
       // Stage 1: Critical images first (what user sees immediately)
       
       const criticalImages = [
-        ...(gameState?.game?.p1PlayerWarriors?.flat() || []),
-        ...(gameState?.game?.p1PlayerFortifieds?.flat() || []),
-        ...(gameState?.game?.p1PlayerUnifieds?.flat() || []),
-        ...(gameState?.game?.p2PlayerWarriors?.flat() || []),
-        ...(gameState?.game?.p2PlayerFortifieds?.flat() || []),
-        ...(gameState?.game?.p2PlayerUnifieds?.flat() || []),
-        ...(gameState?.game?.p1PlayerWarlord || []),
-        ...(gameState?.game?.p1PlayerGuardian || []),
-        ...(gameState?.game?.p2PlayerWarlord || []),
-        ...(gameState?.game?.p2PlayerGuardian || [])
+        ...(gameState?.p1PlayerWarriors?.flat() || []),
+        ...(gameState?.p1PlayerFortifieds?.flat() || []),
+        ...(gameState?.p1PlayerUnifieds?.flat() || []),
+        ...(gameState?.p2PlayerWarriors?.flat() || []),
+        ...(gameState?.p2PlayerFortifieds?.flat() || []),
+        ...(gameState?.p2PlayerUnifieds?.flat() || []),
+        ...(gameState?.p1PlayerWarlord || []),
+        ...(gameState?.p1PlayerGuardian || []),
+        ...(gameState?.p2PlayerWarlord || []),
+        ...(gameState?.p2PlayerGuardian || [])
       ].filter(Boolean);
       
       if (criticalImages.length > 0) {
@@ -82,7 +83,7 @@ function Page() {
 
       // Stage 2: Player hand (likely to be played soon) - delayed
       setTimeout(() => {
-        const playerHand = gameState.side === 'p1' ? gameState?.game?.p1PlayerHand || [] : gameState?.game?.p2PlayerHand || [];
+        const playerHand = p1 ? gameState?.p1PlayerHand || [] : gameState?.p2PlayerHand || [];
         if (playerHand.length > 0) {
           preloadSearchResults(playerHand.map(card => ({ featured_image: card.img })));
         }
@@ -91,17 +92,17 @@ function Page() {
       // Stage 3: Deck preview (low priority) - heavily delayed
       setTimeout(() => {
         const backgroundImages = [
-          ...(gameState?.game?.p1PlayerDeck?.slice(0, 5) || []),
-          ...(gameState?.game?.p2PlayerDeck?.slice(0, 5) || []),
-          ...(gameState?.game?.p1PlayerDiscard?.slice(0, 3) || []),
-          ...(gameState?.game?.p2PlayerDiscard?.slice(0, 3) || [])
+          ...(gameState?.p1PlayerDeck?.slice(0, 5) || []),
+          ...(gameState?.p2PlayerDeck?.slice(0, 5) || []),
+          ...(gameState?.p1PlayerDiscard?.slice(0, 3) || []),
+          ...(gameState?.p2PlayerDiscard?.slice(0, 3) || [])
         ];
         if (backgroundImages.length > 0) {
           preloadSearchResults(backgroundImages.map(card => ({ featured_image: card.img })));
         }
       }, 5000);
     }
-  }, [gameState?.game, gameState?.game?.started, gameState?.side]);
+  }, [gameState, gameState?.started, p1]);
 
   const rpsContent = useCallback(() => {
     const hasChosen = p1 ? !!p1RPSChoice : !!p2RPSChoice;

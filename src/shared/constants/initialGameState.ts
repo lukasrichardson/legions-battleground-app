@@ -1,7 +1,7 @@
-import { GameStateData } from "@/shared/interfaces/GameState";
-import { PreGamePhase } from "../enums/Phases";
+import { PreGamePhase } from "@/server/enums/Phases";
+import { GameStateData } from "../interfaces/GameState";
 
-export const initialState: GameStateData = {
+export const initialGameState: GameStateData = {
   started: false,
   gameLog: [],
   p2PlayerHealth: 0,

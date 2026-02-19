@@ -1,6 +1,6 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CARD_TYPE } from "@/shared/enums/CardType";
-import { CardInterface } from "@/client/interfaces/CardInterface";
+import { CardInterface } from "@/shared/interfaces/CardInterface";
 import { current } from "@reduxjs/toolkit";
 
 export const setState_reducer = (state, action) => {
@@ -11,55 +11,6 @@ export const setState_reducer = (state, action) => {
     }
   }
   state.game = { ...action.payload }
-}
-
-export const focusCard_reducer = (state, action) => {
-  state.previousCardInFocus = action.payload;
-  state.cardInFocus = action.payload;
-}
-
-export const clearCardInFocus_reducer = (state) => {
-  state.cardInFocus = null;
-}
-
-export const setPileInView_reducer = (state, action) => {
-  state.pileInViewTarget = action.payload.cardTarget;
-  state.pileInViewLimit = action.payload.limit || null;
-  if (action.payload.targetIndex != undefined) {
-    state.pileInViewIndex = action.payload.targetIndex;
-    if (action.payload.limit) {
-      if (action.payload.bottom) {
-        const pile = state.game[action.payload.cardTarget][action.payload.targetIndex] as CardInterface[] | undefined;
-        state.topXCards = pile ? pile.slice(-action.payload.limit) as CardInterface[] : null;
-      } else {
-        state.topXCards = state.game[action.payload.cardTarget][action.payload.targetIndex].slice(0, action.payload.limit) as CardInterface[];
-      }
-    }
-  } else {
-    if (action.payload.limit) {
-      if (action.payload.bottom) {
-        const pile = state.game[action.payload.cardTarget] as CardInterface[] | undefined;
-        state.topXCards = pile ? pile.slice(-action.payload.limit) as CardInterface[] : null;
-      } else {
-        state.topXCards = state.game[action.payload.cardTarget].slice(0, action.payload.limit) as CardInterface[];
-      }
-    }
-  }
-}
-
-export const clearPileInView_reducer = (state) => {
-  state.pileInViewTarget = null;
-  state.pileInViewIndex = null;
-  state.pileInViewLimit = null;
-  state.topXCards = null;
-}
-
-export const switchSide_reducer = (state) => {
-  state.side = state.side === "p2" ? "p1" : "p2";
-}
-
-export const setSide_reducer = (state, action) => {
-  state.side = action.payload;
 }
 
 export const moveCard_reducer = (state, action) => {

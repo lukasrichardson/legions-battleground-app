@@ -2,7 +2,7 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { games } from "../game/game";
-import { CardInterface } from "../interfaces/CardInterface";
+import { CardInterface } from "../../shared/interfaces/CardInterface";
 import { StepType } from "../interfaces/SequenceInterfaces";
 import { addSequenceItem, drawCardP1, drawCardP2, resolveFirstItemInSequence } from "../utils/game.util";
 import { addGameLog } from "../utils/generateGameLog";

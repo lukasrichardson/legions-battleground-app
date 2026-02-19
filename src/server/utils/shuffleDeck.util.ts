@@ -1,4 +1,4 @@
-import { CardInterface } from "../interfaces/CardInterface";
+import { CardInterface } from "../../shared/interfaces/CardInterface";
 
 export const shuffle = (deck: CardInterface[]) => {
   for (let i = 0 ; i < deck.length ; i ++) {

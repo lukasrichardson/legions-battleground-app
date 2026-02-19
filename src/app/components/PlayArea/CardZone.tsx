@@ -1,7 +1,7 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import GridItem from "./GridItem";
 import Card from "../Card/Card";
-import { CardInterface } from "@/client/interfaces/CardInterface";
+import { CardInterface } from "@/shared/interfaces/CardInterface";
 
 export default function CardZone({ items, cardTarget, targetIndex, zoneName }: { items: CardInterface[], cardTarget: CARD_TARGET, targetIndex?: number, zoneName?: string }) {
   const pileSize = items.length;

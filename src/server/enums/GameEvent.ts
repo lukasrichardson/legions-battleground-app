@@ -6,8 +6,6 @@ export enum GAME_EVENT {
   changeP2AP = "changeP2AP",
   changeP1AP = "changeP1AP",
   resetGame = "resetGame",
-  focusCard = "focusCard",
-  clearCardInFocus = "clearCardInFocus",
   selectCard = "selectCard",
   clearSelectedCard = "clearSelectedCard",
   setPileInView = "setPileInView",

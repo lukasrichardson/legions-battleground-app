@@ -1,8 +1,7 @@
-import { CARD_TARGET } from "@/shared/enums/CardTarget";
-import { GamePhase, PreGamePhase } from "../enums/Phases";
-import { CardInterface } from "./CardInterface";
+import { GamePhase, PreGamePhase } from "@/server/enums/Phases";
 import { DeckResponse } from "../../shared/interfaces/DeckResponse";
-import { SequenceState } from "./SequenceInterfaces"; 
+import { CardInterface } from "@/shared/interfaces/CardInterface";
+import { SequenceState } from "@/server/interfaces/SequenceInterfaces";
 
 export interface GameStateData {
   started: boolean;
@@ -56,13 +55,8 @@ export interface GameStateData {
   resolving: SequenceState["resolving"];
   playerConscripted: boolean;
   sandboxMode: boolean;
-  
-  [key: string]: unknown;
 }
 
 export default interface GameState {
   game: GameStateData;
-  cardInFocus: CardInterface | null;
-  pileInViewTarget: CARD_TARGET | null;
-  pileInViewIndex: number | null;
 }

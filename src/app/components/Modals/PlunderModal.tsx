@@ -20,8 +20,9 @@ export default function PlunderModal({ closeModal }: { closeModal: () => void })
   const modalState = useAppSelector((state) => state.modalsState);
   const open = modalState.plunderModalOpen;
   const gameState = useAppSelector((state) => state.gameState);
-  const { game, side } = gameState;
-  const { p1PlayerDeck, p2PlayerDeck } = game;
+  const clientGameState = useAppSelector((state) => state.clientGameState);
+  const { side } = clientGameState;
+  const { p1PlayerDeck, p2PlayerDeck } = gameState;
   const p1 = side === "p1";
   const deckSize = p1 ? p1PlayerDeck.length : p2PlayerDeck.length;
   const {

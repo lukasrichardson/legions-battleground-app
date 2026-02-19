@@ -19,6 +19,7 @@ import {
 export default function PlayArea({ }) {
   // const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
+  const clientGameState = useAppSelector((state) => state.clientGameState);
   // const phaseState = useAppSelector((state) => state.phaseState);
   // const sequenceState = useAppSelector((state) => state.sequenceState);
   // const { sequences, resolving } = sequenceState;
@@ -51,8 +52,8 @@ export default function PlayArea({ }) {
     p1PlayerGuardian,
     p1PlayerTokens,
     p1PlayerRevealed,
-  } = gameState.game;
-  const { side } = gameState;
+  } = gameState;
+  const { side } = clientGameState;
   const p1 = side === "p1";
   // const goToNextPhase = () => {
   //   emitGameEvent({ type: GAME_EVENT.nextPhase, data: null });

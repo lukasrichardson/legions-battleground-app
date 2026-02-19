@@ -10,13 +10,15 @@ import { GamePhase } from "@/client/redux/phaseSlice";
 
 
 export default function GridItem({ children, cardTarget, targetIndex }: { children: ReactNode, cardTarget: CARD_TARGET, targetIndex?: number }) {
+  const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
   const phaseState = useAppSelector((state) => state.phaseState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
+  const clientGameState = useAppSelector((state) => state.clientGameState);
   const { sequences, resolving } = sequenceState;
   const { currentPhase, turnNumber } = phaseState;
-  const dispatch = useAppDispatch();
-  const { side, game: { playerConscripted, sandboxMode } } = gameState;
+  const { playerConscripted, sandboxMode } = gameState;
+  const { side } = clientGameState;
 
   const canDropCard = (target: CARD_TARGET, side: string, card: { type: CARD_TYPE, cardTarget: CARD_TARGET }) => {
     

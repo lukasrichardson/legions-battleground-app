@@ -1,10 +1,10 @@
 import { CARD_TYPE } from "@/shared/enums/CardType";
-import { EffectStep } from "@/client/redux/sequenceSlice";
+import { EffectStep } from "../../server/interfaces/SequenceInterfaces";
 
 export interface CardInterface {
   id?: string;
   name?: string;
-  type?: CARD_TYPE;
+  type: CARD_TYPE;
   img?: string;
   code?: string;
   faceUp?: boolean;
@@ -18,4 +18,3 @@ export interface CardInterface {
   preGameEffect?: EffectStep[];
   effect?: EffectStep[];
 }
-

@@ -1,4 +1,4 @@
-import { CardInterface } from "../interfaces/CardInterface";
+import { CardInterface } from "../../shared/interfaces/CardInterface";
 import { CardInDeck, DeckResponse } from "../../shared/interfaces/DeckResponse";
 import { CARD_TYPE } from "../../shared/enums/CardType";
 import { shuffle } from "./shuffleDeck.util";

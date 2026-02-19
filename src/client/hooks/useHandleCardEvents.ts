@@ -2,14 +2,15 @@ import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { emitGameEvent } from "../utils/emitEvent";
 import { MouseEventHandler, useCallback } from "react";
-import { clearCardInFocus, clearSelectedCard, decreaseAttackModifier, decreaseCooldown, decreaseOtherModifier, focusCard, increaseAttackModifier, increaseCooldown, increaseOtherModifier, selectCard } from "../redux/gameStateSlice";
+import { clearSelectedCard, decreaseAttackModifier, decreaseCooldown, decreaseOtherModifier, increaseAttackModifier, increaseCooldown, increaseOtherModifier, selectCard } from "../redux/gameStateSlice";
 import { GAME_EVENT } from "../enums/GameEvent";
-import { CardInterface } from "../interfaces/CardInterface";
+import { CardInterface } from "@/shared/interfaces/CardInterface";
+import { setCardInFocus, clearCardInFocus } from "../redux/clientGameStateSlice";
 
 export default function useHandleCardEvents(card: CardInterface, cardTarget: CARD_TARGET, hidden: boolean, inPileView: boolean, index?: number, zoneIndex?: number) {
   const dispatch = useAppDispatch();
-  const state = useAppSelector((state) => state.gameState);
-  const { selectedCard } = state.game;
+  const gameState = useAppSelector((state) => state.gameState);
+  const { selectedCard } = gameState;
 
   const handleDecreaseCooldown = useCallback(() => {
     dispatch(decreaseCooldown({ cardTarget, cardIndex: index, zoneIndex }));
@@ -91,7 +92,7 @@ export default function useHandleCardEvents(card: CardInterface, cardTarget: CAR
   const handleCardHover = () => {
     if (hidden) return;
     if ([CARD_TARGET.P1_PLAYER_DECK, CARD_TARGET.P2_PLAYER_DECK].includes(cardTarget) && !inPileView) return;
-    dispatch(focusCard(card));
+    dispatch(setCardInFocus(card));
   }
 
   const handleCardBlur = () => {

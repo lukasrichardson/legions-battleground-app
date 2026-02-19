@@ -1,5 +1,5 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
-import { CardInterface } from "@/client/interfaces/CardInterface";
+import { CardInterface } from "@/shared/interfaces/CardInterface";
 import GridItem from "./GridItem";
 import Card from "../Card/Card";
 import { useAppSelector } from "@/client/redux/hooks";
@@ -9,8 +9,7 @@ export default function DeckZone ({item, cardTarget, p1}: {item: CardInterface |
   const [shuffle, setShuffle] = useState(false);
   const gridItemRef = useRef<HTMLDivElement>(null);
   const gameState = useAppSelector((state) => state.gameState);
-  const { game } = gameState;
-  const {gameLog} = game;
+  const {gameLog, p1PlayerDeck, p2PlayerDeck} = gameState;
   const hidden = p1 ? cardTarget === CARD_TARGET.P2_PLAYER_DECK : cardTarget === CARD_TARGET.P1_PLAYER_DECK;
   const shuffleDeck = () => {
     setShuffle(true);
@@ -27,7 +26,7 @@ export default function DeckZone ({item, cardTarget, p1}: {item: CardInterface |
   const handleAnimationEnd = (e: React.AnimationEvent<HTMLDivElement>) => {
     if (e.animationName === "shuffle") setShuffle(false);
   }
-  const pileSize = cardTarget === CARD_TARGET.P1_PLAYER_DECK ? game.p1PlayerDeck.length : game.p2PlayerDeck.length;
+  const pileSize = cardTarget === CARD_TARGET.P1_PLAYER_DECK ? p1PlayerDeck.length : p2PlayerDeck.length;
   return (
     <GridItem cardTarget={cardTarget}>
       <div className="absolute bottom-[10%] inset-x-0 mx-auto z-10 text-white font-bold text-lg pointer-events-none drop-shadow-[0_1px_1px_rgba(29,30,24,0.9)]">{pileSize}</div>

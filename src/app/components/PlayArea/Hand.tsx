@@ -9,7 +9,9 @@ import { GAME_EVENT } from "@/client/enums/GameEvent";
 export default function Hand({children, cardTarget}: {children: ReactNode, cardTarget: CARD_TARGET}) {
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
-  const { game: { p1Viewing, p2Viewing, sandboxMode}, side } = gameState;
+  const clientGameState = useAppSelector((state) => state.clientGameState);
+  const { side } = clientGameState;
+  const { p1Viewing, p2Viewing, sandboxMode} = gameState;
   const p1Side = side === "p1";
   const viewing = cardTarget.includes("p1") ? p1Viewing : p2Viewing;
   const [{isOver, canDrop}, drop] = useDrop(

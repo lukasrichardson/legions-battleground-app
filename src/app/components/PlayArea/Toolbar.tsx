@@ -32,12 +32,13 @@ export default function Toolbar({ }) {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
+  const clientGameState = useAppSelector((state) => state.clientGameState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
   const { hoverMenu, setHoverMenu, legacyMenu, setLegacyMenu, transparentOnBlur, setTransparentOnBlur } = useClientSettings();
   const gameLogRef = useRef<HTMLDivElement>(null);
-  const { side } = gameState;
+  const { side } = clientGameState;
   const p1 = side === "p1";
-  const { p2DeckFromServer, p1DeckFromServer, gameLog } = gameState.game;
+  const { p2DeckFromServer, p1DeckFromServer, gameLog } = gameState;
 
   const onChatSubmit = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter") {
@@ -74,13 +75,13 @@ export default function Toolbar({ }) {
 
   useEffect(() => {
     gameLogRef.current?.scrollTo(0, gameLogRef.current.scrollHeight);
-  }, [gameState.game.gameLog.length]);
+  }, [gameState.gameLog.length]);
 
   return (
     <div className="h-[100%] w-[20%] flex flex-col items-center text-white p-[8px] bg-gradient-to-b from-slate-900/90 to-slate-950/90 backdrop-blur border-r border-white/10">
       <CardPreview />
 
-      {gameState.game.sandboxMode ?
+      {gameState.sandboxMode ?
       <div className="relative w-full h-[25%] overflow-y-auto bg-black/50 text-white rounded-md p-1 mb-1 border border-white/10" ref={gameLogRef}>
         {gameLog.length ? (
           <>

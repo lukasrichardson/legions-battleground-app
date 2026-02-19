@@ -1,6 +1,6 @@
 import { Dispatch } from "@reduxjs/toolkit";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
-import { CardInterface } from "@/client/interfaces/CardInterface";
+
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import DeckZone from "./DeckZone";
 import { GAME_EVENT } from "@/client/enums/GameEvent";
@@ -9,6 +9,7 @@ import { emitGameEvent } from "@/client/utils/emitEvent";
 import Hand from "./Hand";
 import Card from "../Card/Card";
 import CardZone from "./CardZone";
+import { CardInterface } from "@/shared/interfaces/CardInterface";
 
 export const renderDeckNameZone = (deck: DeckResponse | null, p1: boolean) => {
   return (

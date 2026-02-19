@@ -1,5 +1,6 @@
 "use-client";
-import { setSide, setState } from "../redux/gameStateSlice";
+import { setState } from "../redux/gameStateSlice";
+import { setSide } from "../redux/clientGameStateSlice";
 import { useAppDispatch } from "../redux/hooks";
 import { socket } from "../socket";
 import { useCallback, useEffect, useState } from "react";
