@@ -29,7 +29,7 @@
 - **Breadcrumb Navigation:** Enhanced navigation with breadcrumb components
 - **Responsive Design:** Mobile-friendly interface with adaptive layouts and automatic scaling for play area
 
-> **⚡ Latest:** Enhanced performance with intelligent image preloading system featuring connection-aware throttling, Service Worker integration, and memory management. Added client settings slice for UI preferences including transparentOnBlur option, improved modal system with streamlined components, and useBackgroundPreload hook for automatic image preloading. **NEW:** Completed server refactoring to service-based architecture with dedicated GameService, RoomService, CardService, and EventHandler for improved maintainability and type safety.
+> **⚡ Latest:** Enhanced performance with intelligent image preloading system featuring connection-aware throttling, Service Worker integration, and memory management. Added client settings slice for UI preferences including transparentOnBlur option, improved modal system with streamlined components, and useBackgroundPreload hook for automatic image preloading. **NEW:** Completed server refactoring to service-based architecture with dedicated GameService, RoomService, CardService, EventHandler, and controller-based API endpoints for improved maintainability and type safety. **UPDATED:** Documentation fully synchronized with current repository state as of February 19, 2026.
 
 ---
 
@@ -88,16 +88,16 @@ src/
 │   ├── layout.tsx       # Root layout with SessionProvider and StoreProvider
 │   └── page.tsx         # Main page with modal management
 ├── client/              # Client-side utilities (shared between frontend/backend)
-│   ├── constants/       # Game constants and initial state (InitialGameState.ts, cardMenu.constants.ts)
-
-│   ├── enums/          # Client-specific enums (GameEvent, MenuItemAction, RoomEvent)
+│   ├── constants/       # Game constants (cardMenu.constants.ts, colours.constants.ts, legions.constants.ts)
+│   ├── enums/          # Client-specific enums (MenuItemAction)
 │   ├── hooks/          # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize, useClientSettings, useBackgroundPreload, useHandleCardEvents, useHandlePlayerEvents)
-│   ├── interfaces/     # TypeScript interfaces (Card, GameState, IMenuItem)
+│   ├── interfaces/     # TypeScript interfaces (ClientGameState, IMenuItem)
 │   ├── lib/            # Utility functions (utils.ts for className merging)
 │   ├── redux/          # State management (store, slices for game, modals, phases, sequences, client settings)
 │   │   ├── store.ts    # Redux store configuration
 │   │   ├── hooks.ts    # Typed Redux hooks
 │   │   ├── gameStateSlice.ts  # Game state management
+│   │   ├── clientGameStateSlice.ts # Client-specific game state management
 │   │   ├── modalsSlice.ts     # Modal state management
 │   │   ├── phaseSlice.ts      # Game phase management
 │   │   ├── sequenceSlice.ts   # Game sequence management
@@ -123,6 +123,8 @@ src/
 │   ├── cards/          # Card effects and keywords
 │   │   ├── CardEffects.constants.ts  # Card effect definitions
 │   │   └── Keywords.ts           # Keyword system implementation
+│   ├── controllers/    # API controllers (NEW: REST endpoint handlers)
+│   │   └── decks.controller.ts   # Deck management API controller
 │   ├── enums/          # Server-side enums (phases, events)
 │   │   ├── GameEvent.ts          # Game event enumeration
 │   │   ├── Phases.ts             # Game phases enumeration
@@ -132,9 +134,9 @@ src/
 │   │   └── playerEvents.ts       # Player action event handlers
 │   ├── game/           # Game logic and state management
 │   │   └── game.ts               # Core game logic and state
-│   ├── services/       # Business logic services (game, room, card, event handling)
+│   ├── services/       # Business logic services (NEW: service-based architecture)
 │   │   ├── CardService.ts        # Card manipulation service
-│   │   ├── EventHandler.ts       # Centralized event handling
+│   │   ├── EventHandler.ts       # Centralized event handling service
 │   │   ├── GameService.ts        # Game state management service
 │   │   ├── RoomService.ts        # Room management service
 │   │   ├── ValidatorService.ts   # Validation service
@@ -156,18 +158,28 @@ src/
 │   │   ├── game.util.ts          # Game-specific utilities
 │   │   ├── generateCards.util.ts # Card generation utilities
 │   │   ├── generateGameLog.ts    # Game log generation
+│   │   ├── memoryMonitor.util.ts # Memory usage monitoring utilities
 │   │   ├── sandboxValidator.util.ts # Sandbox mode validation
 │   │   ├── shuffleDeck.util.ts   # Deck shuffling utilities
+│   │   ├── socket.util.clean.ts  # Socket cleanup utilities
 │   │   └── string.utils.ts       # Server string utilities
 │   └── server.ts       # Main server entry with Next.js integration
 ├── shared/             # Shared enums and interfaces between client/server
-│   ├── enums/          # Common enumerations (CardTarget, CardType)
+│   ├── constants/      # Shared constants (NEW: common game state)
+│   │   └── initialGameState.ts   # Initial game state configuration
+│   ├── enums/          # Common enumerations (CardTarget, CardType, GameEvent, Phases, RoomEvent)
 │   │   ├── CardTarget.ts         # Card targeting enumeration
-│   │   └── CardType.ts           # Card type enumeration
-│   └── interfaces/     # Common TypeScript interfaces (DeckResponse, RoomInterface)
+│   │   ├── CardType.ts           # Card type enumeration
+│   │   ├── GameEvent.ts          # Game event enumeration
+│   │   ├── Phases.ts             # Game phases enumeration
+│   │   └── RoomEvent.ts          # Room event enumeration
+│   └── interfaces/     # Common TypeScript interfaces (Card.mongo, CardState, DeckResponse, GameState, RoomInterface)
+│       ├── Card.mongo.ts         # MongoDB card document interface
+│       ├── CardState.ts          # Card state interface
 │       ├── DeckResponse.ts       # Deck response interface
+│       ├── GameState.ts          # Shared game state interface
 │       └── RoomInterface.ts      # Room and player management interface
-└── middleware.ts       # Next.js middleware for route protection
+├── middleware.ts       # Next.js middleware for route protection
 ```
 
 ---
@@ -284,7 +296,9 @@ src/
   - Express.js 5.1+
   - Socket.IO 4.8+ (real-time)
   - MongoDB 6.20+ (native client + Mongoose 8.18+)
-  - Node.js
+  - **Service Architecture**: GameService, RoomService, CardService, EventHandler, ValidatorService 
+  - **Controllers**: API endpoint handlers (`decks.controller.ts`)
+  - Node.js 20+
   - TypeScript 5+
   - Node-cron 4.2+ (health monitoring)
   - NextAuth.js 4.24+ (JWT session management)
@@ -316,19 +330,22 @@ src/
 ```
 src/
 ├── shared/
-│   ├── enums/              # Shared enumerations (CARD_TARGET, CardType)
-│   └── interfaces/         # Common interfaces (DeckResponse)
+│   ├── constants/          # Shared constants (initialGameState.ts)
+│   ├── enums/              # Shared enumerations (CardTarget, CardType, GameEvent, Phases, RoomEvent)
+│   └── interfaces/         # Common interfaces (Card.mongo, CardState, DeckResponse, GameState, RoomInterface)
 ├── server/interfaces/
 │   ├── SocketTypes.ts      # Socket.IO server and custom socket types
 │   ├── ExpressTypes.ts     # Express app and request extensions
 │   ├── GameState.ts        # Server-side game state interface
 │   └── CardInterface.ts    # Server card data structure
+├── server/services/
+│   └── interfaces/         # Service interfaces for business logic
+├── server/controllers/     # API controller type definitions
+│   └── decks.controller.ts # Deck API with AuthenticatedRequest types
 ├── client/interfaces/
-│   ├── GameState.ts        # Client-side game state interface
-│   ├── CardInterface.ts    # Client card data structure
-│   └── Card.mongo.ts       # MongoDB card document interface
-└── shared/interfaces/
-    └── RoomInterface.ts    # Room and player info types
+│   ├── ClientGameState.ts  # Client-side game state interface
+│   └── IMenuItem.ts        # Menu item interface
+└── src/middleware.ts       # Next.js middleware type definitions
 ```
 
 ### Type Safety Features
@@ -538,33 +555,33 @@ const { hoverMenu, legacyMenu, transparentOnBlur, setHoverMenu, setLegacyMenu, s
 
 ### Adding New Features
 
-1. **New Card Action:**
-   - Update `GAME_EVENT` enum in `src/shared/enums/`
-   - Add reducer in `gameStateSlice.ts` with proper typing
-   - Create server-side validation in event handlers
-   - Add type-safe Socket.IO event parameters
-   - Consider sandbox mode bypass if needed
-   - Update UI components with proper TypeScript interfaces
+1. **New API Endpoint:**
+   - Create controller in `src/server/controllers/` with proper TypeScript interfaces
+   - Use `ExpressApp` and `AuthenticatedRequest` types from `ExpressTypes.ts`
+   - Implement `requireAuth` or `optionalAuth` middleware as needed
+   - Follow pattern from `decks.controller.ts` for consistency
+   - Add routes to main server configuration
 
-2. **New Socket Event:**
-   - Add to shared enums or appropriate client/server enums
-   - Update socket handlers in `src/server/network/socketHandler.ts` with typed parameters
-   - Add client-side event emission with type-safe payloads
+2. **New Service Method:**
+   - Add method to appropriate service class (`GameService`, `RoomService`, etc.)
+   - Use proper TypeScript interfaces and return types
+   - Implement error handling with `unknown` type in catch blocks
+   - Ensure sandbox mode compatibility where applicable
+   - Add service interfaces to `src/server/services/interfaces/`
+
+3. **New Socket Event:**
+   - Add to enums in both `src/client/enums/` and `src/server/enums/`
+   - Update `EventHandler.ts` service for centralized event processing
+   - Add client-side event emission with type-safe parameters
    - Test in both normal and sandbox modes
    - Ensure proper `IOServer` and `CustomSocket` type usage
 
-3. **Database Changes:**
+4. **Database Changes:**
    - Update MongoDB queries in `src/server/utils/database.util.ts`
    - Modify shared TypeScript interfaces in `src/shared/interfaces/`
    - Use proper type assertions for game state property access
    - Test with existing data and ensure type safety
-   - Ensure compatibility with sandbox mode state
-
-4. **New Shared Type:**
-   - Add to `src/shared/interfaces/` or `src/shared/enums/`
-   - Update imports in both client and server code
-   - Maintain strict TypeScript compliance with zero compilation errors
-   - Use proper type guards and assertions where needed
+   - Update controllers and services as needed
 
 ### TypeScript Best Practices
 - **Avoid `any` Types:** Use `unknown` with proper type guards or specific interfaces

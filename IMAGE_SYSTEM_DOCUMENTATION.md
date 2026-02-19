@@ -1,6 +1,9 @@
 # Image System Documentation
 ## Legions Battleground - Complete Image Architecture Guide
 
+**Last Updated**: February 19, 2026  
+**Repository Status**: Fully synchronized with current implementation
+
 ### Table of Contents
 1. [Architecture Overview](#architecture-overview)
 2. [Image Components](#image-components)
@@ -100,6 +103,32 @@ All components now use `CardImage`:
 - ✅ `PreviewDeckModal.tsx` - Deck preview cards
 - ✅ `Preview.tsx` - Deck builder preview
 - ✅ `CardTile.tsx` - Deck builder card tiles
+
+---
+
+## Backend Integration & Service Architecture
+
+**Service Architecture Compatibility**: The image system integrates seamlessly with the new service-based backend:
+
+- **CardService**: Manages card data retrieval for image URLs
+- **GameService**: Provides card images for game state synchronization  
+- **API Controllers**: `decks.controller.ts` serves deck card images via REST endpoints
+- **Database Utilities**: `database.util.ts` optimizes card image URL queries
+
+**Controller Integration**:
+```typescript
+// From decks.controller.ts
+app.get("/api/decks/:deckId", optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const deck = await db.collection("decks").findOne({ _id: new ObjectId(deckId) });
+  // Card images automatically preloaded via imagePreloader.ts
+  return res.send(deck);
+});
+```
+
+**Service Layer Optimization**:
+- Card image URLs cached during service operations
+- Batch image preloading coordinated with game state updates  
+- Service Worker integration for cross-service caching
 
 ---
 
@@ -501,4 +530,4 @@ console.log('[SW] Preloading batch:', imageUrls.length);
 
 ---
 
-*This documentation covers the complete image system architecture as of February 19, 2026. All components maintain backward compatibility while providing enhanced performance monitoring and caching capabilities.*
+*This documentation covers the complete image system architecture as of February 19, 2026. All components maintain backward compatibility while providing enhanced performance monitoring and caching capabilities. Documentation is fully synchronized with the current repository state and service-based backend architecture.*

@@ -1,7 +1,29 @@
 # API Documentation
 ## Legions Battleground - REST API & WebSocket Events
 
-**Last Updated**: February 19, 2026
+**Last Updated**: February 19, 2026  
+**Repository Status**: Fully synchronized with current codebase
+
+---
+
+## 🏗️ Architecture Overview
+
+**Service-Based Backend**: The API is built on a modular service architecture with dedicated controllers:
+- **GameService**: Game state management and validation (`src/server/services/GameService.ts`)
+- **RoomService**: Room creation and player management (`src/server/services/RoomService.ts`)
+- **CardService**: Card manipulation and effects (`src/server/services/CardService.ts`)
+- **EventHandler**: Centralized Socket.IO event processing (`src/server/services/EventHandler.ts`)
+- **ValidatorService**: Data validation and sanitization (`src/server/services/ValidatorService.ts`)
+- **Controllers**: Dedicated API endpoint handlers in `src/server/controllers/`
+  - `decks.controller.ts` - Deck management API endpoints
+
+**API Flow**: Request → Controller → Service Layer → Database/Socket Broadcast → Response
+
+**TypeScript Safety**: Comprehensive type system with:
+- `ExpressTypes.ts` - Custom Express app and request interfaces
+- `SocketTypes.ts` - Socket.IO server and event payload types
+- Shared interfaces in `src/shared/interfaces/` (GameState, DeckResponse, RoomInterface)
+- Service interfaces in `src/server/services/interfaces/`
 
 ---
 
