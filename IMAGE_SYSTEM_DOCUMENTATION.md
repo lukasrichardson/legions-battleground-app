@@ -28,7 +28,7 @@ The Legions Battleground image system is designed around **card images** served 
 
 ### Image Sources
 - **Primary**: `https://legionstoolbox.com/` - Card images (PNG/JPG)
-- **Local**: `PUBLIC/back_of_card.jpg` - Fallback card back image
+- **Local**: `public/back_of_card.jpg` - Fallback card back image
 - **External API**: Legions ToolBox API for card data and image URLs
 
 ---
@@ -296,13 +296,13 @@ Card Images Used In:
 │   ├── Card/CardInner.tsx         # Individual game cards
 │   └── Card/CardPreview.tsx       # Focused card preview
 ├── Card Browser
-│   └── cards/CardGallery.tsx      # Card hover preview
+│   └── cards/CardGallery.tsx      # Card gallery component in cards directory
 ├── Deck Management
 │   ├── decks/[deckId]/Preview.tsx # Deck builder preview
 │   ├── decks/[deckId]/CardTile.tsx # Deck card grid
 │   └── Modals/PreviewDeckModal.tsx # Deck preview modal
 └── Asset Files
-    └── PUBLIC/back_of_card.jpg    # Local card back image
+    └── public/back_of_card.jpg    # Local card back image
 ```
 
 ### Supporting Systems
@@ -501,4 +501,4 @@ console.log('[SW] Preloading batch:', imageUrls.length);
 
 ---
 
-*This documentation covers the complete image system architecture as of February 11, 2026. All components maintain backward compatibility while providing enhanced performance monitoring and caching capabilities.*
+*This documentation covers the complete image system architecture as of February 19, 2026. All components maintain backward compatibility while providing enhanced performance monitoring and caching capabilities.*

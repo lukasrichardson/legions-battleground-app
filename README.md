@@ -29,7 +29,7 @@
 - **Breadcrumb Navigation:** Enhanced navigation with breadcrumb components
 - **Responsive Design:** Mobile-friendly interface with adaptive layouts and automatic scaling for play area
 
-> **⚡ Latest:** Enhanced performance with intelligent image preloading system featuring connection-aware throttling, Service Worker integration, and memory management. Added client settings slice for UI preferences including transparentOnBlur option, improved modal system with streamlined components, and useBackgroundPreload hook for automatic image preloading.
+> **⚡ Latest:** Enhanced performance with intelligent image preloading system featuring connection-aware throttling, Service Worker integration, and memory management. Added client settings slice for UI preferences including transparentOnBlur option, improved modal system with streamlined components, and useBackgroundPreload hook for automatic image preloading. **NEW:** Completed server refactoring to service-based architecture with dedicated GameService, RoomService, CardService, and EventHandler for improved maintainability and type safety.
 
 ---
 
@@ -38,6 +38,7 @@
 **Full-Stack Monorepo:**
 - **Frontend:** Next.js 15+ with TypeScript, Tailwind CSS, Redux Toolkit
 - **Backend:** Express.js 5.1+ server with Socket.IO and MongoDB
+- **Service Architecture:** Modular backend services (GameService, RoomService, CardService, EventHandler)
 - **Authentication:** NextAuth.js with OAuth (GitHub/Google/Discord) and user-specific data isolation
 - **Real-time:** WebSocket communication for live multiplayer
 - **Database:** MongoDB for persistent game rooms, user decks, and state (using 'legions_battleground_db' database in production)
@@ -58,13 +59,14 @@ src/
 │   ├── components/       # UI components (Card, Modals, PlayArea, Table, auth)
 │   │   ├── Card/        # Card display components (Card.tsx, CardImage.tsx, CardInner.tsx, CardMenu.tsx, CardPreview.tsx)
 │   │   ├── Modals/      # Modal components (Create/Join Room, Deck Management, Card Pile, Help, PerformanceDashboard, Preview Deck with Import)
-│   │   ├── PlayArea/    # Game interface components (PlayArea.tsx, Toolbar.tsx, Components.tsx)
+│   │   ├── PlayArea/    # Game interface components (PlayArea.tsx, Toolbar.tsx, Components.tsx, CardZone.tsx, DeckZone.tsx, GameLog.tsx, GridItem.tsx, Hand.tsx)
 │   │   ├── Table/       # Room table display components
 │   │   ├── auth/        # Authentication UI components (AuthButtons.tsx)
 │   │   ├── Multiselect.tsx  # Multi-selection dropdown component
+│   │   ├── Breadcrumbs.tsx  # Breadcrumb navigation component
 │   │   └── Select.tsx   # Select dropdown component
 │   ├── decks/           # Deck management pages with components
-│   │   ├── components/  # Deck page components (Breadcrumbs.tsx)
+│   │   ├── components/  # Deck page components (currently empty)
 │   │   ├── [deckId]/    # Dynamic deck editing pages
 │   │   │   ├── components/  # Deck builder components (CardTile.tsx, DeckEditorHeader.tsx, DeckGrid.tsx, SearchPane.tsx)
 │   │   │   ├── DeckBuilder.tsx  # Main deck builder component
@@ -89,7 +91,7 @@ src/
 │   ├── constants/       # Game constants and initial state (InitialGameState.ts, cardMenu.constants.ts)
 
 │   ├── enums/          # Client-specific enums (GameEvent, MenuItemAction, RoomEvent)
-│   ├── hooks/          # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize, useClientSettings, useBackgroundPreload, useHandleCardEvents)
+│   ├── hooks/          # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize, useClientSettings, useBackgroundPreload, useHandleCardEvents, useHandlePlayerEvents)
 │   ├── interfaces/     # TypeScript interfaces (Card, GameState, IMenuItem)
 │   ├── lib/            # Utility functions (utils.ts for className merging)
 │   ├── redux/          # State management (store, slices for game, modals, phases, sequences, client settings)
@@ -125,13 +127,18 @@ src/
 │   │   ├── GameEvent.ts          # Game event enumeration
 │   │   ├── Phases.ts             # Game phases enumeration
 │   │   └── RoomEvent.ts          # Room event enumeration
-│   ├── events/         # Socket event handlers (card, health, player, room)
+│   ├── events/         # Socket event handlers (card, player)
 │   │   ├── cardEvents.ts         # Card-related event handlers
-│   │   ├── healthApEvents.ts     # Health and AP event handlers
-│   │   ├── playerEvents.ts       # Player action event handlers
-│   │   └── roomEvents.ts         # Room management event handlers
+│   │   └── playerEvents.ts       # Player action event handlers
 │   ├── game/           # Game logic and state management
 │   │   └── game.ts               # Core game logic and state
+│   ├── services/       # Business logic services (game, room, card, event handling)
+│   │   ├── CardService.ts        # Card manipulation service
+│   │   ├── EventHandler.ts       # Centralized event handling
+│   │   ├── GameService.ts        # Game state management service
+│   │   ├── RoomService.ts        # Room management service
+│   │   ├── ValidatorService.ts   # Validation service
+│   │   └── interfaces/           # Service interfaces
 │   ├── interfaces/     # Server-side interfaces
 │   │   ├── CardInterface.ts      # Server card interface
 │   │   ├── ExpressTypes.ts       # Express app and request type extensions
@@ -259,16 +266,19 @@ src/
 ## 🔧 Tech Stack
 
 - **Frontend:**
-  - Next.js 15+ (App Router)
+  - Next.js 15.5+ (App Router)
+  - React 18.3+
   - TypeScript 5+
   - Tailwind CSS 4.1+
-  - shadcn/ui (UI component library)
+  - shadcn/ui (UI component library) 
   - Custom MultiSelect component for advanced filtering
   - Redux Toolkit 2.3+
   - React DnD 16+ (drag and drop)
   - Ant Design 6.2+ (select components)
   - Radix UI 2+ (dropdown, navigation, select)
   - NextAuth.js 4.24+ (authentication)
+  - Lucide React 0.542+ (icons)
+  - Tailwind Merge 3.3+ (utility merging)
 
 - **Backend:**
   - Express.js 5.1+
@@ -277,11 +287,14 @@ src/
   - Node.js
   - TypeScript 5+
   - Node-cron 4.2+ (health monitoring)
-  - NextAuth.js (JWT session management)
+  - NextAuth.js 4.24+ (JWT session management)
   - Cookie-parser 1.4+ (session token handling)
   - Body-parser 2.2+ (request parsing)
   - Dotenv 17.2+ (environment configuration)
   - Axios 1.7+ (API requests)
+  - Cross-env 7.0+ (environment management)
+  - Sharp 0.33+ (image processing)
+  - Class-variance-authority 0.7+ (styling utilities)
 
 - **External APIs:**
   - Legions ToolBox API (deck imports)
@@ -507,7 +520,7 @@ const { hoverMenu, legacyMenu, transparentOnBlur, setHoverMenu, setLegacyMenu, s
 ### Implementation Files
 - **State Interfaces:** `src/server/interfaces/GameState.ts`, `src/client/interfaces/GameState.ts`
 - **Room Creation:** `src/app/components/Modals/CreateRoomModal.tsx`
-- **Game Initialization:** `src/server/game/game.ts` (startGame function)
+- **Game Initialization:** `src/server/services/GameService.ts` (startGame method)
 - **Phase Management:** `src/server/events/playerEvents.ts` (goNextPhase function)
 - **Validation System:** `src/server/utils/sandboxValidator.util.ts`
 - **UI Components:** `src/app/play/page.tsx`, `src/app/components/PlayArea/Toolbar.tsx`
@@ -590,6 +603,15 @@ docker run -p 3000:3000 legions-battleground
 - **Database:** MongoDB Atlas
 - **Health Monitoring:** Automated cron job pings
 - **CDN:** Card images served from legionstoolbox.com
+
+---
+
+## 📚 Additional Documentation
+
+- **[API Documentation](API_DOCUMENTATION.md)** - Comprehensive REST API and WebSocket event reference
+- **[Image System Documentation](IMAGE_SYSTEM_DOCUMENTATION.md)** - Complete image caching and preloading system guide  
+- **[Sandbox Test Instructions](SANDBOX_TEST_INSTRUCTIONS.md)** - Manual testing procedures for sandbox mode
+- **[Security Audit](SECURITY_AUDIT.md)** - Security review and compliance documentation
 
 ---
 

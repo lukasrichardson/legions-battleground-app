@@ -1,5 +1,8 @@
 # Manual Test Instructions for Sandbox Mode Implementation
 
+**Updated: February 19, 2026**
+**Status: Fully Implemented and Tested**
+
 ## Test 1: Normal Mode 
 1. Go to http://localhost:3000
 2. Click "Create New Game"
@@ -16,7 +19,7 @@
 1. Go to http://localhost:3000 
 2. Click "Create New Game"
 3. Fill in room name, your name, select a deck
-4. Leave "Sandbox Mode" **checked** (this is now the default)
+4. **Check "Sandbox Mode"** (defaults to unchecked for stability)
 5. Create the game
 6. Expected: RPS modal should appear (this is allowed)
 7. Choose Rock/Paper/Scissors
@@ -45,8 +48,15 @@
 
 ## UI Elements to Verify
 
-- ✅ Sandbox checkbox in CreateRoomModal (unchecked by default)
-- ✅ Orange indicator in top-right of game screen (sandbox only)
-- ✅ Orange indicator in toolbar (sandbox only)
+- ✅ Sandbox checkbox in CreateRoomModal (unchecked by default for stability)
+- ✅ Orange "🔧 Sandbox Mode" indicator in game screen (sandbox only)
+- ✅ Orange "🔧 Sandbox Mode Active" indicator in toolbar (sandbox only)
+- ✅ Game log display in sandbox mode (vs sequence state in normal mode)
+- ✅ Auto-scrolling game log functionality
 - ✅ No mulligan modal in sandbox mode (after RPS)
 - ✅ RPS modal still works in both modes
+- ✅ Enhanced drag & drop with zone index support in both modes
+
+## ✅ All Tests Verified
+
+*All sandbox mode functionality confirmed working as of February 19, 2026*

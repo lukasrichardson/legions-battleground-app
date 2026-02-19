@@ -19,15 +19,16 @@ src/
 │   ├── components/        # UI components organized by feature
 │   │   ├── Card/          # Card display components (Card.tsx, CardImage.tsx, CardInner.tsx, CardMenu.tsx, CardPreview.tsx)
 │   │   ├── Modals/        # Modal components (Create/Join Room, Deck Management, Card Pile, Help, PerformanceDashboard, etc.)
-│   │   ├── PlayArea/      # Game interface components (PlayArea.tsx, Toolbar.tsx, Components.tsx)
+│   │   ├── PlayArea/      # Game interface components (PlayArea.tsx, Toolbar.tsx, Components.tsx, CardZone.tsx, DeckZone.tsx, GameLog.tsx, GridItem.tsx, Hand.tsx)
 │   │   ├── Table/         # Room table display components
 │   │   ├── auth/          # Authentication UI components (AuthButtons.tsx)
 │   │   ├── Multiselect.tsx # Multi-selection dropdown component
+│   │   ├── Breadcrumbs.tsx # Breadcrumb navigation component  
 │   │   └── Select.tsx     # Select dropdown component
 │   ├── decks/             # Deck management pages with components
-│   │   ├── components/    # Deck page components (Breadcrumbs.tsx)
+│   │   ├── components/    # Deck page components (currently empty)
 │   │   ├── [deckId]/      # Dynamic deck editing pages with sub-components
-│   │   │   ├── components/ # Deck builder components (CardTile.tsx, DeckEditorHeader.tsx, etc.)
+│   │   │   ├── components/ # Deck builder components (CardTile.tsx, DeckEditorHeader.tsx, DeckGrid.tsx, SearchPane.tsx)
 │   │   │   ├── DeckBuilder.tsx # Main deck builder component
 │   │   │   ├── Preview.tsx # Card preview component for deck builder
 │   │   │   └── page.tsx   # Deck editing page
@@ -49,7 +50,7 @@ src/
 ├── client/                 # Client-side utilities (shared between frontend/backend)
 │   ├── constants/         # Game constants and initial state (InitialGameState.ts, cardMenu.constants.ts)
 │   ├── enums/             # Client-specific enums (GameEvent, MenuItemAction, RoomEvent)
-│   ├── hooks/             # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize, useClientSettings, useBackgroundPreload, useHandleCardEvents)
+│   ├── hooks/             # Custom React hooks (useSocket, useAuth, useClickOutside, useEffectAsync, useWindowSize, useClientSettings, useBackgroundPreload, useHandleCardEvents, useHandlePlayerEvents)
 │   ├── interfaces/        # TypeScript interfaces (Card, GameState, IMenuItem)
 │   ├── lib/               # Utility functions (utils.ts for className merging)
 │   ├── redux/             # State management with multiple slices
@@ -76,7 +77,7 @@ src/
 │   │   ├── gameState.utils.ts # Game state manipulation utilities
 │   │   ├── imagePreloader.ts  # Intelligent image preloading with connection awareness
 │   │   ├── serviceWorkerMonitor.ts # Service Worker performance monitoring
-│   │   └── string.util.ts # String utility functions
+│   │   └── string.util.ts # Client string utilities
 │   └── socket.js          # Socket.IO client setup
 ├── server/                 # Express backend with Socket.IO and MongoDB
 │   ├── cards/             # Card effects and keywords
@@ -86,13 +87,18 @@ src/
 │   │   ├── GameEvent.ts   # Game event enumeration
 │   │   ├── Phases.ts      # Game phases enumeration
 │   │   └── RoomEvent.ts   # Room event enumeration
-│   ├── events/            # Socket event handlers (card, health, player, room)
+│   ├── events/            # Socket event handlers (card, player)
 │   │   ├── cardEvents.ts  # Card-related event handlers
-│   │   ├── healthApEvents.ts # Health and AP event handlers
-│   │   ├── playerEvents.ts # Player action event handlers
-│   │   └── roomEvents.ts  # Room management event handlers
+│   │   └── playerEvents.ts # Player action event handlers
 │   ├── game/              # Game logic and state management
 │   │   └── game.ts        # Core game logic and state
+│   ├── services/          # Business logic services (NEW: service-based architecture)
+│   │   ├── CardService.ts # Card manipulation service
+│   │   ├── EventHandler.ts # Centralized event handling service
+│   │   ├── GameService.ts # Game state management service
+│   │   ├── RoomService.ts # Room management service
+│   │   ├── ValidatorService.ts # Validation service
+│   │   └── interfaces/    # Service interfaces
 │   ├── interfaces/        # Server-side interfaces
 │   │   ├── CardInterface.ts # Server card interface
 │   │   ├── ExpressTypes.ts # Express app and request type extensions
@@ -131,6 +137,8 @@ src/
 - **Authentication:** JWT-based auth middleware (`middleware/auth.ts`) for user session validation
 - **API Routes:** `network/routes.ts` - REST endpoints for room/deck management with user authorization
 - **Game Logic:** Server-side game state validation and card effects in `events/` and `game/`
+- **Service Architecture:** Modular business logic with `GameService`, `RoomService`, `CardService`, `ValidatorService`
+- **Event Handling:** Centralized `EventHandler` service for consistent Socket.IO event processing
 - **Validation System:** Sandbox mode validation bypass utilities in `utils/sandboxValidator.util.ts`
 - **Database Utils:** Centralized MongoDB connection management and queries
 - **Cron Jobs:** Health check pings for production deployment (every 14 minutes)
@@ -362,7 +370,7 @@ interface GameStateData {
 - **Nullish Coalescing:** Use `??` operator for precise fallback handling (preserves falsy but defined values)
 - **React Suspense:** Implement Suspense boundaries for loading states and code splitting
 - **Error Boundaries:** (Recommended) Add error boundaries for graceful error handling
-- **Custom Hooks:** Consistent patterns with useAuth, useSocket, useClickOutside, useEffectAsync
+- **Custom Hooks:** Consistent patterns with useAuth, useSocket, useClickOutside, useEffectAsync, useWindowSize, useClientSettings, useBackgroundPreload, useHandleCardEvents, useHandlePlayerEvents
 
 ## Environment & Configuration
 - **Production API:** `https://lrawbook-service.onrender.com`
