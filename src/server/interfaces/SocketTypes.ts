@@ -7,6 +7,7 @@ export interface JoinGamePayload {
   roomName: string;
   playerName: string;
   deckId: string;
+  p2DeckId?: string; // Optional field for player 2's deck ID
 }
 export interface GameEventPayload {
   type: GAME_EVENT;

@@ -26,10 +26,12 @@ export const useSocket = () => {
   const roomName = params.get("room");
   const playerName = params.get("playerName");
   const deckId = params.get("deckId");
+  const p2DeckId = params.get("p2DeckId");
   const router = useRouter();
   const pathname = usePathname();
 
   const handleGameEvent = (payload) => {
+    console.log("gameevent received: ", payload);
     dispatch(setState(payload.data))
     dispatch(setSequenceState({
       sequences: payload.data.sequences,
@@ -79,9 +81,9 @@ export const useSocket = () => {
       if (!roomName || !playerName || !deckId) router.push("/");
       if (!joinedGame) {
         setJoinedGame(true);
-        socket.emit("joinGame", { roomName, playerName, deckId })
+        socket.emit("joinGame", { roomName, playerName, deckId, p2DeckId })
       };
     }
-  }, [roomName, playerName, deckId, pathname, router, joinedGame])
+  }, [roomName, playerName, deckId, p2DeckId, pathname, router, joinedGame])
   return { socket, rooms, room };
 }

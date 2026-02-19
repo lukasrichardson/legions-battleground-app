@@ -71,10 +71,11 @@ export const fetchPlayerDeckById = async ({ deckId }: { deckId: string }) => {
   }
 }
 
-export const fetchInitialDecks = async (deckId: string) => {
-  const p2DeckId = deckId, p1DeckId = deckId;
-  const p2Deck = await fetchPlayerDeckById({ deckId: p2DeckId });
-  const p1Deck = await fetchPlayerDeckById({ deckId: p1DeckId });
+export const fetchInitialDecks = async (deckId: string, p2DeckId?: string) => {
+  console.log(`Fetching initial decks. P1 deck ID: ${deckId}, P2 deck ID: ${p2DeckId}`);
+  const p2DeckIdFinal = p2DeckId || deckId;
+  const p2Deck = await fetchPlayerDeckById({ deckId: p2DeckIdFinal });
+  const p1Deck = await fetchPlayerDeckById({ deckId });
   return { p2Deck, p1Deck };
 }
 

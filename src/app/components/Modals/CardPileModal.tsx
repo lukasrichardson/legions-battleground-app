@@ -90,7 +90,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
         }
       }
     }
-    // cardPile = gameState.game[resolvingEffectStep.from] as CardState[]; // if waiting for user input, we show the pile that the user is selecting from
+    // cardPile = gameState[resolvingEffectStep.from] as CardState[]; // if waiting for user input, we show the pile that the user is selecting from
   }
 
   if (pileInViewLimit) {

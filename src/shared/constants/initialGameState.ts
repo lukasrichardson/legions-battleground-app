@@ -57,5 +57,5 @@ export const initialGameState: GameStateData = {
   resolving: false,
   //
   playerConscripted: false,
-  sandboxMode: false,
+  sandboxMode: true,
 }

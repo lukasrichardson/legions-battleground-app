@@ -270,7 +270,7 @@ node scripts/updateCardsInDecks.ts  # Update card data in existing decks with la
 ## Sandbox Mode Development Patterns
 - **Action Validation:** Use `validateForSandbox()` wrapper from `src/server/utils/sandboxValidator.util.ts`
 - **Phase Control:** Check `games[roomId].sandboxMode` before auto-progressing phases
-- **UI Components:** Add conditional sandbox indicators using `gameState.game.sandboxMode`
+- **UI Components:** Add conditional sandbox indicators using `gameState.sandboxMode`
 - **Sequence Resolution:** Auto-resolve player input requirements in sandbox mode
 - **State Interfaces:** Include `sandboxMode: boolean` in both client/server GameState interfaces
 - **Game Log Display:** Use conditional rendering for game log vs sequence state in Toolbar component

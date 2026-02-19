@@ -11,7 +11,7 @@ import { GameStateData } from '@/shared/interfaces/GameState';
 
 export class GameService {
 
-  async startGame(roomId: string, deckId: string): Promise<GameStateData> {
+  async startGame(roomId: string, deckId: string, p2DeckId?: string): Promise<GameStateData> {
     if (games[roomId]?.started) {
       return games[roomId];
     }
@@ -21,7 +21,7 @@ export class GameService {
 
     console.log(`🎮 Game started for room: ${roomId}, sandbox mode: ${games[roomId].sandboxMode}`);
 
-    const { p2Deck: p2DeckResponse, p1Deck: p1DeckResponse } = await fetchInitialDecks(deckId);
+    const { p2Deck: p2DeckResponse, p1Deck: p1DeckResponse } = await fetchInitialDecks(deckId, p2DeckId);
     games[roomId].p2DeckFromServer = p2DeckResponse;
     games[roomId].p1DeckFromServer = p1DeckResponse;
 

@@ -33,6 +33,7 @@ export default function CreateRoomModal() {
   const [roomPassword, setRoomPassword] = useState("");
   const [sandboxMode, setSandboxMode] = useState(true);
   const [deckId, setDeckId] = useState("");
+  const [p2DeckId, setP2DeckId] = useState("");
   const [decks, setDecks] = useState<{ name: string, _id: string }[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,14 +65,17 @@ export default function CreateRoomModal() {
         playerName,
         sandboxMode,
         deckId,
-        roomPassword
+        p2DeckId,
+        roomPassword,
       });
       const { roomName: newRoomName } = res.data;
-      router.push(`/play?room=${newRoomName}&playerName=${playerName}&deckId=${deckId}${roomPassword ? `&roomPassword=${roomPassword}` : ""}`);
+      router.push(`/play?room=${newRoomName}&playerName=${playerName}&deckId=${deckId}${roomPassword ? `&roomPassword=${roomPassword}` : ""}${p2DeckId ? `&p2DeckId=${p2DeckId}` : ""}`);
       setRoomName("");
       setPlayerName("");
       setSandboxMode(false);
       setDeckId("");
+      setP2DeckId("");
+      setRoomPassword("");
       setLoading(false);
       dispatch(setCreateRoomModalOpen(false));
     } catch (error: unknown) {
@@ -115,6 +119,12 @@ export default function CreateRoomModal() {
   const handleDeckChange = (selectedId: string) => {
     if (selectedId && selectedId !== deckId) {
       setDeckId(selectedId);
+    }
+  }
+
+  const handleP2DeckChange = (selectedId: string) => {
+    if (selectedId && selectedId !== p2DeckId) {
+      setP2DeckId(selectedId);
     }
   }
 
@@ -167,24 +177,46 @@ export default function CreateRoomModal() {
             </div>
 
             {/* Deck  Section */}
-            <div className="space-y-3">
-              <label className="block text-sm font-semibold text-white">
-                {DeckLabelText}
-              </label>
-              <Select value={deckId} onValueChange={handleDeckChange}>
-                <SelectTrigger className="h-6 w-32 text-xs bg-white/10 border-white/20 text-white">
-                  <SelectValue placeholder="Select deck" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {decks.map((deckOption, index) => (
-                      <SelectItem key={deckOption._id + `${index}`} value={deckOption._id}>
-                        {deckOption.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+            <div className="space-y-3 flex justify-between flex-wrap">
+              <div>
+                <label className="block text-sm font-semibold text-white">
+                  {DeckLabelText}
+                </label>
+                <Select value={deckId} onValueChange={handleDeckChange}>
+                  <SelectTrigger className="h-6 w-32 text-xs bg-white/10 border-white/20 text-white">
+                    <SelectValue placeholder="Select deck" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {decks.map((deckOption, index) => (
+                        <SelectItem key={deckOption._id + `${index}`} value={deckOption._id}>
+                          {deckOption.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-white">
+                  P2: {DeckLabelText}
+                </label>
+                <Select value={p2DeckId} onValueChange={handleP2DeckChange}>
+                  <SelectTrigger className="h-6 w-32 text-xs bg-white/10 border-white/20 text-white">
+                    <SelectValue placeholder="Select deck" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {decks.map((deckOption, index) => (
+                        <SelectItem key={deckOption._id + `${index}`} value={deckOption._id}>
+                          {deckOption.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Room Password */}

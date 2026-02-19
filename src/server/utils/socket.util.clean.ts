@@ -27,7 +27,7 @@ export const handleSocketJoinGame = async (
       return;
     }
 
-    const { roomName, playerName, deckId } = data;
+    const { roomName, playerName, deckId, p2DeckId } = data;
 
     // Join or create room
     const player = { id: socket.id, name: playerName };
@@ -44,7 +44,7 @@ export const handleSocketJoinGame = async (
 
     // Start or get game
     if (!games[roomName]) {
-      await gameService.startGame(roomName, deckId);
+      await gameService.startGame(roomName, deckId, p2DeckId);
     } else {
       const isP1 = joinResult.room.players[socket.id]?.p1 ?? false;
       await setDeck(roomName, deckId, isP1);

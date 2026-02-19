@@ -30,10 +30,15 @@ export const routes = (app: ExpressApp) => {
     }
   
     try {
-      // const deck: DeckResponse = await fetchPlayerDeckById({deckId: req.body.deckId});
       const deck = await getDatabase().collection<DeckResponse>("decks").findOne({ _id: new ObjectId(req.body.deckId) });
       if (!deck?.legion || !deck?.cards_in_deck) {
         return res.status(400).send("deckId " + req.body.deckId + " is invalid");
+      }
+      if (req.body.p2DeckId) {
+        const p2Deck = await getDatabase().collection<DeckResponse>("decks").findOne({ _id: new ObjectId(req.body.p2DeckId) });
+        if (!p2Deck?.legion || !p2Deck?.cards_in_deck) {
+          return res.status(400).send("p2DeckId " + req.body.p2DeckId + " is invalid");
+        }
       }
     } catch {
       return res.status(400).send("deckId " + req.body.deckId + " is invalid");
