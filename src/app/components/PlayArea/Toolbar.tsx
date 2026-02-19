@@ -20,8 +20,13 @@ const ToolbarConstants = {
   ResetGameButtonText: "Reset Game",
   LeaveGameButtonText: "Leave Game",
   HelpButtonText: "Help/Instructions",
-  MulliganText: "Mulligan"
+  MulliganText: "Mulligan",
+  EditDeckButtonText: "Edit Deck"
 }
+
+const renderToolbarButton = (text: string, onClick: () => void) => (
+  <button className="self-end text-[12px] font-bold px-1 py-0.5 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={onClick}>{text}</button>
+)
 
 export default function Toolbar({ }) {
   const router = useRouter();
@@ -50,7 +55,8 @@ export default function Toolbar({ }) {
     ResetGameButtonText,
     LeaveGameButtonText,
     HelpButtonText,
-    MulliganText
+    MulliganText,
+    EditDeckButtonText
   } = ToolbarConstants;
 
   const handleSwitchSide = () => {
@@ -116,14 +122,14 @@ export default function Toolbar({ }) {
       />
 
       <div className="mt-auto w-full flex flex-wrap gap-1 justify-between">
-        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => dispatch(openSetDecksModal())}>{ChangeDeckButtonText}</button>
-        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={handleSwitchSide}>{SwitchSideButtonText + (p1 ? "P2" : "P1")}</button>
-        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => emitGameEvent({ type: GAME_EVENT.rollDie, data: { side } })}>{RollDieButtonText}</button>
-        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => emitGameEvent({ type: GAME_EVENT.resetGame, data: { p2DeckId: p2DeckFromServer?.id, p1DeckId: p1DeckFromServer?.id } })}>{ResetGameButtonText}</button>
-        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={handleLeaveGame}>{LeaveGameButtonText}</button>
-        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => dispatch(openHelpModal())}>{HelpButtonText}</button>
-        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={() => emitGameEvent({ type: GAME_EVENT.mulligan, data: null })}>{MulliganText}</button>
-        <button className="self-end text-[12px] font-bold px-1 py-1 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={handleEditDeck}>Edit Deck</button>
+        {renderToolbarButton(ChangeDeckButtonText, () => dispatch(openSetDecksModal()))}
+        {renderToolbarButton(SwitchSideButtonText + (p1 ? "P2" : "P1"), handleSwitchSide)}
+        {renderToolbarButton(RollDieButtonText, () => emitGameEvent({ type: GAME_EVENT.rollDie, data: { side } }))}
+        {renderToolbarButton(ResetGameButtonText, () => emitGameEvent({ type: GAME_EVENT.resetGame, data: { p2DeckId: p2DeckFromServer?.id, p1DeckId: p1DeckFromServer?.id } }))}
+        {renderToolbarButton(LeaveGameButtonText, handleLeaveGame)}
+        {renderToolbarButton(HelpButtonText, () => dispatch(openHelpModal()))}
+        {renderToolbarButton(MulliganText, () => emitGameEvent({ type: GAME_EVENT.mulligan, data: null }))}
+        {renderToolbarButton(EditDeckButtonText, handleEditDeck)}
         <div>
           <label htmlFor="hoverMenu" className="text-xs mr-1">Show Menu On Hover:</label>
           <input name="hoverMenu" type="checkbox" checked={hoverMenu} onChange={() => setHoverMenu(!hoverMenu)}/>

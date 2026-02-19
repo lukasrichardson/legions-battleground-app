@@ -1,4 +1,4 @@
-import { gameEventMap, games } from '../game/game';
+import { gameEventMap } from '../game/game';
 import { GAME_EVENT } from '../enums/GameEvent';
 import { ROOM_EVENT } from '../enums/RoomEvent';
 import { GameService } from './GameService';
@@ -102,6 +102,54 @@ export class EventHandler {
           io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
           return;
         }
+        case GAME_EVENT.sendChatMessage: {
+          this.gameService.sendChatMessage(roomId, data as { message: string; side: "p1" | "p2" });
+          const gameState = this.gameService.getGameState(roomId);
+          io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
+          return;
+        }
+        case GAME_EVENT.rollDie: {
+          this.gameService.rollDie(roomId, data as { side: "p1" | "p2" });
+          const gameState = this.gameService.getGameState(roomId);
+          io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
+          return;
+        }
+        case GAME_EVENT.setP1Viewing: {
+          const gameState = this.gameService.setP1Vieweing(roomId, data as { cardTarget: CARD_TARGET; limit: number | null, bottom?: boolean });
+          io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
+          io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
+          return;
+        }
+        case GAME_EVENT.setP2Viewing: {
+          const gameState = this.gameService.setP2Viewing(roomId, data as { cardTarget: CARD_TARGET; limit: number | null, bottom?: boolean });
+          io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
+          io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
+          return;
+        }
+        case GAME_EVENT.changeP2Health: {
+          const gameState = this.gameService.changeP2Health(roomId, data as number);
+          io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
+          io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
+          return;
+        }
+        case GAME_EVENT.changeP1Health: {
+          const gameState = this.gameService.changeP1Health(roomId, data as number);
+          io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
+          io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
+          return;
+        }
+        case GAME_EVENT.changeP2AP: {
+          const gameState = this.gameService.changeP2AP(roomId, data as number);
+          io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
+          io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
+          return;
+        }
+        case GAME_EVENT.changeP1AP: {
+          const gameState = this.gameService.changeP1AP(roomId, data as number);
+          io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
+          io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
+          return;
+        }
         default: {
           // Use existing event handlers for everything else
           const action = gameEventMap[eventType];
@@ -116,7 +164,7 @@ export class EventHandler {
             action(roomId, null, player, io);
           }
 
-          const gameState = games[roomId];
+          const gameState = this.gameService.getGameState(roomId);
           io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
           io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
         }

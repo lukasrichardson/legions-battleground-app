@@ -6,7 +6,6 @@ import { CardInterface } from "../interfaces/CardInterface";
 import { StepType } from "../interfaces/SequenceInterfaces";
 import { addSequenceItem, drawCardP1, drawCardP2, resolveFirstItemInSequence } from "../utils/game.util";
 import { addGameLog } from "../utils/generateGameLog";
-import { shuffle } from "../utils/shuffleDeck.util";
 import { renderNumberthSuffix } from "../utils/string.utils";
 import { Server } from "socket.io";
 import { removeCardFromZone, addCardToZone } from "../utils/cardZone.util";
@@ -72,44 +71,6 @@ export const moveCard = (
   }
 }
 
-export const selectCard = (roomId: string, action: CardInterface) => {
-  games[roomId].selectedCard = action;
-}
-export const clearselectedCard = (roomId: string) => {
-  games[roomId].selectedCard = null;
-}
-
-export const shuffleTargetPile = (roomId: string, action: { cardTarget: CARD_TARGET, targetIndex?: number }) => {
-  switch (action.cardTarget) {
-    case CARD_TARGET.P2_PLAYER_WARRIOR:
-    case CARD_TARGET.P2_PLAYER_UNIFIED:
-    case CARD_TARGET.P2_PLAYER_FORTIFIED:
-    case CARD_TARGET.P1_PLAYER_WARRIOR:
-    case CARD_TARGET.P1_PLAYER_UNIFIED:
-    case CARD_TARGET.P1_PLAYER_FORTIFIED:
-      if (action.targetIndex != undefined) {
-        const shuffled = shuffle([...games[roomId][action.cardTarget][action.targetIndex]]);
-        games[roomId][action.cardTarget][action.targetIndex] = shuffled;
-      }
-      break;
-    default:
-      const shuffled = shuffle(games[roomId][action.cardTarget] as CardInterface[]);
-      games[roomId][action.cardTarget] = shuffled;
-      break;
-  }
-  games[roomId].gameLog = addGameLog(games[roomId].gameLog, "shuffled " + action.cardTarget + (action.targetIndex != undefined ? " at index " + action.targetIndex : ""));
-}
-
-export const flipCard = (roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }) => {
-  const { cardTarget, cardIndex, zoneIndex } = action;
-  if (zoneIndex != undefined) {
-    (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].faceUp = !(games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].faceUp;
-  } else {
-    (games[roomId][cardTarget][cardIndex] as CardInterface).faceUp = !(games[roomId][cardTarget][cardIndex] as CardInterface).faceUp;
-  }
-  games[roomId].gameLog = addGameLog(games[roomId].gameLog, "flipped card in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
-}
-
 export const conscript = (roomId: string, action: MoveCardActionInterface, player: { name: string, p1: boolean }, io: Server) => {
   const isValid = validateForSandbox(roomId, () => {
     // Existing validation logic
@@ -145,56 +106,6 @@ export const conscript = (roomId: string, action: MoveCardActionInterface, playe
   //assume no response to conscription for now
   resolveFirstItemInSequence(roomId, io);
   
-}
-
-export const increaseCardAttackModifier = (roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }) => {
-  const { cardTarget, cardIndex, zoneIndex } = action;
-  if (zoneIndex != undefined) {
-    (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].attackModifier += 1;
-  } else {
-    (games[roomId][cardTarget][cardIndex] as CardInterface).attackModifier += 1;
-  }
-  games[roomId].gameLog = addGameLog(games[roomId].gameLog, "increased card attack modifier in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
-}
-
-export const decreaseCardAttackModifier = (roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }) => {
-  const { cardTarget, cardIndex, zoneIndex } = action;
-  if (zoneIndex != undefined) {
-    (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].attackModifier -= 1;
-  } else {
-    (games[roomId][cardTarget][cardIndex] as CardInterface).attackModifier -= 1;
-  }
-  games[roomId].gameLog = addGameLog(games[roomId].gameLog, "decreased card attack modifier in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
-}
-
-export const increaseCardOtherModifier = (roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }) => {
-  const { cardTarget, cardIndex, zoneIndex } = action;
-  if (zoneIndex != undefined) {
-    (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].otherModifier += 1;
-  } else {
-    (games[roomId][cardTarget][cardIndex] as CardInterface).otherModifier += 1;
-  }
-  games[roomId].gameLog = addGameLog(games[roomId].gameLog, "increased card other modifier in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
-}
-
-export const decreaseCardOtherModifier = (roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }) => {
-  const { cardTarget, cardIndex, zoneIndex } = action;
-  if (zoneIndex != undefined) {
-    (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].otherModifier -= 1;
-  } else {
-    (games[roomId][cardTarget][cardIndex] as CardInterface).otherModifier -= 1;
-  }
-  games[roomId].gameLog = addGameLog(games[roomId].gameLog, "decreased card other modifier in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
-}
-
-export const increaseCardCooldown = (roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }) => {
-  const { cardTarget, cardIndex, zoneIndex } = action;
-  if (zoneIndex != undefined) {
-    (games[roomId][cardTarget][zoneIndex] as CardInterface[])[cardIndex].cooldown += 1;
-  } else {
-    (games[roomId][cardTarget][cardIndex] as CardInterface).cooldown += 1;
-  }
-  games[roomId].gameLog = addGameLog(games[roomId].gameLog, "increased card cooldown in " + cardTarget + (zoneIndex != undefined ? " at index " + zoneIndex : ""));
 }
 
 export const decreaseCardCooldown = (roomId: string, action: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex?: number }) => {

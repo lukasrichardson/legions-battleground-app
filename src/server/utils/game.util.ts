@@ -9,9 +9,7 @@ import { CARD_TARGET } from "../../shared/enums/CardTarget";
 import { SequenceItem, StepType } from "../interfaces/SequenceInterfaces";
 import { GamePhase, PreGamePhase } from "../enums/Phases";
 import { MoveCardActionInterface, moveCard, plunder } from "../events/cardEvents";
-import {
-  // resetGame,
-  goNextPhase } from "../events/playerEvents";
+import { goNextPhase } from "../events/playerEvents";
 import {ALL_KEYWORDS, KeywordTrigger} from "../cards/Keywords";
 import { Server } from "socket.io";
 import axios from "axios";
