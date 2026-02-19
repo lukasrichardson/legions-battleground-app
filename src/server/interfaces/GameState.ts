@@ -65,5 +65,4 @@ export default interface GameState {
   cardInFocus: CardInterface | null;
   pileInViewTarget: CARD_TARGET | null;
   pileInViewIndex: number | null;
-  setDecksModalOpen: boolean;
 }

@@ -48,9 +48,10 @@ export interface GameState {
     sandboxMode: boolean;
   };
   cardInFocus: CardInterface | null;
-  previousCardInFocus: CardInterface | null;
   pileInViewTarget: CARD_TARGET | null;
   pileInViewIndex: number | null;
+  //client only settings below
+  previousCardInFocus: CardInterface | null;
   pileInViewLimit: number | null;
   topXCards: CardInterface[];
   side: "p1" | "p2";

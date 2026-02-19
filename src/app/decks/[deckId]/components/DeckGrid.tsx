@@ -1,60 +1,10 @@
 import { CardDocument } from "@/client/interfaces/Card.mongo";
-import { DeckCardTile } from "./CardTile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import { Button } from "@/client/ui/button";
 import { CardInDeck, DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import useClientSettings from "@/client/hooks/useClientSettings";
-
-const renderHoverContent = (card, removeCardFromDeck, addCardToDeck) => (
-  <div className="absolute w-full h-full opacity-0 hover:opacity-100 bg-white/20 z-50 flex items-center justify-around">
-    <div className="bg-red-800 hover:bg-red-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={(e) => removeCardFromDeck(e, card)}>-</div>
-    <div className="bg-green-800 hover:bg-green-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={() => addCardToDeck(card)}>+</div>
-  </div>
-)
-
-const renderDeckSection = (cards: CardDocument[], removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck) => {
-  if (!cards || cards.length === 0) return null;
-
-  // Group cards by name to apply grouping styling
-  const groupedCards = cards.reduce((groups: Record<string, CardDocument[]>, card) => {
-    const name = card.title;
-    if (!groups[name]) {
-      groups[name] = [];
-    }
-    groups[name].push(card);
-    return groups;
-  }, {});
-
-  return useGroupedView ? (
-    <>
-      {Object.entries(groupedCards).map(([name, cardGroup]) => (
-        <div key={name} className="inline-block w-1/4 xs:w-1/6 sm:w-1/8 lg:w-1/10 xl:w-1/14 max-w-40 py-1 box-border">
-          {cardGroup.map((card, index) => (
-            <div
-              key={card.id.toString() + index}
-              className={"[&:not(:first-child)]:-mt-[115%] relative"}
-              onContextMenu={e => removeCardFromDeck(e, card)}
-              onMouseEnter={() => setHoveredCard(card)}
-            >
-              {renderHoverContent(card, removeCardFromDeck, addCardToDeck)}
-              <DeckCardTile card={card} index={index} onContextMenu={() => null} onMouseEnter={() => null} />
-            </div>
-          ))}
-        </div>
-      ))}
-    </>
-  ) : (
-    <>
-      {cards.map((card, index) => (
-        <div onContextMenu={e => removeCardFromDeck(e, card)} onMouseEnter={() => setHoveredCard(card)} key={card.id.toString() + index} className="inline-block w-1/4 xs:w-1/6 sm:w-1/8 lg:w-1/10 xl:w-1/14 max-w-40 py-1 box-border relative">
-          {renderHoverContent(card, removeCardFromDeck, addCardToDeck)}
-          <DeckCardTile card={card} index={index} onContextMenu={() => null} onMouseEnter={() => null} />
-        </div>
-      ))}
-    </>
-  )
-}
+import DeckSection from "./DeckSection";
 
 const renderSectionStructure = (name: string, cards: CardInDeck[], renderSubSection: (cards: CardInDeck[]) => JSX.Element) => (
   cards && cards.length > 0 && (
@@ -103,7 +53,15 @@ export default function DeckGrid({
     handleRemoveCardFromDeck(card);
   }
 
-  const renderSection = (cards) => renderDeckSection(cards, handleDeckCardClick, setHoveredCard, deckbuild_groupedView, handleAddCardToDeck);
+  const renderSection = (cards) => (
+    <DeckSection
+      cards={cards}
+      removeCardFromDeck={handleDeckCardClick}
+      setHoveredCard={setHoveredCard}
+      useGroupedView={deckbuild_groupedView}
+      addCardToDeck={handleAddCardToDeck}
+    />
+  )
 
   const handleGroupedViewToggle = () => {
     setDeckbuildGroupedView(!deckbuild_groupedView);

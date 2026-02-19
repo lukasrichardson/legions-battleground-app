@@ -2,6 +2,13 @@ import CardImage from "@/app/components/Card/CardImage";
 import { CardDocument } from "@/client/interfaces/Card.mongo";
 import { useEffect, useState } from "react";
 
+const renderHoverContent = (card, removeCardFromDeck, addCardToDeck) => (
+  <div className="absolute w-full h-full opacity-0 hover:opacity-100 bg-white/20 z-50 flex items-center justify-around">
+    <div className="bg-red-800 hover:bg-red-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={(e) => removeCardFromDeck(e, card)}>-</div>
+    <div className="bg-green-800 hover:bg-green-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={() => addCardToDeck(card)}>+</div>
+  </div>
+)
+
 export const PLACEHOLDER =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(`
@@ -32,7 +39,7 @@ export const renderCardTile = (card: { id: string | number; title: string; featu
   </div>)
 }
 
-export const DeckCardTile = ({ card, index, onContextMenu, onMouseEnter }: { card: CardDocument, index: number, onContextMenu: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void }) => {
+export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped }: { card: CardDocument, index: number, removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void, addCardToDeck: (card: CardDocument) => void, grouped: boolean }) => {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const handleOnMouseEnter = () => {
     const timeoutId = setTimeout(() => {
@@ -55,10 +62,31 @@ export const DeckCardTile = ({ card, index, onContextMenu, onMouseEnter }: { car
     }
   }, [timeoutId]);
   return (
-      <div onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
-
-        {renderCardTile(card, index, handleOnMouseEnter)}
-    </div>
+    grouped ? (
+      <div
+        className={"[&:not(:first-child)]:-mt-[115%] relative"}
+        onContextMenu={e => removeCardFromDeck(e, card)}
+        onMouseEnter={handleOnMouseEnter}
+        onMouseLeave={handleOnMouseLeave}
+      >
+        {renderHoverContent(card, removeCardFromDeck, addCardToDeck)}
+        <div key={card.id.toString() + index}>
+          {renderCardTile(card, index, () => null)}
+        </div>
+      </div>
+    ) : (
+      <div
+        className="inline-block w-1/4 xs:w-1/6 sm:w-1/8 lg:w-1/10 xl:w-1/14 max-w-40 py-1 box-border relative"
+        onContextMenu={e => removeCardFromDeck(e, card)}
+        onMouseEnter={handleOnMouseEnter}
+        onMouseLeave={handleOnMouseLeave}
+      >
+        {renderHoverContent(card, removeCardFromDeck, addCardToDeck)}
+        <div onContextMenu={(e) => removeCardFromDeck(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
+        {renderCardTile(card, index, () => null)}
+        </div>
+      </div>
+    )
   )
 }
 
