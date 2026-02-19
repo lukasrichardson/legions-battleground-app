@@ -286,11 +286,11 @@ export default function SearchPane({
                 {cards.map((card, index) => (
                   <div
                     key={card.toString() + index}
-                    className="inline-block w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-full cursor-pointer max-h-full lg:flex justify-start items-start overflow-hidden rounded p-1 pr-0.5 my-0.5"
+                    className="bg-white/10 hover:bg-white/20 inline-block w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-full cursor-pointer max-h-full lg:flex justify-start items-center overflow-hidden rounded p-1 pr-0.5 my-0.5"
                     
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
-                    <div className="w-full lg:w-1/5 xl:w-1/7 h-full">
+                    <div className="w-full lg:w-1/4 xl:w-1/6 h-full">
                       <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
                     </div>
                     <div className="hidden w-4/5 lg:flex flex-col xl:w-6/7 h-full justify-between">

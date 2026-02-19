@@ -31,7 +31,6 @@ export const useSocket = () => {
   const pathname = usePathname();
 
   const handleGameEvent = (payload) => {
-    console.log("gameevent received: ", payload);
     dispatch(setState(payload.data))
     dispatch(setSequenceState({
       sequences: payload.data.sequences,
