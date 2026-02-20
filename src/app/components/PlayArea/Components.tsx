@@ -10,6 +10,7 @@ import Hand from "./Hand";
 import Card from "../Card/Card";
 import CardZone from "./CardZone";
 import { CardState } from "@/shared/interfaces/CardState";
+import useClientSettings from "@/client/hooks/useClientSettings";
 
 export const renderDeckNameZone = (deck: DeckResponse | null, p1: boolean) => {
   return (
@@ -29,8 +30,8 @@ export const renderDeckNameZone = (deck: DeckResponse | null, p1: boolean) => {
   )
 }
 
-export const renderDeckZone = (item: CardState | null, cardTarget: CARD_TARGET, p1: boolean) => {
-  return (<DeckZone item={item} cardTarget={cardTarget} p1={p1} />)
+export const renderDeckZone = (item: CardState | null, cardTarget: CARD_TARGET) => {
+  return (<DeckZone item={item} cardTarget={cardTarget} />)
 }
 
 
@@ -72,8 +73,10 @@ export const renderAP = (ap: number, gameEvent: GAME_EVENT, p1: boolean, dispatc
   </div>
 )}
 
-export const renderHand = (items: CardState[], cardTarget: CARD_TARGET, p1: boolean) => {
-  const hidden = p1 ? cardTarget === CARD_TARGET.P2_PLAYER_HAND : cardTarget === CARD_TARGET.P1_PLAYER_HAND;
+export const RenderHand = ({items, cardTarget, p1}: {items: CardState[], cardTarget: CARD_TARGET, p1: boolean}) => {
+  const clientSettings = useClientSettings();
+  const { openHand } = clientSettings;
+  const hidden = openHand ? false : p1 ? cardTarget === CARD_TARGET.P2_PLAYER_HAND : cardTarget === CARD_TARGET.P1_PLAYER_HAND;
   return (
     <Hand cardTarget={cardTarget}>
       {items.map((item, index) => (<Card card={item} cardTarget={cardTarget} key={item.id} index={index} hidden={hidden} />))}

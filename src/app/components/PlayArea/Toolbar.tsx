@@ -34,7 +34,15 @@ export default function Toolbar({ }) {
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
-  const { hoverMenu, setHoverMenu, legacyMenu, setLegacyMenu, transparentOnBlur, setTransparentOnBlur } = useClientSettings();
+  const {
+    hoverMenu,
+    setHoverMenu,
+    legacyMenu,
+    setLegacyMenu,
+    transparentOnBlur,
+    setTransparentOnBlur,
+    openHand,
+    setOpenHand } = useClientSettings();
   const gameLogRef = useRef<HTMLDivElement>(null);
   const { side } = clientGameState;
   const p1 = side === "p1";
@@ -142,6 +150,10 @@ export default function Toolbar({ }) {
         <div>
           <label htmlFor="transparentOnBlur" className="text-xs mr-1">Transparent Card Modals:</label>
           <input name="transparentOnBlur" type="checkbox" checked={transparentOnBlur} onChange={() => setTransparentOnBlur(!transparentOnBlur)}/>
+        </div>
+        <div>
+          <label htmlFor="openHand" className="text-xs mr-1">Open Hand:</label>
+          <input name="openHand" type="checkbox" checked={openHand} onChange={() => setOpenHand(!openHand)}/>
         </div>
       </div>
     </div>

@@ -10,7 +10,7 @@ import {
   renderCardZone,
   // renderDeckNameZone,
   renderDeckZone,
-  renderHand,
+  RenderHand,
   // renderHealth
 } from "./Components";
 // import { NextPhaseP1Wins, NextPhaseP2Wins } from "@/client/redux/phaseSlice";
@@ -62,7 +62,7 @@ export default function PlayArea({ }) {
 
   return (
     <div className="relative flex flex-col w-[80%] h-full overflow-visible">
-      {renderHand(p1 ? p2PlayerHand : p1PlayerHand, p1 ? CARD_TARGET.P2_PLAYER_HAND : CARD_TARGET.P1_PLAYER_HAND, p1)}
+      {RenderHand({ items: p1 ? p2PlayerHand : p1PlayerHand, cardTarget: p1 ? CARD_TARGET.P2_PLAYER_HAND : CARD_TARGET.P1_PLAYER_HAND, p1 })}
       <div className="w-full h-[40%] grid grid-rows-3 grid-cols-8">
 
         {renderCardZone(p1 ? p2PlayerEradication : p1PlayerEradication, p1 ? CARD_TARGET.P2_PLAYER_ERADICATION : CARD_TARGET.P1_PLAYER_ERADICATION, "Eradication")}
@@ -73,7 +73,7 @@ export default function PlayArea({ }) {
         {renderCardRowUpsideDown(p1 ? p2PlayerUnifieds : p1PlayerUnifieds, p1 ? CARD_TARGET.P2_PLAYER_UNIFIED : CARD_TARGET.P1_PLAYER_UNIFIED, "Unified")}
         {renderCardZone(p1 ? p2PlayerSynergy : p1PlayerSynergy, p1 ? CARD_TARGET.P2_PLAYER_SYNERGY : CARD_TARGET.P1_PLAYER_SYNERGY, "Synergy")}
         {renderCardZone(p1 ? p2PlayerTokens : p1PlayerTokens, p1 ? CARD_TARGET.P2_PLAYER_TOKENS : CARD_TARGET.P1_PLAYER_TOKENS, "Tokens")}
-        {renderDeckZone(p1 ? p2PlayerDeck[0] : p1PlayerDeck[0], p1 ? CARD_TARGET.P2_PLAYER_DECK : CARD_TARGET.P1_PLAYER_DECK, p1)}
+        {renderDeckZone(p1 ? p2PlayerDeck[0] : p1PlayerDeck[0], p1 ? CARD_TARGET.P2_PLAYER_DECK : CARD_TARGET.P1_PLAYER_DECK)}
         {renderCardRowUpsideDown(p1 ? p2PlayerWarriors : p1PlayerWarriors, p1 ? CARD_TARGET.P2_PLAYER_WARRIOR : CARD_TARGET.P1_PLAYER_WARRIOR, "Warrior")}
         {renderCardZone(p1 ? p2PlayerWarlord : p1PlayerWarlord, p1 ? CARD_TARGET.P2_PLAYER_WARLORD : CARD_TARGET.P1_PLAYER_WARLORD, "Warlord")}
         {renderCardZone(p1 ? p2PlayerVeilRealm : p1PlayerVeilRealm, p1 ? CARD_TARGET.P2_PLAYER_VEIL_REALM : CARD_TARGET.P1_PLAYER_VEIL_REALM, "Veil / Realm")}
@@ -101,7 +101,7 @@ export default function PlayArea({ }) {
         {renderCardZone(p1 ? p1PlayerVeilRealm : p2PlayerVeilRealm, p1 ? CARD_TARGET.P1_PLAYER_VEIL_REALM : CARD_TARGET.P2_PLAYER_VEIL_REALM, "Veil / Realm")}
         {renderCardZone(p1 ? p1PlayerWarlord : p2PlayerWarlord, p1 ? CARD_TARGET.P1_PLAYER_WARLORD : CARD_TARGET.P2_PLAYER_WARLORD, "Warlord")}
         {renderCardRow(p1 ? p1PlayerWarriors : p2PlayerWarriors, p1 ? CARD_TARGET.P1_PLAYER_WARRIOR : CARD_TARGET.P2_PLAYER_WARRIOR, "Warrior")}
-        {renderDeckZone(p1 ? p1PlayerDeck[0] : p2PlayerDeck[0], p1 ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK, p1)}
+        {renderDeckZone(p1 ? p1PlayerDeck[0] : p2PlayerDeck[0], p1 ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK)}
         {renderCardZone(p1 ? p1PlayerTokens : p2PlayerTokens, p1 ? CARD_TARGET.P1_PLAYER_TOKENS : CARD_TARGET.P2_PLAYER_TOKENS, "Tokens")}
         {renderCardZone(p1 ? p1PlayerSynergy : p2PlayerSynergy, p1 ? CARD_TARGET.P1_PLAYER_SYNERGY : CARD_TARGET.P2_PLAYER_SYNERGY, "Synergy")}
         {renderCardRow(p1 ? p1PlayerUnifieds : p2PlayerUnifieds, p1 ? CARD_TARGET.P1_PLAYER_UNIFIED : CARD_TARGET.P2_PLAYER_UNIFIED, "Unified")}
@@ -111,7 +111,7 @@ export default function PlayArea({ }) {
         {renderCardRow(p1 ? p1PlayerFortifieds : p2PlayerFortifieds, p1 ? CARD_TARGET.P1_PLAYER_FORTIFIED : CARD_TARGET.P2_PLAYER_FORTIFIED, "Fortified")}
         {renderCardZone(p1 ? p1PlayerEradication : p2PlayerEradication, p1 ? CARD_TARGET.P1_PLAYER_ERADICATION : CARD_TARGET.P2_PLAYER_ERADICATION, "Eradication")}
       </div>
-      {renderHand(p1 ? p1PlayerHand : p2PlayerHand, p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND, p1)}
+      {RenderHand({ items: p1 ? p1PlayerHand : p2PlayerHand, cardTarget: p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND, p1 })}
     </div>
   )
 }

@@ -5,11 +5,13 @@ const initialState: {
   legacyMenu: boolean;
   transparentOnBlur: boolean;
   deckbuild_groupedView: boolean;
+  openHand: boolean;
 } = {
   hoverMenu: true,
   legacyMenu: true,
   transparentOnBlur: false,
-  deckbuild_groupedView: false
+  deckbuild_groupedView: false,
+  openHand: false
 }
 
 const clientSettingsSlice = createSlice({
@@ -27,10 +29,13 @@ const clientSettingsSlice = createSlice({
     },
     setDeckbuildGroupedView: (state, action: PayloadAction<boolean>) => {
       state.deckbuild_groupedView = action.payload;
+    },
+    setOpenHand: (state, action: PayloadAction<boolean>) => {
+      state.openHand = action.payload;
     }
   }
 });
 
-export const { setHoverMenu, setLegacyMenu, setTransparentOnBlur, setDeckbuildGroupedView } = clientSettingsSlice.actions;
+export const { setHoverMenu, setLegacyMenu, setTransparentOnBlur, setDeckbuildGroupedView, setOpenHand } = clientSettingsSlice.actions;
 
 export default clientSettingsSlice.reducer;

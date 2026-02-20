@@ -7,10 +7,12 @@ import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { CardState } from "@/shared/interfaces/CardState";
 import { setCardInFocus, clearCardInFocus } from "../redux/clientGameStateSlice";
 
-export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TARGET, hidden: boolean, inPileView: boolean, index?: number, zoneIndex?: number) {
+export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TARGET, hidden: boolean, inPileView: boolean, index?: number, zoneIndex?: number, faceUp?: boolean, p1?: boolean) {
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
   const { selectedCard } = gameState;
+  const cardOnP1Side = cardTarget.includes("p1");
+  const cardOnClientSide = (cardOnP1Side && p1) || (!cardOnP1Side && !p1);
 
   const handleDecreaseCooldown = useCallback(() => {
     dispatch(decreaseCooldown({ cardTarget, cardIndex: index, zoneIndex }));
@@ -90,6 +92,7 @@ export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TA
   }
 
   const handleCardHover = () => {
+    if (!cardOnClientSide && !faceUp) return;
     if (hidden) return;
     if ([CARD_TARGET.P1_PLAYER_DECK, CARD_TARGET.P2_PLAYER_DECK].includes(cardTarget) && !inPileView) return;
     dispatch(setCardInFocus(card));

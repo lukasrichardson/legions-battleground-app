@@ -111,7 +111,7 @@ export default function CardInner({
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging()
     })
-  }), [card]);
+  }), [card, cardTarget, zoneIndex, hidden]);
 
   const attackModifierExists = card.attackModifier !== undefined && card.attackModifier !== 0;
   const attackModifierNegative = attackModifierExists && (card.attackModifier || 0) < 0;

@@ -5,24 +5,30 @@ import Card from "../Card/Card";
 import { useAppSelector } from "@/client/redux/hooks";
 import { useEffect, useRef, useState } from "react";
 
-export default function DeckZone ({item, cardTarget, p1}: {item: CardState | null, cardTarget: CARD_TARGET, p1?: boolean}) {
+export default function DeckZone ({item, cardTarget}: {item: CardState | null, cardTarget: CARD_TARGET}) {
   const [shuffle, setShuffle] = useState(false);
   const gridItemRef = useRef<HTMLDivElement>(null);
   const gameState = useAppSelector((state) => state.gameState);
-  const {gameLog, p1PlayerDeck, p2PlayerDeck} = gameState;
-  const hidden = p1 ? cardTarget === CARD_TARGET.P2_PLAYER_DECK : cardTarget === CARD_TARGET.P1_PLAYER_DECK;
+  const clientGameState = useAppSelector((state) => state.clientGameState);
+  const clientSettings = useAppSelector((state) => state.clientSettings);
+  const { openHand } = clientSettings;
+  const { side } = clientGameState;
+  const p1 = side === "p1";
+  const {gameLog, p1PlayerDeck, p2PlayerDeck } = gameState;
+  const latestGameLogEntry = gameLog.length > 0 ? gameLog[gameLog.length - 1] : null;
+  const hidden = openHand ? false :( p1 ? cardTarget === CARD_TARGET.P2_PLAYER_DECK : cardTarget === CARD_TARGET.P1_PLAYER_DECK);
   const shuffleDeck = () => {
     setShuffle(true);
   }
   useEffect(() => {
-    if (gameLog.length > 0) {
-      if (gameLog[gameLog.length - 1].includes("shuffled")) {
-        if (gameLog[gameLog.length - 1].split("shuffled ")[1] === cardTarget) {
+    if (latestGameLogEntry) {
+      if (latestGameLogEntry.includes("shuffled")) {
+        if (latestGameLogEntry.split("shuffled ")[1] === cardTarget) {
           shuffleDeck();
         }
       }
     }
-  }, [gameLog, gameLog.length, cardTarget]);
+  }, [latestGameLogEntry, cardTarget]);
   const handleAnimationEnd = (e: React.AnimationEvent<HTMLDivElement>) => {
     if (e.animationName === "shuffle") setShuffle(false);
   }

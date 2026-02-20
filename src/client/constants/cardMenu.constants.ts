@@ -2,6 +2,61 @@ import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import MenuItemAction from '@/client/enums/MenuItemAction';
 import IMenuItem, { INewMenuItem } from '@/client/interfaces/IMenuItem';
 
+export const newDeckMenuItems: INewMenuItem[] = [
+  {
+    key: "0",
+    title: "draw",
+    icon: null,
+    menuAction: MenuItemAction.MOVE,
+    target: CARD_TARGET.CONTROLLER_HAND,
+    label: "Draw",
+  },
+  {
+    key: "1",
+    title: "mill",
+    icon: null,
+    menuAction: MenuItemAction.MOVE,
+    target: CARD_TARGET.CONTROLLER_DISCARD,
+    label: "Mill",
+  },
+  {
+    key: "2",
+    title: "eradicate",
+    icon: null,
+    menuAction: MenuItemAction.MOVE,
+    target: CARD_TARGET.CONTROLLER_ERADICATION,
+    label: "Eradicate",
+  },
+  {
+    key: "3",
+    title: "shuffle",
+    icon: null,
+    menuAction: MenuItemAction.SHUFFLE,
+    label: "Shuffle",
+  },
+  {
+    key: "4",
+    title: "view",
+    icon: null,
+    menuAction: MenuItemAction.VIEW,
+    label: "View",
+  },
+  {
+    key: "5",
+    title: "plunder",
+    icon: null,
+    menuAction: MenuItemAction.PLUNDER,
+    label: "Plunder"
+  },
+  {
+    key: "6",
+    title: "reveal",
+    icon: null,
+    menuAction: MenuItemAction.MOVE,
+    target: CARD_TARGET.CONTROLLER_REVEALED,
+    label: "Reveal",
+  }
+]
 export const newCardMenuItems: INewMenuItem[] = [
   {
     key: "0",

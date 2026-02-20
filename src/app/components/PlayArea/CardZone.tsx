@@ -26,6 +26,7 @@ export default function CardZone({ items, cardTarget, targetIndex, zoneName }: {
   cardTarget === CARD_TARGET.P1_PLAYER_TOKENS ||
   cardTarget === CARD_TARGET.P1_PLAYER_REVEALED ||
   cardTarget === CARD_TARGET.P2_PLAYER_REVEALED;
+
   return (
     <GridItem cardTarget={cardTarget} targetIndex={targetIndex} key={targetIndex}>
       {showPileSize && (

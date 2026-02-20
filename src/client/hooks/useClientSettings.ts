@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { setHoverMenu, setLegacyMenu, setTransparentOnBlur, setDeckbuildGroupedView } from "../redux/clientSettingsSlice";
+import { setHoverMenu, setLegacyMenu, setTransparentOnBlur, setDeckbuildGroupedView, setOpenHand } from "../redux/clientSettingsSlice";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
 
 export default function useClientSettings() {
   const dispatch = useAppDispatch();
   const clientSettings = useAppSelector((state) => state.clientSettings);
-  const { hoverMenu, legacyMenu, transparentOnBlur, deckbuild_groupedView } = clientSettings;
+  const { hoverMenu, legacyMenu, transparentOnBlur, deckbuild_groupedView, openHand } = clientSettings;
   const setHoverMenuSetting = (value: boolean) => {
     localStorage?.setItem('hoverMenu', value.toString());
     dispatch(setHoverMenu(value));
@@ -21,6 +21,9 @@ export default function useClientSettings() {
   const setDeckbuildGroupedViewSetting = (value: boolean) => {
     localStorage?.setItem('deckbuildGroupedView', value.toString());
     dispatch(setDeckbuildGroupedView(value));
+  }
+  const setOpenHandSetting = (value: boolean) => {
+    dispatch(setOpenHand(value));
   }
   useEffect(() => {
     const storedHoverMenu = localStorage?.getItem('hoverMenu');
@@ -41,5 +44,5 @@ export default function useClientSettings() {
       dispatch(setDeckbuildGroupedView(storedDeckbuildGroupedView === 'true'));
     }
   }, [dispatch]);
-  return { hoverMenu, legacyMenu, transparentOnBlur, deckbuild_groupedView, setHoverMenu: setHoverMenuSetting, setLegacyMenu: setLegacyMenuSetting, setTransparentOnBlur: setTransparentOnBlurSetting, setDeckbuildGroupedView: setDeckbuildGroupedViewSetting }
+  return { hoverMenu, legacyMenu, transparentOnBlur, deckbuild_groupedView, openHand, setHoverMenu: setHoverMenuSetting, setLegacyMenu: setLegacyMenuSetting, setTransparentOnBlur: setTransparentOnBlurSetting, setDeckbuildGroupedView: setDeckbuildGroupedViewSetting, setOpenHand: setOpenHandSetting }
 }
