@@ -32,8 +32,9 @@ class ImagePreloader {
     this.adjustForConnection();
   }
 
-  // Adjust behavior based on user's connection
+  // Adjust behavior based on user's connection (browser only; navigator is undefined during SSR)
   private adjustForConnection(): void {
+    if (typeof navigator === 'undefined') return;
     const nav = navigator as { connection?: NetworkInformation };
     const connection = nav.connection;
     
