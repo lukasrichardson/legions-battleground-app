@@ -19,6 +19,18 @@ This file tracks changes made on the UI tweaks branch for clear commit messages 
 
 **Reason:** Enables the app to run locally (e.g. localhost:3000) so UI work can proceed. No behavior change in the browser; purely an SSR safety fix.
 
+## 2025-02-24
+### Setup: Dev vs production database selection
+
+**File:** `src/server/utils/database.util.ts`
+
+**Change:** `getDatabase()` now chooses the database by environment:
+
+- **Development** (`NODE_ENV` not `production`, e.g. `npm run dev`): uses the `test` database.
+- **Production** (`npm start` / `NODE_ENV=production`): uses the `legions_battleground_db` database.
+
+**Reason:** Unblocks UI work by keeping dev data separate from production; local runs hit the test DB only.
+
 ---
 
 *(Add new entries above this line, newest first.)*
