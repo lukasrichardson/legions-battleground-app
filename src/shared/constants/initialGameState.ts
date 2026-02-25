@@ -40,7 +40,8 @@ export const initialGameState: GameStateData = {
   deckFromServer: null,
   p2DeckFromServer: null,
   p1DeckFromServer: null,
-  selectedCard: null,
+  p1SelectedCards: [],
+  p2SelectedCards: [],
   p2Viewing: null,
   p1Viewing: null,
 

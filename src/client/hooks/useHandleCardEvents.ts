@@ -1,16 +1,14 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { useAppDispatch } from "../redux/hooks";
 import { emitGameEvent } from "../utils/emitEvent";
 import { MouseEventHandler, useCallback } from "react";
-import { clearSelectedCard, decreaseAttackModifier, decreaseCooldown, decreaseOtherModifier, increaseAttackModifier, increaseCooldown, increaseOtherModifier, selectCard } from "../redux/gameStateSlice";
+import { decreaseAttackModifier, decreaseCooldown, decreaseOtherModifier, increaseAttackModifier, increaseCooldown, increaseOtherModifier, multiSelectCard, selectCard } from "../redux/gameStateSlice";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { CardState } from "@/shared/interfaces/CardState";
 import { setCardInFocus, clearCardInFocus } from "../redux/clientGameStateSlice";
 
 export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TARGET, hidden: boolean, inPileView: boolean, index?: number, zoneIndex?: number, faceUp?: boolean, p1?: boolean) {
   const dispatch = useAppDispatch();
-  const gameState = useAppSelector((state) => state.gameState);
-  const { selectedCard } = gameState;
   const cardOnP1Side = cardTarget.includes("p1");
   const cardOnClientSide = (cardOnP1Side && p1) || (!cardOnP1Side && !p1);
 
@@ -82,21 +80,23 @@ export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TA
 
   const handleCardRightClick: MouseEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
-    if (selectedCard?.id === card.id) {
-      dispatch(clearSelectedCard());
-      emitGameEvent({ type: GAME_EVENT.clearSelectedCard, data: null });
+    if (e.shiftKey) {
+      //multi select
+      dispatch(multiSelectCard({ card, side: p1 ? "p1" : "p2" }));
+      emitGameEvent({ type: GAME_EVENT.multiSelectCard, data: { card, side: p1 ? "p1" : "p2" } });
     } else {
-      dispatch(selectCard(card));
-      emitGameEvent({ type: GAME_EVENT.selectCard, data: card });
+      dispatch(selectCard({ card, side: p1 ? "p1" : "p2" }));
+      emitGameEvent({ type: GAME_EVENT.selectCard, data: { card, side: p1 ? "p1" : "p2" } });
     }
   }
 
-  const handleCardHover = () => {
+  const handleCardHover = useCallback(() => {
     if (!cardOnClientSide && !faceUp) return;
     if (hidden) return;
     if ([CARD_TARGET.P1_PLAYER_DECK, CARD_TARGET.P2_PLAYER_DECK].includes(cardTarget) && !inPileView) return;
     dispatch(setCardInFocus(card));
-  }
+  }, [cardOnClientSide, faceUp, hidden, cardTarget, inPileView, dispatch, card]);
+
 
   const handleCardBlur = () => {
     dispatch(clearCardInFocus());

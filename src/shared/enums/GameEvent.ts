@@ -7,7 +7,7 @@ export enum GAME_EVENT {
   changeP1AP = "changeP1AP",
   resetGame = "resetGame",
   selectCard = "selectCard",
-  clearSelectedCard = "clearSelectedCard",
+  multiSelectCard = "multiSelectCard",
   shuffleTargetPile = "shuffleTargetPile",
   flipCard = "flipCard",
   closeSetDecksModal = "closeSetDecksModal",

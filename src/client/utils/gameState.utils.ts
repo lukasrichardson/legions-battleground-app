@@ -57,19 +57,17 @@ export const moveCard_reducer = (state, action) => {
         state[target] = [...newStateTarget] as CardState[];
       }
     }
-
-    if (state.topXCards) {
-      state.topXCards = state.topXCards.filter(card => card.id !== removedToAdd.id);
-    }
   }
-  // state.gameLog = addGameLog(state.gameLog, `${playerName} ` + "moved: " + removedToAdd.name + " from: " + from + " to: " + target + (targetIndex != undefined ? " at index: " + targetIndex : ""));
 }
+
 export const changeP2Health_reducer = (state, action) => {
   state.p2PlayerHealth += action.payload;
 }
+
 export const changeP1Health_reducer = (state, action) => {
   state.p1PlayerHealth += action.payload;
 }
+
 export const changeP2AP_reducer = (state, action) => {
   state.p2PlayerAP += action.payload;
 }
@@ -77,12 +75,7 @@ export const changeP2AP_reducer = (state, action) => {
 export const changeP1AP_reducer = (state, action) => {
   state.p1PlayerAP += action.payload;
 }
-export const selectCard_reducer = (state, action) => {
-  state.selectedCard = action.payload;
-}
-export const clearSelectedCard_reducer = (state) => {
-  state.selectedCard = null;
-}
+
 export const flipCard_reducer = (state, action) => {
   const { cardTarget, cardIndex, zoneIndex }: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex: number } = action.payload;
   if (zoneIndex != undefined) {
@@ -91,6 +84,7 @@ export const flipCard_reducer = (state, action) => {
     (state[cardTarget][cardIndex] as CardState).faceUp = !(state[cardTarget][cardIndex] as CardState).faceUp;
   }
 }
+
 export const increaseAttackModifier_reducer = (state, action) => {
   const { cardTarget, cardIndex, zoneIndex }: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex: number } = action.payload;
   if (zoneIndex != undefined) {
@@ -99,6 +93,7 @@ export const increaseAttackModifier_reducer = (state, action) => {
     (state[cardTarget][cardIndex] as CardState).attackModifier += 1;
   }
 }
+
 export const decreaseAttackModifier_reducer = (state, action) => {
   const { cardTarget, cardIndex, zoneIndex }: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex: number } = action.payload;
   if (zoneIndex != undefined) {
@@ -116,6 +111,7 @@ export const increaseOtherModifier_reducer = (state, action) => {
     (state[cardTarget][cardIndex] as CardState).otherModifier += 1;
   }
 }
+
 export const decreaseOtherModifier_reducer = (state, action) => {
   const { cardTarget, cardIndex, zoneIndex }: { cardTarget: CARD_TARGET, cardIndex: number, zoneIndex: number } = action.payload;
   if (zoneIndex != undefined) {

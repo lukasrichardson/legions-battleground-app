@@ -39,7 +39,6 @@ const useCardGameState = (cardTarget: CARD_TARGET) => {
 
 interface CardInnerProps {
   card: CardState;
-  selected: boolean;
   faceUp: boolean;
   cardTarget: CARD_TARGET;
   cardMenuItems: IMenuItem[];
@@ -49,6 +48,8 @@ interface CardInnerProps {
   hidden?: boolean;
   index?: number;
   zoneIndex?: number;
+  p1Selected?: boolean;
+  p2Selected?: boolean;
   handlePopoverVisibleChange: () => void;
   onMenuItemClick?: (items: IMenuItem[], key: string | number) => void;
   handleCardHover?: () => void;
@@ -68,7 +69,6 @@ interface CardInnerProps {
 
 export default function CardInner({
   card,
-  selected,
   faceUp,
   cardTarget,
   cardMenuItems,
@@ -78,6 +78,8 @@ export default function CardInner({
   focused,
   index,
   zoneIndex,
+  p1Selected,
+  p2Selected,
   handlePopoverVisibleChange,
   onMenuItemClick,
   handleCardHover,
@@ -101,8 +103,10 @@ export default function CardInner({
   const rotated = p1Side ? (!p1Card && !inPileView) : (p1Card && !inPileView);
 
   const { handleHealthDecrease, handleHealthIncrease, handleAPDecrease, handleAPIncrease } = useHandlePlayerEvents(p1Card);
-  // Reset loading state when image source changes
-  const imageSrc = !faceUp ? back_of_card : card.img;
+
+  const imageSrc = useMemo(() => {
+    return !faceUp ? back_of_card : card.img;
+  }, [faceUp, card.img]);
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "card",
@@ -147,7 +151,10 @@ export default function CardInner({
 
   const cardStyles = useMemo(() => {
     const baseStyle = {
-      border: selected ? "thick orange dashed" : "none",
+      borderTop: (p1Selected && p2Selected) ? "thick green dashed" : p1Selected ? "thick green dashed" : p2Selected ? "thick red dashed" : "",
+      borderRight: (p1Selected && p2Selected) ? "thick green dashed" : p1Selected ? "thick green dashed" : p2Selected ? "thick red dashed" : "",
+      borderBottom: (p1Selected && p2Selected) ? "thick red dashed" : p1Selected ? "thick green dashed" : p2Selected ? "thick red dashed" : "",
+      borderLeft: (p1Selected && p2Selected) ? "thick red dashed" : p1Selected ? "thick green dashed" : p2Selected ? "thick red dashed" : "",
       boxSizing: "content-box" as const,
       scale: rotated ? -1 : 1,
       ['--index' as string]: index,
@@ -160,7 +167,7 @@ export default function CardInner({
       };
     }
     return { ...baseStyle, marginLeft: 0, marginTop: 0 };
-  }, [selected, rotated, inPileView, cardInView, index]);
+  }, [rotated, inPileView, cardInView, index, p1Selected, p2Selected]);
 
   const cardClasses = useMemo(() => [
     "h-[100px]",
@@ -176,6 +183,11 @@ export default function CardInner({
 
   return (
     <Popover
+    styles={{
+      container: {
+        padding: 0,
+      }
+    }}
       content={<CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} />}
       title={null}
       trigger={clientSettings.hoverMenu ? ["click", "contextMenu", "hover"] : ["click", "contextMenu"]}
