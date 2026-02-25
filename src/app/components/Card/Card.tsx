@@ -22,6 +22,7 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
   const { p1SelectedCards, p2SelectedCards } = gameState;
   const dispatch = useAppDispatch();
   const { legacyMenu } = useAppSelector((state) => state.clientSettings);
+  const cardPileZone = gameState[cardTarget];
 
   const handlePopoverVisibleChange = () => {
     if (hidden) return;
@@ -184,13 +185,13 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
       case MenuItemAction.VIEW_TOP_X:
         const viewXChild = menuItemClicked?.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key));
         emitGameEvent({ type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: viewXChild?.title } })
-        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewXChild?.title, pile: gameState[cardTarget] }));
+        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewXChild?.title, pile: cardPileZone }));
         closePopover();
         break;
       case MenuItemAction.VIEW_BOTTOM_X:
         const viewBottomXChild = menuItemClicked?.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key));
         emitGameEvent({ type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: viewBottomXChild?.title, bottom: true } })
-        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewBottomXChild?.title, bottom: true, pile: gameState[cardTarget] }));
+        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewBottomXChild?.title, bottom: true, pile: cardPileZone }));
         closePopover();
         break;
       case MenuItemAction.SHUFFLE:
@@ -209,7 +210,7 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
       default:
         break;
     }
-  }, [card, cardTarget, dispatch, index, zoneIndex, p1]);
+  }, [card, cardTarget, dispatch, index, zoneIndex, p1, cardPileZone]);
 
   const newcardMenuItemsFiltered = useMemo(() => {
     if (cardTarget.includes("Deck")) {

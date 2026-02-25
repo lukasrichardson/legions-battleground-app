@@ -61,7 +61,7 @@ const clientGameStateSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addMatcher(moveCard.match, (state, action) => {
-      // remove card from topXCards if its move anywhere
+      // remove card from topXCards if its moved anywhere
       const { id }: { id: string } = action.payload;
       if (state.topXCards) {
         state.topXCards = state.topXCards.filter(card => card.id !== id);
