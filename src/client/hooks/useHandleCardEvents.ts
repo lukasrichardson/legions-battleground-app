@@ -1,13 +1,15 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { useAppDispatch } from "../redux/hooks";
 import { emitGameEvent } from "../utils/emitEvent";
-import { MouseEventHandler, useCallback } from "react";
+import { MouseEventHandler, useCallback, useState } from "react";
 import { decreaseAttackModifier, decreaseCooldown, decreaseOtherModifier, increaseAttackModifier, increaseCooldown, increaseOtherModifier, multiSelectCard, selectCard } from "../redux/gameStateSlice";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { CardState } from "@/shared/interfaces/CardState";
 import { setCardInFocus, clearCardInFocus } from "../redux/clientGameStateSlice";
 
 export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TARGET, hidden: boolean, inPileView: boolean, index?: number, zoneIndex?: number, faceUp?: boolean, p1?: boolean) {
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  
   const dispatch = useAppDispatch();
   const cardOnP1Side = cardTarget.includes("p1");
   const cardOnClientSide = (cardOnP1Side && p1) || (!cardOnP1Side && !p1);
@@ -94,12 +96,19 @@ export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TA
     if (!cardOnClientSide && !faceUp) return;
     if (hidden) return;
     if ([CARD_TARGET.P1_PLAYER_DECK, CARD_TARGET.P2_PLAYER_DECK].includes(cardTarget) && !inPileView) return;
-    dispatch(setCardInFocus(card));
+    const timeoutId = setTimeout(() => {
+      dispatch(setCardInFocus(card));
+    }, 80);
+    setTimeoutId(timeoutId);
   }, [cardOnClientSide, faceUp, hidden, cardTarget, inPileView, dispatch, card]);
 
 
   const handleCardBlur = () => {
     dispatch(clearCardInFocus());
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      setTimeoutId(null);
+    }
   }
 
   return {
