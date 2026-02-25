@@ -7,7 +7,9 @@ export async function middleware(req: NextRequest) {
 	const isAuth = !!token;
 
 	const { pathname } = req.nextUrl;
-	const protectedPaths = [/^\/play(\/.*)?$/, /^\/decks(\/.*)?$/];
+  const localProtectedPaths = [/^\/decks(\/.*)?$/];
+	const prodProtectedPaths = [/^\/play(\/.*)?$/, /^\/decks(\/.*)?$/];
+  const protectedPaths = process.env.NODE_ENV === "production" ? prodProtectedPaths : localProtectedPaths;
 	const isProtected = protectedPaths.some((rx) => rx.test(pathname));
 
 	if (isProtected && !isAuth) {
