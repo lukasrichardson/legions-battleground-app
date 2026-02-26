@@ -212,23 +212,25 @@ export default function CardInner({
               />
             </>
           ) : <span>{card?.name}</span>}
-          {!isDragging && <>{(!cardInView && index === 0 && faceUp) && <>
-            <div className={`absolute top-0 right-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
-              {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseAttackModifier?.() }}>↓</span>}
-              {(attackModifierExists || focused) && <span className=" mx-auto">{attackModifierExists && <span>{attackModifierNegative ? "" : "+"}{card.attackModifier}</span>}atk</span>}
-              {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseAttackModifier?.() }}>↑</span>}
-            </div>
-            <div className={`absolute bottom-0 left-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
-              {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseOtherModifier?.() }}>↓</span>}
-              {(otherModifierExists || focused) && <span className="mx-auto">cnt{otherModifierExists && <span>{card.otherModifier}</span>}</span>}
-              {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseOtherModifier?.() }}>↑</span>}
-            </div>
-
-          </>}
-            {hasCooldown && renderCardAddOn((e) => { e?.stopPropagation(); handleDecreaseCooldown?.() }, (e) => { e?.stopPropagation(); handleIncreaseCooldown?.() }, `CD ${card.cooldown}`, false, isOnPlayersSide)}
-            {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true, isOnPlayersSide)}
-            {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false, isOnPlayersSide)}
-          </>}
+          {!isDragging && (
+            <>{(!cardInView && index === 0 && faceUp) && (
+              <>
+                <div className={`absolute top-0 right-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
+                  {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseAttackModifier?.() }}>↓</span>}
+                  {(attackModifierExists || focused) && <span className=" mx-auto">{attackModifierExists && <span>{attackModifierNegative ? "" : "+"}{card.attackModifier}</span>}atk</span>}
+                  {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseAttackModifier?.() }}>↑</span>}
+                </div>
+                <div className={`absolute bottom-0 left-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
+                  {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseOtherModifier?.() }}>↓</span>}
+                  {(otherModifierExists || focused) && <span className="mx-auto">cnt{otherModifierExists && <span>{card.otherModifier}</span>}</span>}
+                  {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseOtherModifier?.() }}>↑</span>}
+                </div>
+              </>
+            )}
+              {hasCooldown && renderCardAddOn((e) => { e?.stopPropagation(); handleDecreaseCooldown?.() }, (e) => { e?.stopPropagation(); handleIncreaseCooldown?.() }, `CD ${card.cooldown}`, false, isOnPlayersSide)}
+              {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true, isOnPlayersSide)}
+              {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false, isOnPlayersSide)}
+            </>)}
         </div>)}
     </Popover>
   )
