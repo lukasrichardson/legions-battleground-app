@@ -44,7 +44,8 @@ export interface GameStateData {
   deckFromServer: DeckResponse | null;
   p2DeckFromServer: DeckResponse | null;
   p1DeckFromServer: DeckResponse | null;
-  selectedCard: CardState | null;
+  p1SelectedCards: CardState[];
+  p2SelectedCards: CardState[];
   p2Viewing: string | null;
   p1Viewing: string | null;
   currentPhase: PreGamePhase | GamePhase;

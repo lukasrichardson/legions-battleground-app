@@ -19,9 +19,10 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
   const clientGameState = useAppSelector((state) => state.clientGameState);
   const { side, cardInFocus } = clientGameState;
   const p1 = side === "p1";
-  const { selectedCard } = gameState;
+  const { p1SelectedCards, p2SelectedCards } = gameState;
   const dispatch = useAppDispatch();
   const { legacyMenu } = useAppSelector((state) => state.clientSettings);
+  const cardPileZone = gameState[cardTarget];
 
   const handlePopoverVisibleChange = () => {
     if (hidden) return;
@@ -184,13 +185,13 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
       case MenuItemAction.VIEW_TOP_X:
         const viewXChild = menuItemClicked?.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key));
         emitGameEvent({ type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: viewXChild?.title } })
-        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewXChild?.title }));
+        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewXChild?.title, pile: cardPileZone }));
         closePopover();
         break;
       case MenuItemAction.VIEW_BOTTOM_X:
         const viewBottomXChild = menuItemClicked?.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key));
         emitGameEvent({ type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: viewBottomXChild?.title, bottom: true } })
-        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewBottomXChild?.title, bottom: true }));
+        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewBottomXChild?.title, bottom: true, pile: cardPileZone }));
         closePopover();
         break;
       case MenuItemAction.SHUFFLE:
@@ -209,7 +210,7 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
       default:
         break;
     }
-  }, [card, cardTarget, dispatch, index, zoneIndex, p1]);
+  }, [card, cardTarget, dispatch, index, zoneIndex, p1, cardPileZone]);
 
   const newcardMenuItemsFiltered = useMemo(() => {
     if (cardTarget.includes("Deck")) {
@@ -234,11 +235,15 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
     return card.faceUp === undefined ? true : card.faceUp;
   }, [card, hidden, cardTarget, inPileView]);
 
-  const selected = useMemo(() => {
-    return selectedCard?.id === card.id;
-  }, [selectedCard?.id, card.id]);
+  const isP1Selected = useMemo(() => {
+    return p1SelectedCards?.find(c => c.id === card.id) ? true : false;
+  }, [p1SelectedCards, card.id]);
 
-  const focused = cardInFocus?.id === card.id;
+  const isP2Selected = useMemo(() => {
+    return p2SelectedCards?.find(c => c.id === card.id) ? true : false;
+  }, [p2SelectedCards, card.id]);
+
+  const focused = useMemo(() => cardInFocus?.id === card.id, [cardInFocus, card.id]);
 
   const {
     handleDecreaseCooldown,
@@ -255,7 +260,8 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
   return (
     <CardInner
       card={card}
-      selected={selected}
+      p1Selected={isP1Selected}
+      p2Selected={isP2Selected}
       faceUp={faceUp}
       cardTarget={cardTarget}
       cardMenuItems={legacyMenu ? legacycardMenuItemsFiltered : newcardMenuItemsFiltered}

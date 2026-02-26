@@ -39,7 +39,6 @@ const useCardGameState = (cardTarget: CARD_TARGET) => {
 
 interface CardInnerProps {
   card: CardState;
-  selected: boolean;
   faceUp: boolean;
   cardTarget: CARD_TARGET;
   cardMenuItems: IMenuItem[];
@@ -49,6 +48,8 @@ interface CardInnerProps {
   hidden?: boolean;
   index?: number;
   zoneIndex?: number;
+  p1Selected?: boolean;
+  p2Selected?: boolean;
   handlePopoverVisibleChange: () => void;
   onMenuItemClick?: (items: IMenuItem[], key: string | number) => void;
   handleCardHover?: () => void;
@@ -68,7 +69,6 @@ interface CardInnerProps {
 
 export default function CardInner({
   card,
-  selected,
   faceUp,
   cardTarget,
   cardMenuItems,
@@ -78,6 +78,8 @@ export default function CardInner({
   focused,
   index,
   zoneIndex,
+  p1Selected,
+  p2Selected,
   handlePopoverVisibleChange,
   onMenuItemClick,
   handleCardHover,
@@ -92,17 +94,19 @@ export default function CardInner({
 }: CardInnerProps) {
   const gameState = useCardGameState(cardTarget);
   const clientSettings = useAppSelector(state => state.clientSettings);
-  
+
   const { p1Side, p1Card, playerHealth, playerAP } = gameState;
   const pileOfCard = (zoneIndex || zoneIndex === 0) ? gameState[cardTarget as keyof typeof gameState][zoneIndex] as CardState[] | undefined : gameState[cardTarget as keyof typeof gameState] as CardState[] | undefined;
   const inPileOfMinTwo = pileOfCard && pileOfCard.length >= 2;
- 
-  
+
+
   const rotated = p1Side ? (!p1Card && !inPileView) : (p1Card && !inPileView);
 
   const { handleHealthDecrease, handleHealthIncrease, handleAPDecrease, handleAPIncrease } = useHandlePlayerEvents(p1Card);
-  // Reset loading state when image source changes
-  const imageSrc = !faceUp ? back_of_card : card.img;
+
+  const imageSrc = useMemo(() => {
+    return !faceUp ? back_of_card : card.img;
+  }, [faceUp, card.img]);
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "card",
@@ -147,7 +151,10 @@ export default function CardInner({
 
   const cardStyles = useMemo(() => {
     const baseStyle = {
-      border: selected ? "thick orange dashed" : "none",
+      borderTop: (p1Selected && p2Selected) ? "thick green dashed" : p1Selected ? "thick green dashed" : p2Selected ? "thick red dashed" : "",
+      borderRight: (p1Selected && p2Selected) ? "thick green dashed" : p1Selected ? "thick green dashed" : p2Selected ? "thick red dashed" : "",
+      borderBottom: (p1Selected && p2Selected) ? "thick red dashed" : p1Selected ? "thick green dashed" : p2Selected ? "thick red dashed" : "",
+      borderLeft: (p1Selected && p2Selected) ? "thick red dashed" : p1Selected ? "thick green dashed" : p2Selected ? "thick red dashed" : "",
       boxSizing: "content-box" as const,
       scale: rotated ? -1 : 1,
       ['--index' as string]: index,
@@ -160,7 +167,7 @@ export default function CardInner({
       };
     }
     return { ...baseStyle, marginLeft: 0, marginTop: 0 };
-  }, [selected, rotated, inPileView, cardInView, index]);
+  }, [rotated, inPileView, cardInView, index, p1Selected, p2Selected]);
 
   const cardClasses = useMemo(() => [
     "h-[100px]",
@@ -176,6 +183,11 @@ export default function CardInner({
 
   return (
     <Popover
+      styles={{
+        container: {
+          padding: 0,
+        }
+      }}
       content={<CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} />}
       title={null}
       trigger={clientSettings.hoverMenu ? ["click", "contextMenu", "hover"] : ["click", "contextMenu"]}
@@ -198,24 +210,27 @@ export default function CardInner({
                 alt={card?.name || "Card Image"}
                 className="object-contain transition-transform duration-200 group-hover:scale-[1.03] w-full h-full"
               />
-              </>
+            </>
           ) : <span>{card?.name}</span>}
-          {(!cardInView && index === 0 && faceUp) && <>
-            <div className={`absolute top-0 right-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
-              {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseAttackModifier?.() }}>↓</span>}
-              {(attackModifierExists || focused) && <span className=" mx-auto">{attackModifierExists && <span>{attackModifierNegative ? "" : "+"}{card.attackModifier}</span>}atk</span>}
-              {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseAttackModifier?.() }}>↑</span>}
-            </div>
-            <div className={`absolute bottom-0 left-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
-              {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseOtherModifier?.() }}>↓</span>}
-              {(otherModifierExists || focused) && <span className="mx-auto">cnt{otherModifierExists && <span>{card.otherModifier}</span>}</span>}
-              {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseOtherModifier?.() }}>↑</span>}
-            </div>
-
-          </>}
-          {hasCooldown && renderCardAddOn((e) =>{e?.stopPropagation();handleDecreaseCooldown?.()}, (e) => {e?.stopPropagation();handleIncreaseCooldown?.()}, `CD ${card.cooldown}`, false, isOnPlayersSide)}
-          {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true, isOnPlayersSide)}
-          {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false, isOnPlayersSide)}
+          {!isDragging && (
+            <>{(!cardInView && index === 0 && faceUp) && (
+              <>
+                <div className={`absolute top-0 right-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
+                  {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseAttackModifier?.() }}>↓</span>}
+                  {(attackModifierExists || focused) && <span className=" mx-auto">{attackModifierExists && <span>{attackModifierNegative ? "" : "+"}{card.attackModifier}</span>}atk</span>}
+                  {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseAttackModifier?.() }}>↑</span>}
+                </div>
+                <div className={`absolute bottom-0 left-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
+                  {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseOtherModifier?.() }}>↓</span>}
+                  {(otherModifierExists || focused) && <span className="mx-auto">cnt{otherModifierExists && <span>{card.otherModifier}</span>}</span>}
+                  {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseOtherModifier?.() }}>↑</span>}
+                </div>
+              </>
+            )}
+              {hasCooldown && renderCardAddOn((e) => { e?.stopPropagation(); handleDecreaseCooldown?.() }, (e) => { e?.stopPropagation(); handleIncreaseCooldown?.() }, `CD ${card.cooldown}`, false, isOnPlayersSide)}
+              {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true, isOnPlayersSide)}
+              {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false, isOnPlayersSide)}
+            </>)}
         </div>)}
     </Popover>
   )

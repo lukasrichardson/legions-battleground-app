@@ -11,6 +11,7 @@ import { drawCardP1, drawCardP2, STARTING_HAND_SIZE } from "../utils/game.util";
 import { renderNumberthSuffix } from "../utils/string.utils";
 import { goNextPhase } from "../events/playerEvents";
 import { GameStateData } from "@/shared/interfaces/GameState";
+import { multiSelectCardHelper, selectCardHelper } from "@/shared/utils";
 
 export class CardService {
 
@@ -73,13 +74,26 @@ export class CardService {
     return games[roomId];
   }
 
-  selectCard(roomId: string, action: CardState): GameStateData {
-    games[roomId].selectedCard = action;
+  selectCard(roomId: string, action: { card: CardState; side: "p1" | "p2" }): GameStateData {
+    const { card, side } = action;
+    const p1 = side === "p1";
+    if (p1) {
+      games[roomId].p1SelectedCards = selectCardHelper(games[roomId].p1SelectedCards, card);
+    } else {
+      games[roomId].p2SelectedCards = selectCardHelper(games[roomId].p2SelectedCards, card);
+    }
+
     return games[roomId];
   }
 
-  clearSelectedCard(roomId: string): GameStateData {
-    games[roomId].selectedCard = null;
+  multiSelectCard(roomId: string, action: { card: CardState; side: "p1" | "p2" }): GameStateData {
+    const { card, side } = action;
+    const p1 = side === "p1";
+    if (p1) {
+      games[roomId].p1SelectedCards = multiSelectCardHelper(games[roomId].p1SelectedCards, card);
+    } else {
+      games[roomId].p2SelectedCards = multiSelectCardHelper(games[roomId].p2SelectedCards, card);
+    }
     return games[roomId];
   }
 

@@ -121,9 +121,9 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
           "border-gray-300",
           "hover:scale-[1.02]",
           "mx-1",
-          isOver && canDrop ? "border-green-400 bg-green-400/10 scale-[1.02]" : "",
+          isOver && canDrop ? "border-green-400 bg-green-400/50 scale-[1.02]" : "",
           isOver && !canDrop ? "border-red-400 bg-red-400/10" : "",
-          canDrop && !isOver ? "border-blue-400/50" : "",
+          canDrop && !isOver ? "border-green-400 bg-blue-400/10" : "",
         ].join(" ")}
       >
         {children}

@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { CardState } from "@/shared/interfaces/CardState";
+import { moveCard } from "./gameStateSlice";
 
 const clientGameStateSlice = createSlice({
   name: "clientGameState",
@@ -20,9 +21,6 @@ const clientGameStateSlice = createSlice({
     clearCardInFocus: (state) => {
       state.cardInFocus = null;
     },
-    setPileInViewLimit: (state, action) => {
-      state.pileInViewLimit = action.payload;
-    },
     setTopXCards: (state, action) => {
       state.topXCards = action.payload;
     },
@@ -37,15 +35,17 @@ const clientGameStateSlice = createSlice({
     },
     setPileInView: (state, action) => {
       const { cardTarget, targetIndex, limit, bottom, pile } = action.payload;
+      console.log("Setting pile in view with payload:", action.payload);
       state.pileInViewTarget = cardTarget;
       state.pileInViewLimit = limit || null;
-      if (targetIndex != undefined) {
-        state.pileInViewIndex = targetIndex;
+      state.pileInViewIndex = targetIndex || null;
+      if (!pile) return;
+      if (targetIndex !== undefined && targetIndex !== null) {
         if (limit) {
           if (bottom) {
-            state.topXCards = pile ? pile.slice(-limit) as CardState[] : null;
+            state.topXCards = pile[targetIndex] ? pile[targetIndex].slice(-limit) as CardState[] : null;
           } else {
-            state.topXCards = pile ? pile.slice(0, limit) as CardState[] : null;
+            state.topXCards = pile[targetIndex] ? pile[targetIndex].slice(0, limit) as CardState[] : null;
           }
         }
       } else {
@@ -58,13 +58,21 @@ const clientGameStateSlice = createSlice({
         }
       }
     }
+  },
+  extraReducers: (builder) => {
+    builder.addMatcher(moveCard.match, (state, action) => {
+      // remove card from topXCards if its moved anywhere
+      const { id }: { id: string } = action.payload;
+      if (state.topXCards) {
+        state.topXCards = state.topXCards.filter(card => card.id !== id);
+      }
+    })
   }
 })
 
 export const {
   setCardInFocus,
   clearCardInFocus,
-  setPileInViewLimit,
   setTopXCards,
   setSide,
   clearPileInView,

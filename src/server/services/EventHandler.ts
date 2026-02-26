@@ -31,13 +31,13 @@ export class EventHandler {
           return;
         }
         case GAME_EVENT.selectCard: {
-          const gameState = this.cardService.selectCard(roomId, data as CardState);
+          const gameState = this.cardService.selectCard(roomId, data as { card: CardState; side: "p1" | "p2" });
           io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
           io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
           return;
         }
-        case GAME_EVENT.clearSelectedCard: {
-          const gameState = this.cardService.clearSelectedCard(roomId);
+        case GAME_EVENT.multiSelectCard: {
+          const gameState = this.cardService.multiSelectCard(roomId, data as { card: CardState; side: "p1" | "p2" });
           io.to(roomId).emit("gameEvent", { type: eventType, data: gameState });
           io.to(roomId).emit("phaseEvent", { type: eventType, data: gameState });
           return;

@@ -59,9 +59,9 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
         "relative flex justify-center w-full",
         "h-[10%]",
         !playerHand ? "-translate-y-[20%]" : "",
-        isOver && canDrop ? "border-green-400 bg-green-400/10 scale-[1.02]" : "",
+        isOver && canDrop ? "border-green-400 bg-green-400/50 scale-[1.02]" : "",
         isOver && !canDrop ? "border-red-400 bg-red-400/10" : "",
-        canDrop && !isOver ? "border-blue-400/50" : "",
+        canDrop && !isOver ? "border border-green-400/50 bg-blue-400/10" : "",
       ].join(" ")}
       >
         {(viewing && viewing != "null") && (
