@@ -50,8 +50,7 @@ export default function CardImage({
         className={className}
         style={{ 
           width: '100%', 
-          height: '100%', 
-          pointerEvents: "none"
+          height: '100%'
         }}
         fill
         src={src}

@@ -94,12 +94,12 @@ export default function CardInner({
 }: CardInnerProps) {
   const gameState = useCardGameState(cardTarget);
   const clientSettings = useAppSelector(state => state.clientSettings);
-  
+
   const { p1Side, p1Card, playerHealth, playerAP } = gameState;
   const pileOfCard = (zoneIndex || zoneIndex === 0) ? gameState[cardTarget as keyof typeof gameState][zoneIndex] as CardState[] | undefined : gameState[cardTarget as keyof typeof gameState] as CardState[] | undefined;
   const inPileOfMinTwo = pileOfCard && pileOfCard.length >= 2;
- 
-  
+
+
   const rotated = p1Side ? (!p1Card && !inPileView) : (p1Card && !inPileView);
 
   const { handleHealthDecrease, handleHealthIncrease, handleAPDecrease, handleAPIncrease } = useHandlePlayerEvents(p1Card);
@@ -183,11 +183,11 @@ export default function CardInner({
 
   return (
     <Popover
-    styles={{
-      container: {
-        padding: 0,
-      }
-    }}
+      styles={{
+        container: {
+          padding: 0,
+        }
+      }}
       content={<CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} />}
       title={null}
       trigger={clientSettings.hoverMenu ? ["click", "contextMenu", "hover"] : ["click", "contextMenu"]}
@@ -210,9 +210,9 @@ export default function CardInner({
                 alt={card?.name || "Card Image"}
                 className="object-contain transition-transform duration-200 group-hover:scale-[1.03] w-full h-full"
               />
-              </>
+            </>
           ) : <span>{card?.name}</span>}
-          {(!cardInView && index === 0 && faceUp) && <>
+          {!isDragging && <>{(!cardInView && index === 0 && faceUp) && <>
             <div className={`absolute top-0 right-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
               {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseAttackModifier?.() }}>↓</span>}
               {(attackModifierExists || focused) && <span className=" mx-auto">{attackModifierExists && <span>{attackModifierNegative ? "" : "+"}{card.attackModifier}</span>}atk</span>}
@@ -225,9 +225,10 @@ export default function CardInner({
             </div>
 
           </>}
-          {hasCooldown && renderCardAddOn((e) =>{e?.stopPropagation();handleDecreaseCooldown?.()}, (e) => {e?.stopPropagation();handleIncreaseCooldown?.()}, `CD ${card.cooldown}`, false, isOnPlayersSide)}
-          {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true, isOnPlayersSide)}
-          {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false, isOnPlayersSide)}
+            {hasCooldown && renderCardAddOn((e) => { e?.stopPropagation(); handleDecreaseCooldown?.() }, (e) => { e?.stopPropagation(); handleIncreaseCooldown?.() }, `CD ${card.cooldown}`, false, isOnPlayersSide)}
+            {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true, isOnPlayersSide)}
+            {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false, isOnPlayersSide)}
+          </>}
         </div>)}
     </Popover>
   )
