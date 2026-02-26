@@ -1,6 +1,6 @@
 "use client";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
-import { closePlunderModal, closeSetDecksModal } from "@/client/redux/modalsSlice";
+import { closePlunderModal, closeSetDecksModal, closeToolsSettingsModal } from "@/client/redux/modalsSlice";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import PlayArea from "@/app/components/PlayArea/PlayArea";
@@ -13,6 +13,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import HelpModal from "../components/Modals/HelpModal";
 import PlunderModal from "../components/Modals/PlunderModal";
 import Modal from "../components/Modals/Modal";
+import ToolsSettingsModal from "../components/Modals/ToolsSettingsModal";
 import { PreGamePhase } from "@/client/redux/phaseSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
@@ -40,6 +41,9 @@ function Page() {
   }
   const handleClosePlunderModal = () => {
     dispatch(closePlunderModal());
+  }
+  const handleCloseToolsSettingsModal = () => {
+    dispatch(closeToolsSettingsModal());
   }
 
   useEffect(() => {
@@ -342,6 +346,7 @@ function Page() {
           <PlayArea />
           <CardPileModal closeModal={closePileInView} />
           <SetDecksModal closeModal={handleCloseSetDecksModal} />
+          <ToolsSettingsModal closeModal={handleCloseToolsSettingsModal} />
           <HelpModal />
           <PlunderModal
             closeModal={handleClosePlunderModal}

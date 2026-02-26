@@ -31,6 +31,51 @@ This file tracks changes made on the UI tweaks branch for clear commit messages 
 
 **Reason:** Unblocks UI work by keeping dev data separate from production; local runs hit the test DB only.
 
+## 2026-02-26
+
+### UI: Active game sidebar controls + tools modal refresh
+
+**Files:**  
+`src/app/components/PlayArea/Toolbar.tsx`  
+`src/app/components/Modals/ToolsSettingsModal.tsx`  
+`src/app/components/AppIcon.tsx`  
+`src/client/redux/modalsSlice.ts`  
+`src/app/play/page.tsx`
+
+**Change:** Reworked the bottom controls in the in-game left sidebar into 3 rows and moved utility actions/settings into a dedicated modal.
+
+- **Row 1 (icon-only):** Tools & Settings, Roll D6, Help
+- **Row 2:** Mulligan, dynamic Switch button (`Switch to P1` / `Switch to P2`)
+- **Row 3:** full-width Leave Game
+- Added new `Tools & Settings` modal using existing modal infrastructure (no new modal library)
+- Modal **Tools** section: Change Deck(s), Edit Deck, Reset Game
+- Modal **Settings** section: Show Menu On Hover, Use Legacy Menu, Transparent Card Modals, Open Hand
+- Added explicit modal `Close` button
+- Preserved all original button/toggle functionality and event wiring
+
+**Reason:** Improves control hierarchy and reduces sidebar clutter while keeping all existing gameplay actions available.
+
+### UI: Icons, hover labels, chat input, and scrollbar polish
+
+**Files:**  
+`src/app/components/PlayArea/Toolbar.tsx`  
+`src/app/components/Modals/ToolsSettingsModal.tsx`  
+`src/app/components/Card/CardPreview.tsx`  
+`src/app/globals.css`  
+`src/app/components/AppIcon.tsx`
+
+**Change:** Added lightweight icon support and improved sidebar readability/scroll behavior.
+
+- Added reusable `AppIcon` wrapper based on existing `lucide-react` dependency
+- Introduced color-coded action button styles for faster visual scanning
+- Reused app tooltip system (`antd`) for button hover labels
+- Icon-only top-row buttons now show text on hover via tooltip
+- Restyled chat box to be visually clearer and usable (larger height, padding, focus treatment)
+- Removed horizontal scrolling in selected-card text preview (`overflow-x-hidden` + wrapping)
+- Added dark semi-transparent custom scrollbar style (`.sidebar-scrollbar`) and applied to sidebar scroll areas
+
+**Reason:** Increases usability on narrow sidebars/mobile-like widths and makes frequent actions easier to identify and interact with.
+
 ---
 
 *(Add new entries above this line, newest first.)*

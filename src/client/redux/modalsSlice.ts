@@ -5,6 +5,7 @@ interface ModalsState {
   joinRoomModalOpen: string;
   setDecksModalOpen: boolean;
   helpModalOpen: boolean;
+  toolsSettingsModalOpen: boolean;
   plunderModalOpen: boolean;
   previewDeckModalOpen: boolean;
   importDeckModalOpen: boolean;
@@ -15,6 +16,7 @@ const initialState: ModalsState = {
   joinRoomModalOpen: null,
   setDecksModalOpen: false,
   helpModalOpen: false,
+  toolsSettingsModalOpen: false,
   plunderModalOpen: false,
   previewDeckModalOpen: false,
   importDeckModalOpen: false
@@ -41,6 +43,12 @@ const modalsSlice = createSlice({
     },
     closeHelpModal(state) {
       state.helpModalOpen = false;
+    },
+    openToolsSettingsModal(state) {
+      state.toolsSettingsModalOpen = true;
+    },
+    closeToolsSettingsModal(state) {
+      state.toolsSettingsModalOpen = false;
     },
     openPlunderModal(state) {
       state.plunderModalOpen = true;
@@ -70,6 +78,8 @@ export const {
   openSetDecksModal,
   openHelpModal,
   closeHelpModal,
+  openToolsSettingsModal,
+  closeToolsSettingsModal,
   openPlunderModal,
   closePlunderModal,
   openPreviewDeckModal,
