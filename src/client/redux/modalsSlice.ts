@@ -3,7 +3,6 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 interface ModalsState {
   createRoomModalOpen: boolean;
   joinRoomModalOpen: string;
-  setDecksModalOpen: boolean;
   helpModalOpen: boolean;
   toolsSettingsModalOpen: boolean;
   plunderModalOpen: boolean;
@@ -14,7 +13,6 @@ interface ModalsState {
 const initialState: ModalsState = {
   createRoomModalOpen: false,
   joinRoomModalOpen: null,
-  setDecksModalOpen: false,
   helpModalOpen: false,
   toolsSettingsModalOpen: false,
   plunderModalOpen: false,
@@ -31,12 +29,6 @@ const modalsSlice = createSlice({
     },
     setJoinRoomModalOpen: (state, action: PayloadAction<string|null>) => {
       state.joinRoomModalOpen = action.payload;
-    },
-    closeSetDecksModal(state) {
-      state.setDecksModalOpen = false;
-    },
-    openSetDecksModal(state) {
-      state.setDecksModalOpen = true;
     },
     openHelpModal(state) {
       state.helpModalOpen = true;
@@ -74,8 +66,6 @@ const modalsSlice = createSlice({
 export const {
   setCreateRoomModalOpen,
   setJoinRoomModalOpen,
-  closeSetDecksModal,
-  openSetDecksModal,
   openHelpModal,
   closeHelpModal,
   openToolsSettingsModal,

@@ -10,8 +10,6 @@ export enum GAME_EVENT {
   multiSelectCard = "multiSelectCard",
   shuffleTargetPile = "shuffleTargetPile",
   flipCard = "flipCard",
-  closeSetDecksModal = "closeSetDecksModal",
-  openSetDecksModal = "openSetDecksModal",
   increaseCardAttackModifier = "increaseCardAttackModifier",
   decreaseCardAttackModifier = "decreaseCardAttackModifier",
   increaseCardOtherModifier = "increaseCardOtherModifier",

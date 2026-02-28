@@ -1,13 +1,12 @@
 "use client";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
-import { closePlunderModal, closeSetDecksModal, closeToolsSettingsModal } from "@/client/redux/modalsSlice";
+import { closePlunderModal, closeToolsSettingsModal } from "@/client/redux/modalsSlice";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import PlayArea from "@/app/components/PlayArea/PlayArea";
 import CardPileModal from "../components/Modals/CardPileModal";
 // import CardPreview from "../components/Card/CardPreview";
 import Toolbar from "../components/PlayArea/Toolbar";
-import SetDecksModal from "../components/Modals/SetDecksModal";
 import { useSocket } from "@/client/hooks/useSocket";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import HelpModal from "../components/Modals/HelpModal";
@@ -36,9 +35,6 @@ function Page() {
     dispatch(clearPileInView());
   }, [dispatch]);
 
-  const handleCloseSetDecksModal = () => {
-    dispatch(closeSetDecksModal());
-  }
   const handleClosePlunderModal = () => {
     dispatch(closePlunderModal());
   }
@@ -345,7 +341,6 @@ function Page() {
         <DndProvider backend={HTML5Backend}>
           <PlayArea />
           <CardPileModal closeModal={closePileInView} />
-          <SetDecksModal closeModal={handleCloseSetDecksModal} />
           <ToolsSettingsModal closeModal={handleCloseToolsSettingsModal} />
           <HelpModal />
           <PlunderModal

@@ -156,21 +156,21 @@ export default function Toolbar({ }) {
             iconOnly: true,
             ariaLabel: ToolsSettingsButtonText,
             onClick: () => dispatch(openToolsSettingsModal()),
-            className: "w-full h-9 px-0 bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600"
+            className: "w-full h-9 px-0 bg-gradient-to-r from-violet-900/85 to-slate-800/95 hover:from-violet-800/85 hover:to-slate-700/95"
           })}
           {renderToolbarButton({
             icon: "roll-d6",
             iconOnly: true,
             ariaLabel: RollDieButtonText,
             onClick: () => emitGameEvent({ type: GAME_EVENT.rollDie, data: { side } }),
-            className: "w-full h-9 px-0 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500"
+            className: "w-full h-9 px-0 bg-gradient-to-r from-amber-900/85 to-slate-800/95 hover:from-amber-800/85 hover:to-slate-700/95"
           })}
           {renderToolbarButton({
             icon: "help",
             iconOnly: true,
             ariaLabel: HelpButtonText,
             onClick: () => dispatch(openHelpModal()),
-            className: "w-full h-9 px-0 bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600"
+            className: "w-full h-9 px-0 bg-gradient-to-r from-sky-900/85 to-slate-800/95 hover:from-sky-800/85 hover:to-slate-700/95"
           })}
         </div>
         <div className="grid grid-cols-2 gap-1">
@@ -178,20 +178,20 @@ export default function Toolbar({ }) {
             text: MulliganText,
             icon: "mulligan",
             onClick: () => emitGameEvent({ type: GAME_EVENT.mulligan, data: null }),
-            className: "w-full bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600"
+            className: "w-full bg-gradient-to-r from-emerald-900/85 to-slate-800/95 hover:from-emerald-800/85 hover:to-slate-700/95"
           })}
           {renderToolbarButton({
             text: `${SwitchSideButtonText}${p1 ? "P2" : "P1"}`,
             icon: "switch-player",
             onClick: handleSwitchSide,
-            className: "w-full bg-gradient-to-r from-indigo-600 to-blue-700 hover:from-indigo-500 hover:to-blue-600"
+            className: "w-full bg-gradient-to-r from-indigo-900/85 to-slate-800/95 hover:from-indigo-800/85 hover:to-slate-700/95"
           })}
         </div>
         {renderToolbarButton({
           text: LeaveGameButtonText,
           icon: "leave-game",
           onClick: handleLeaveGame,
-          className: "w-full bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600"
+          className: "w-full bg-gradient-to-r from-rose-900/90 to-slate-800/95 hover:from-rose-800/90 hover:to-slate-700/95"
         })}
       </div>
     </div>
