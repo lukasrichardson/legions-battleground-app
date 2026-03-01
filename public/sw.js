@@ -244,7 +244,7 @@ async function preloadImages(urls, priority) {
           }
         })
         .catch(error => {
-          console.warn(`[SW] Failed to preload: ${url}`, error);
+          console.warn('[SW] Failed to preload:', url, error);
         })
     );
     
