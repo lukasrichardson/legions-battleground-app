@@ -66,7 +66,7 @@ export const fetchPlayerDeckById = async ({ deckId }: { deckId: string }) => {
     
     return deck;
   } catch (error) {
-    console.error(`Error fetching deck ${deckId} from MongoDB:`, error);
+    console.error('Error fetching deck %s from MongoDB:', deckId, error);
     throw error;
   }
 }
