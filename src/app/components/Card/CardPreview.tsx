@@ -21,9 +21,9 @@ export default function CardPreview({}) {
         alt="back of card"
       />
     </div>
-    <div className="max-h-[20%] text-xs overflow-scroll shadow-inner p-2 bg-black/50 rounded-md mt-2 border border-white/10 mb-2">
-      <div className="font-bold">{cardToShow?.name}</div>
-      <div className="">{cardToShow?.text}</div>
+    <div className="max-h-[20%] text-xs overflow-y-auto overflow-x-hidden sidebar-scrollbar shadow-inner p-2 bg-black/50 rounded-md mt-2 border border-white/10 mb-2">
+      <div className="font-bold break-words">{cardToShow?.name}</div>
+      <div className="break-words whitespace-pre-wrap">{cardToShow?.text}</div>
     </div>
     </>
   )

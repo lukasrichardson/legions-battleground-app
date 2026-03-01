@@ -1,6 +1,7 @@
 
-import { openHelpModal,
-  openSetDecksModal
+import {
+  openHelpModal,
+  openToolsSettingsModal
 } from "@/client/redux/modalsSlice";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { GAME_EVENT } from '@/shared/enums/GameEvent';
@@ -10,22 +11,55 @@ import { ROOM_EVENT } from "@/shared/enums/RoomEvent";
 import { resetState } from "@/client/redux/gameStateSlice";
 import { useEffect, useRef } from "react";
 import CardPreview from "../Card/CardPreview";
-import useClientSettings from "@/client/hooks/useClientSettings";
+import AppIcon, { AppIconName } from "../AppIcon";
+import { Tooltip } from "antd";
 
 const ToolbarConstants = {
   GameLogHeaderText: "Game Log",
-  ChangeDeckButtonText: "Change Deck(s)",
+  ToolsSettingsButtonText: "Tools & Settings",
   SwitchSideButtonText: "Switch to ",
-  RollDieButtonText: "Roll Die",
-  ResetGameButtonText: "Reset Game",
+  RollDieButtonText: "Roll D6",
   LeaveGameButtonText: "Leave Game",
-  HelpButtonText: "Help/Instructions",
-  MulliganText: "Mulligan",
-  EditDeckButtonText: "Edit Deck"
+  HelpButtonText: "Help",
+  MulliganText: "Mulligan"
 }
 
-const renderToolbarButton = (text: string, onClick: () => void) => (
-  <button className="self-end text-[12px] font-bold px-1 py-0.5 cursor-pointer bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-white/10" onClick={onClick}>{text}</button>
+const renderToolbarButton = ({
+  text,
+  icon,
+  onClick,
+  className = "",
+  iconOnly = false,
+  ariaLabel
+}: {
+  text?: string;
+  icon?: AppIconName;
+  onClick: () => void;
+  className?: string;
+  iconOnly?: boolean;
+  ariaLabel?: string;
+}) => (
+  <button
+    type="button"
+    className={`text-[12px] font-bold px-2 py-1.5 cursor-pointer text-white rounded-lg border border-white/10 transition-all duration-150 ${className}`}
+    onClick={onClick}
+    aria-label={ariaLabel || text}
+  >
+    <Tooltip title={ariaLabel || text} placement="top" mouseEnterDelay={0.2}>
+      <div>
+        {iconOnly && icon ? (
+          <div className="flex items-center justify-center">
+            <AppIcon name={icon} size={16} />
+          </div>
+        ) : (
+          <div className="flex items-center justify-center gap-1.5">
+            {icon ? <AppIcon name={icon} size={14} /> : null}
+            <span>{text}</span>
+          </div>
+        )}
+      </div>
+    </Tooltip>
+  </button>
 )
 
 export default function Toolbar({ }) {
@@ -34,19 +68,10 @@ export default function Toolbar({ }) {
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
-  const {
-    hoverMenu,
-    setHoverMenu,
-    legacyMenu,
-    setLegacyMenu,
-    transparentOnBlur,
-    setTransparentOnBlur,
-    openHand,
-    setOpenHand } = useClientSettings();
   const gameLogRef = useRef<HTMLDivElement>(null);
   const { side } = clientGameState;
   const p1 = side === "p1";
-  const { p2DeckFromServer, p1DeckFromServer, gameLog } = gameState;
+  const { gameLog } = gameState;
 
   const onChatSubmit = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter") {
@@ -58,14 +83,12 @@ export default function Toolbar({ }) {
 
   const {
     // GameLogHeaderText,
-    ChangeDeckButtonText,
+    ToolsSettingsButtonText,
     SwitchSideButtonText,
     RollDieButtonText,
-    ResetGameButtonText,
     LeaveGameButtonText,
     HelpButtonText,
-    MulliganText,
-    EditDeckButtonText
+    MulliganText
   } = ToolbarConstants;
 
   const handleSwitchSide = () => {
@@ -77,10 +100,6 @@ export default function Toolbar({ }) {
     dispatch(resetState());
   }
 
-  const handleEditDeck = () => {
-    window.open(`/decks/${p1 ? p1DeckFromServer?._id : p2DeckFromServer?._id}`, "_blank");
-  }
-
   useEffect(() => {
     gameLogRef.current?.scrollTo(0, gameLogRef.current.scrollHeight);
   }, [gameState.gameLog.length]);
@@ -90,7 +109,7 @@ export default function Toolbar({ }) {
       <CardPreview />
 
       {gameState.sandboxMode ?
-      <div className="relative w-full h-[25%] overflow-y-auto bg-black/50 text-white rounded-md p-1 mb-1 border border-white/10" ref={gameLogRef}>
+      <div className="relative w-full h-[25%] overflow-y-auto sidebar-scrollbar bg-black/50 text-white rounded-md p-1 mb-1 border border-white/10" ref={gameLogRef}>
         {gameLog.length ? (
           <>
             <div className="text-sm text-center text-white/80 sticky top-0 bg-black/90">Logs</div>
@@ -105,7 +124,7 @@ export default function Toolbar({ }) {
         )}
       </div>
       :
-      <div className="w-full h-[25%] overflow-y-auto bg-black/50 text-white rounded-md p-2 mb-4 border border-white/10">
+      <div className="w-full h-[25%] overflow-y-auto sidebar-scrollbar bg-black/50 text-white rounded-md p-2 mb-4 border border-white/10">
         {sequenceState.sequences.length ? (
           <div>
             <div className="mb-2 text-sm text-white/80">Sequences State</div>
@@ -126,35 +145,54 @@ export default function Toolbar({ }) {
 
       <textarea
         placeholder="Type to chat"
-        className="w-full max-h-[2.5%] text-xs overflow-y-auto bg-black/50 text-white rounded-md mb-4 border border-white/10 resize-none"
+        className="w-full min-h-[56px] max-h-[96px] px-3 py-2 text-sm leading-5 overflow-y-auto sidebar-scrollbar bg-black/55 text-white rounded-lg mb-4 border border-white/15 resize-none placeholder:text-white/50 focus:outline-none focus:ring-1 focus:ring-blue-400/60 focus:border-blue-400/50"
         onKeyDown={onChatSubmit}
       />
 
-      <div className="mt-auto w-full flex flex-wrap gap-1 justify-between">
-        {renderToolbarButton(ChangeDeckButtonText, () => dispatch(openSetDecksModal()))}
-        {renderToolbarButton(SwitchSideButtonText + (p1 ? "P2" : "P1"), handleSwitchSide)}
-        {renderToolbarButton(RollDieButtonText, () => emitGameEvent({ type: GAME_EVENT.rollDie, data: { side } }))}
-        {renderToolbarButton(ResetGameButtonText, () => emitGameEvent({ type: GAME_EVENT.resetGame, data: { p2DeckId: p2DeckFromServer?.id, p1DeckId: p1DeckFromServer?.id } }))}
-        {renderToolbarButton(LeaveGameButtonText, handleLeaveGame)}
-        {renderToolbarButton(HelpButtonText, () => dispatch(openHelpModal()))}
-        {renderToolbarButton(MulliganText, () => emitGameEvent({ type: GAME_EVENT.mulligan, data: null }))}
-        {renderToolbarButton(EditDeckButtonText, handleEditDeck)}
-        <div>
-          <label htmlFor="hoverMenu" className="text-xs mr-1">Show Menu On Hover:</label>
-          <input name="hoverMenu" type="checkbox" checked={hoverMenu} onChange={() => setHoverMenu(!hoverMenu)}/>
+      <div className="mt-auto w-full space-y-2">
+        <div className="grid grid-cols-3 gap-1">
+          {renderToolbarButton({
+            icon: "tools",
+            iconOnly: true,
+            ariaLabel: ToolsSettingsButtonText,
+            onClick: () => dispatch(openToolsSettingsModal()),
+            className: "w-full h-9 px-0 bg-gradient-to-r from-violet-900/85 to-slate-800/95 hover:from-violet-800/85 hover:to-slate-700/95"
+          })}
+          {renderToolbarButton({
+            icon: "roll-d6",
+            iconOnly: true,
+            ariaLabel: RollDieButtonText,
+            onClick: () => emitGameEvent({ type: GAME_EVENT.rollDie, data: { side } }),
+            className: "w-full h-9 px-0 bg-gradient-to-r from-amber-900/85 to-slate-800/95 hover:from-amber-800/85 hover:to-slate-700/95"
+          })}
+          {renderToolbarButton({
+            icon: "help",
+            iconOnly: true,
+            ariaLabel: HelpButtonText,
+            onClick: () => dispatch(openHelpModal()),
+            className: "w-full h-9 px-0 bg-gradient-to-r from-sky-900/85 to-slate-800/95 hover:from-sky-800/85 hover:to-slate-700/95"
+          })}
         </div>
-        <div>
-          <label htmlFor="legacyMenu" className="text-xs mr-1">Use Legacy Menu:</label>
-          <input name="legacyMenu" type="checkbox" checked={legacyMenu} onChange={() => setLegacyMenu(!legacyMenu)}/>
+        <div className="grid grid-cols-2 gap-1">
+          {renderToolbarButton({
+            text: MulliganText,
+            icon: "mulligan",
+            onClick: () => emitGameEvent({ type: GAME_EVENT.mulligan, data: null }),
+            className: "w-full bg-gradient-to-r from-emerald-900/85 to-slate-800/95 hover:from-emerald-800/85 hover:to-slate-700/95"
+          })}
+          {renderToolbarButton({
+            text: `${SwitchSideButtonText}${p1 ? "P2" : "P1"}`,
+            icon: "switch-player",
+            onClick: handleSwitchSide,
+            className: "w-full bg-gradient-to-r from-indigo-900/85 to-slate-800/95 hover:from-indigo-800/85 hover:to-slate-700/95"
+          })}
         </div>
-        <div>
-          <label htmlFor="transparentOnBlur" className="text-xs mr-1">Transparent Card Modals:</label>
-          <input name="transparentOnBlur" type="checkbox" checked={transparentOnBlur} onChange={() => setTransparentOnBlur(!transparentOnBlur)}/>
-        </div>
-        <div>
-          <label htmlFor="openHand" className="text-xs mr-1">Open Hand:</label>
-          <input name="openHand" type="checkbox" checked={openHand} onChange={() => setOpenHand(!openHand)}/>
-        </div>
+        {renderToolbarButton({
+          text: LeaveGameButtonText,
+          icon: "leave-game",
+          onClick: handleLeaveGame,
+          className: "w-full bg-gradient-to-r from-rose-900/90 to-slate-800/95 hover:from-rose-800/90 hover:to-slate-700/95"
+        })}
       </div>
     </div>
   )

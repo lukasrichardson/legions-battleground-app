@@ -32,9 +32,12 @@ export const connectToDatabase = async (): Promise<MongoClient> => {
   }
 };
 
+const DB_NAME_DEV = "test";
+const DB_NAME_PROD = "legions_battleground_db";
+
 export const getDatabase = () => {
-  return getMongoClient().db("legions_battleground_db");
-  // return getMongoClient().db("test");
+  const dbName = process.env.NODE_ENV === "production" ? DB_NAME_PROD : DB_NAME_DEV;
+  return getMongoClient().db(dbName);
 };
 
 // Graceful shutdown function

@@ -3,8 +3,8 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 interface ModalsState {
   createRoomModalOpen: boolean;
   joinRoomModalOpen: string;
-  setDecksModalOpen: boolean;
   helpModalOpen: boolean;
+  toolsSettingsModalOpen: boolean;
   plunderModalOpen: boolean;
   previewDeckModalOpen: boolean;
   importDeckModalOpen: boolean;
@@ -13,8 +13,8 @@ interface ModalsState {
 const initialState: ModalsState = {
   createRoomModalOpen: false,
   joinRoomModalOpen: null,
-  setDecksModalOpen: false,
   helpModalOpen: false,
+  toolsSettingsModalOpen: false,
   plunderModalOpen: false,
   previewDeckModalOpen: false,
   importDeckModalOpen: false
@@ -30,17 +30,17 @@ const modalsSlice = createSlice({
     setJoinRoomModalOpen: (state, action: PayloadAction<string|null>) => {
       state.joinRoomModalOpen = action.payload;
     },
-    closeSetDecksModal(state) {
-      state.setDecksModalOpen = false;
-    },
-    openSetDecksModal(state) {
-      state.setDecksModalOpen = true;
-    },
     openHelpModal(state) {
       state.helpModalOpen = true;
     },
     closeHelpModal(state) {
       state.helpModalOpen = false;
+    },
+    openToolsSettingsModal(state) {
+      state.toolsSettingsModalOpen = true;
+    },
+    closeToolsSettingsModal(state) {
+      state.toolsSettingsModalOpen = false;
     },
     openPlunderModal(state) {
       state.plunderModalOpen = true;
@@ -66,10 +66,10 @@ const modalsSlice = createSlice({
 export const {
   setCreateRoomModalOpen,
   setJoinRoomModalOpen,
-  closeSetDecksModal,
-  openSetDecksModal,
   openHelpModal,
   closeHelpModal,
+  openToolsSettingsModal,
+  closeToolsSettingsModal,
   openPlunderModal,
   closePlunderModal,
   openPreviewDeckModal,
