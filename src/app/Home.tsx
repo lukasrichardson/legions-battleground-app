@@ -20,6 +20,7 @@ const HomeConstants = {
   RoomsHeaderText: "Game Rooms",
   JoinBtnText: "Join",
   ImportDeckText: "Import Deck",
+  BrowseDecksText: "Browse Decks"
 }
 
 export default function Home() {
@@ -57,13 +58,18 @@ export default function Home() {
     router.push("cards");
   }
 
+  const handleBrowseDecksClick = () => {
+    router.push("decks/browse");
+  }
+
   const {
     HomeTitle,
     HomeDescription,
     CreateGameBtnText,
     RoomsHeaderText,
     JoinBtnText,
-    ImportDeckText
+    ImportDeckText,
+    BrowseDecksText
   } = HomeConstants;
   
   return (
@@ -82,7 +88,7 @@ export default function Home() {
 
           {session &&<>
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 max-w-6xl mx-auto w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 max-w-6xl mx-auto w-full">
               <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={handleDecksClick}>
                 <CardHeader className="p-4">
                   <CardTitle className="flex items-center gap-2 text-lg">
@@ -143,6 +149,22 @@ export default function Home() {
                   </CardTitle>
                   <CardDescription className="text-gray-300 text-sm">
                     Import a deck from Toolbox
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={handleBrowseDecksClick}>
+                <CardHeader className="p-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <div className="w-6 h-6 bg-pink-500 rounded-lg flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                    </div>
+                    {BrowseDecksText}
+                  </CardTitle>
+                  <CardDescription className="text-gray-300 text-sm">
+                    Browse published decklists
                   </CardDescription>
                 </CardHeader>
               </Card>

@@ -39,7 +39,7 @@ export const renderCardTile = (card: { id: string | number; title: string; featu
   </div>)
 }
 
-export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped }: { card: CardDocument, index: number, removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void, addCardToDeck: (card: CardDocument) => void, grouped: boolean }) => {
+export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped, readOnly = false }: { card: CardDocument, index: number, removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void, addCardToDeck: (card: CardDocument) => void, grouped: boolean, readOnly?: boolean }) => {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const handleOnMouseEnter = () => {
     const timeoutId = setTimeout(() => {
@@ -69,7 +69,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
         onMouseEnter={handleOnMouseEnter}
         onMouseLeave={handleOnMouseLeave}
       >
-        {renderHoverContent(card, removeCardFromDeck, addCardToDeck)}
+        {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck)}
         <div key={card.id.toString() + index}>
           {renderCardTile(card, index, () => null)}
         </div>
@@ -81,7 +81,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
         onMouseEnter={handleOnMouseEnter}
         onMouseLeave={handleOnMouseLeave}
       >
-        {renderHoverContent(card, removeCardFromDeck, addCardToDeck)}
+        {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck)}
         <div onContextMenu={(e) => removeCardFromDeck(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
         {renderCardTile(card, index, () => null)}
         </div>

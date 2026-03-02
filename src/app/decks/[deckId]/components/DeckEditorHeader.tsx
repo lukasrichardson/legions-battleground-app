@@ -1,6 +1,7 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
-import { fetchDecks } from "@/client/utils/api.utils";
+import { createPublishedDeck, fetchDecks } from "@/client/utils/api.utils";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
+import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -73,6 +74,13 @@ export default function DeckEditorHeader({
       router.push(`/decks/${newDeckId}`);
     }).catch((err) => {
       console.error("Error duplicating deck:", err);
+    });
+  }
+
+  const handlePublishDeckClick = () => {
+    createPublishedDeck(deck?._id.toString() || "", (data) => {
+      const publishedDeck = data as unknown as {deck: PublishedDeck};
+      router.push(`/decks/browse/${publishedDeck?.deck?._id}`);
     });
   }
 
@@ -158,6 +166,15 @@ export default function DeckEditorHeader({
               >
                 <span className="opacity-85 group-hover:opacity-100 transition-opacity">
                   Delete
+                </span>
+            </button>
+            <button
+                onClick={handlePublishDeckClick}
+                className="group text-green-500 hover:text-green-400 transition-colors cursor-pointer border-green-500 hover:border-green-400 border-1 rounded p-0.5 text-sm"
+                disabled={saving}
+              >
+                <span className="opacity-85 group-hover:opacity-100 transition-opacity">
+                  Publish
                 </span>
             </button>
         </div>

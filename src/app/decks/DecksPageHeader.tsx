@@ -3,8 +3,10 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@/client/ui/card";
 import CreateDeckModal from "../components/Modals/CreateDeckModal";
 import { useAppDispatch } from "@/client/redux/hooks";
 import { openImportDeckModal } from "@/client/redux/modalsSlice";
+import { useRouter } from "next/navigation";
 
 export default function DecksPageHeader() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const [createDeckModalOpen, setCreateDeckModalOpen] = useState(false);
 
@@ -13,8 +15,12 @@ export default function DecksPageHeader() {
   }
   
   const handleImportDeck = () => {
-      dispatch(openImportDeckModal());
-    }
+    dispatch(openImportDeckModal());
+  }
+
+  const handleBrowseDecks = () => {
+    router.push("/decks/browse");
+  }
 
   return (
     <div className="mb-6">
@@ -29,7 +35,7 @@ export default function DecksPageHeader() {
       </div>
 
       {/* Action Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto w-full">
         <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={handleCreateDeck}>
           <CardHeader className="p-2 sm:p-4">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -58,6 +64,22 @@ export default function DecksPageHeader() {
             </CardTitle>
             <CardDescription className="text-gray-300 text-xs sm:text-sm">
               Import deck from Toolbox
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={handleBrowseDecks}>
+          <CardHeader className="p-2 sm:p-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 bg-pink-500 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+              </div>
+              Browse Public Decks
+            </CardTitle>
+            <CardDescription className="text-gray-300 text-xs sm:text-sm">
+              Browse decks created by other players
             </CardDescription>
           </CardHeader>
         </Card>

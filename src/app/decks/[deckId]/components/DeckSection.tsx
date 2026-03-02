@@ -1,7 +1,7 @@
 import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { DeckCardTile } from "./CardTile";
 
-export default function DeckSection({cards, removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck}: {cards: CardDocument[], removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, setHoveredCard: (card: CardDocument) => void, useGroupedView: boolean, addCardToDeck: (card: CardDocument) => void}) {
+export default function DeckSection({cards, removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck, readOnly = false}: {cards: CardDocument[], removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, setHoveredCard: (card: CardDocument) => void, useGroupedView: boolean, addCardToDeck: (card: CardDocument) => void, readOnly?: boolean}) {
   if (!cards || cards.length === 0) return null;
 
   // Group cards by name to apply grouping styling
@@ -20,7 +20,7 @@ export default function DeckSection({cards, removeCardFromDeck, setHoveredCard, 
         <div key={name} className="inline-block w-1/4 xs:w-1/6 sm:w-1/8 lg:w-1/10 xl:w-1/14 max-w-40 py-1 box-border">
           {cardGroup.map((card, index) => (
             
-              <DeckCardTile key={card.id.toString() + index} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped />
+              <DeckCardTile readOnly={readOnly} key={card.id.toString() + index} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped />
           ))}
         </div>
       ))}
@@ -30,7 +30,7 @@ export default function DeckSection({cards, removeCardFromDeck, setHoveredCard, 
       {cards.map((card, index) => (
         
 
-          <DeckCardTile key={card.id.toString() + index} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped={false} />      ))}
+          <DeckCardTile readOnly={readOnly} key={card.id.toString() + index} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped={false} />      ))}
     </>
   )
 }

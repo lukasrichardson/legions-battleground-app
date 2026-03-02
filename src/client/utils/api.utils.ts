@@ -1,5 +1,6 @@
 import axios from "axios";
 import { appendQueryParams } from "./string.util";
+const publishedDecksPath = "/api/published_decks";
 
 //cards
 
@@ -26,6 +27,44 @@ export const fetchDecks = async (callback: (data: unknown) => void) => {
   try {
     const res = await axios.get(`/api/decks`);
     callback?.(res?.data);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+export const fetchPublishedDecks = async (callback: (data: unknown) => void) => {
+  try {
+    const res = await axios.get(publishedDecksPath);
+    callback?.(res?.data);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+export const fetchPublishedDeckById = async (deckId: string, callback: (data: unknown) => void) => {
+  try {
+    const res = await axios.get(`${publishedDecksPath}/`+deckId);
+    callback?.(res?.data);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+export const createPublishedDeck = async (_id: string, callback: (data: unknown) => void) => {
+  try {
+    const res = await axios.post(publishedDecksPath, {_id});
+    callback?.(res?.data);
+    return res?.data?.deck;
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+export const copyPublishedDeck = async (publishedDeckId: string, callback: (data: unknown) => void) => {
+  try {
+    const res = await axios.post(`/api/decks/${publishedDeckId}`);
+    callback?.(res?.data);
+    return res?.data?.deck;
   } catch (err) {
     console.log(err);
   }

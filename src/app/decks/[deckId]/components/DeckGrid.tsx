@@ -26,14 +26,16 @@ export default function DeckGrid({
   setHoveredCard,
   handleSortClick,
   saving,
-  handleAddCardToDeck
+  handleAddCardToDeck,
+  readOnly = false
 }: {
   deck: DeckResponse | null,
   handleRemoveCardFromDeck: (card: CardDocument) => void,
   setHoveredCard: (card: CardDocument | null) => void,
   handleSortClick: () => void,
   saving: boolean,
-  handleAddCardToDeck: (card: CardDocument) => void
+  handleAddCardToDeck: (card: CardDocument) => void,
+  readOnly?: boolean
 }) {
 
   const mainDeck = deck?.cards_in_deck.filter(item => [CARD_TYPE.WARRIOR.toString(), CARD_TYPE.UNIFIED.toString(), CARD_TYPE.FORTIFIED.toString()].includes(item?.card_type?.names?.[0]));
@@ -60,6 +62,7 @@ export default function DeckGrid({
       setHoveredCard={setHoveredCard}
       useGroupedView={deckbuild_groupedView}
       addCardToDeck={handleAddCardToDeck}
+      readOnly={readOnly}
     />
   )
 
@@ -78,7 +81,7 @@ export default function DeckGrid({
           </span>
           <span></span>
           <div className="flex items-center gap-2">
-            <Button
+            {!readOnly && <Button
               onClick={handleSortClick}
               size="sm"
               variant="outline"
@@ -86,7 +89,7 @@ export default function DeckGrid({
               disabled={saving}
             >
               {saving ? "Saving..." : "Sort"}
-            </Button>
+            </Button>}
             <input type="checkbox" id="groupedView" checked={deckbuild_groupedView} onChange={handleGroupedViewToggle} />
             <label htmlFor="groupedView" className="text-xs cursor-pointer">
               Grouped View

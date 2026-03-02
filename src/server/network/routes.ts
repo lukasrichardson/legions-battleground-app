@@ -8,6 +8,7 @@ import { getDatabase } from '../utils/database.util';
 import { ExpressApp } from '../interfaces/ExpressTypes';
 import axios from 'axios';
 import decksController from '../controllers/decks.controller';
+import publishedDecksController from '../controllers/publishedDecks.controller';
 
 export const routes = (app: ExpressApp) => {
   app.get('/healthz', (req: Request, res: Response) => {
@@ -200,4 +201,5 @@ export const routes = (app: ExpressApp) => {
   );
 
   decksController(app);
+  publishedDecksController(app);
 }

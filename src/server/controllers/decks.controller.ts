@@ -4,6 +4,7 @@ import {Response} from 'express';
 import { getDatabase } from '../utils/database.util';
 import { ObjectId } from 'mongodb';
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
+import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 
 export default function decksController(app: ExpressApp) {
   app.get("/api/decks", optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
@@ -217,6 +218,94 @@ export default function decksController(app: ExpressApp) {
           legion: newDeck.legion,
           userId: newDeck.userId,
           created_at: newDeck.created_at
+        }
+      });
+
+    } catch (error: unknown) {
+      console.error("Error creating deck:", error);
+      
+      // Handle specific MongoDB errors
+      if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
+        return res.status(409).json({ 
+          error: "Conflict", 
+          message: "A deck with this ID or name already exists" 
+        });
+      }
+      
+      // Handle connection errors
+      if (error && typeof error === 'object' && 'name' in error && 
+          (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError')) {
+        return res.status(503).json({ 
+          error: "Service unavailable", 
+          message: "Database connection failed. Please try again later." 
+        });
+      }
+
+      // Generic server error
+      return res.status(500).json({ 
+        error: "Internal server error", 
+        message: "An unexpected error occurred while creating the deck" 
+      });
+    }
+  });
+
+  app.post("/api/decks/:publishedDeckId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+
+      const db = getDatabase();
+      
+      // Check if deck with same deckId
+      const existingDeck: PublishedDeck = await db.collection<PublishedDeck>("published_decks").findOne({ 
+        _id: new ObjectId(req.params.publishedDeckId),
+      });
+      if (!existingDeck) {
+        return res.status(409).json({ 
+          error: "Conflict", 
+          message: `cant find deck` 
+        });
+      }
+
+      // Create the new deck object with userId
+      const newDeck: PublishedDeck = {
+        ...existingDeck,
+        name: existingDeck.name + " Copy",
+        userId: req.user!.id,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+      delete newDeck._id;
+      delete newDeck.published_date;
+      delete newDeck.author;
+
+      // Insert the deck into MongoDB
+      const result = await db.collection("decks").insertOne(newDeck);
+      
+      if (!result.insertedId) {
+        return res.status(500).json({ 
+          error: "Internal server error", 
+          message: "Failed to create deck in database" 
+        });
+      }
+
+      const insertedDeck = await db.collection("decks").findOne({ _id: result.insertedId });
+      if (!insertedDeck) {
+        return res.status(500).json({
+          error: "Internal server error",
+          message: "Failed to retrieve newly created deck from database"
+        });
+      }
+
+      // Return success response with deck ID
+      return res.status(201).json({
+        success: true,
+        message: "Deck created successfully",
+        deck: {
+          _id: insertedDeck._id,
+          name: insertedDeck.name,
+          subtitle: insertedDeck.subtitle,
+          legion: insertedDeck.legion,
+          userId: insertedDeck.userId,
+          created_at: insertedDeck.created_at
         }
       });
 
