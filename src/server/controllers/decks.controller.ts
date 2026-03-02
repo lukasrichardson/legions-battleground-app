@@ -1,5 +1,5 @@
 import { ExpressApp } from "../interfaces/ExpressTypes";
-import { requireAuth, optionalAuth, AuthenticatedRequest } from '../middleware/auth';
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import {Response} from 'express';
 import { getDatabase } from '../utils/database.util';
 import { ObjectId } from 'mongodb';
@@ -7,18 +7,33 @@ import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 
 export default function decksController(app: ExpressApp) {
-  app.get("/api/decks", optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/decks", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     const db = getDatabase();
-    
-    // Filter decks by userId if user is authenticated
-    const query = req.user?.id ? { userId: req.user.id } : {};
+    const {legion} = req.query;
+    const query = { userId: req?.user?.id };
+
+    if (legion && typeof legion === 'string' && legion.trim() !== '') {
+      query['legion'] = legion;
+    } else if (legion && Array.isArray(legion)) {
+      query['legion'] = { $in: legion };
+    }
+
     const decks = await db.collection("decks").find(query).toArray();
     
-    return res.send(decks);
+    return res.send(decks.reverse());
+  }
+  );
+
+  
+  app.get("/api/decks/filterOptions", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    const db = getDatabase();
+    const query = { userId: req?.user?.id };
+    const legion = await db.collection("decks").distinct("legion", query);
+    return res.send({legion});
   }
   );
   
-  app.get("/api/decks/:deckId", optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/decks/:deckId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     const db = getDatabase();
     const deckId = req.params.deckId.toString();
     if (!deckId || deckId === "undefined") return res.status(400).send("Deck ID is required");
@@ -180,9 +195,9 @@ export default function decksController(app: ExpressApp) {
         userId: req.user!.id 
       });
       if (existingDeck) {
-        return res.status(409).json({ 
-          error: "Conflict", 
-          message: `You already have a deck with name "${req.body.name}"` 
+        return res.status(400).json({ 
+          error: "Validation Failed", 
+          message: `You already have a deck with that name` 
         });
       }
 
@@ -190,7 +205,7 @@ export default function decksController(app: ExpressApp) {
       const newDeck = {
         name: req.body.name.trim(),
         subtitle: "",
-        legion: req.body.legion.trim(),
+        legion: req.body.legion.toLowerCase(),
         userId: req.user!.id,
         cards_in_deck: [],
         created_at: new Date(),

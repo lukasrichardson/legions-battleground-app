@@ -23,18 +23,20 @@ export const patchDeckById = async (deckId: string, updatedDeck: unknown, callba
   }
 }
 
-export const fetchDecks = async (callback: (data: unknown) => void) => {
+export const fetchDecks = async (legion: string[] | null, callback: (data: unknown) => void) => {
+  const url = appendQueryParams(window.location.origin + '/api/decks', { legion });
   try {
-    const res = await axios.get(`/api/decks`);
+    const res = await axios.get(url);
     callback?.(res?.data);
   } catch (err) {
     console.log(err);
   }
 }
 
-export const fetchPublishedDecks = async (callback: (data: unknown) => void) => {
+export const fetchPublishedDecks = async (legion: string[] | null, callback: (data: unknown) => void) => {
+  const url = appendQueryParams(window.location.origin + publishedDecksPath, { legion });
   try {
-    const res = await axios.get(publishedDecksPath);
+    const res = await axios.get(url);
     callback?.(res?.data);
   } catch (err) {
     console.log(err);
@@ -92,7 +94,26 @@ export const createDeck = async (deckData: {name: string, legion: string}, callb
 //filters
 
 export const fetchFilterOptions = async (callback: (data: unknown) => void) => {
-  const URL = '/api/filterOptions';
+  const URL = '/api/cards/filterOptions';
+  try {
+    const res = await axios.get(URL);
+    callback?.(res?.data);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+export const fetchDeckFilterOptions = async (callback: (data: unknown) => void) => {
+  const URL = '/api/decks/filterOptions';
+  try {
+    const res = await axios.get(URL);
+    callback?.(res?.data);
+  } catch (err) {
+    console.log(err);
+  }
+}
+export const fetchPublishedDeckFilterOptions = async (legion: string[] | null, callback: (data: unknown) => void) => {
+  const URL = window.location.origin + publishedDecksPath + '/filterOptions';
   try {
     const res = await axios.get(URL);
     callback?.(res?.data);

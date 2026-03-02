@@ -83,7 +83,7 @@ export default function JoinRoomModal() {
   }
 
   const getDecks = async () => {
-      fetchDecks((param: {name: string, _id: string}[]) => {setDecks(param)});
+      fetchDecks([], (param: {name: string, _id: string}[]) => {setDecks(param)});
     }
   
   useEffect(() => {

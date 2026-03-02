@@ -40,8 +40,9 @@ export default function CreateDeckModal({
   } = ModalConstants;
 
   useEffect(() => {
+    if (!open) return
     fetchFilterOptions(setFilterOptions);
-  }, [])
+  }, [open])
 
   const handleCreateDeck = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,11 +62,11 @@ export default function CreateDeckModal({
 
     try {
       const newDeck: { _id: string, id: string } = await createDeck({ name: deckName.trim(), legion: selectedLegion }, () => null);
+      router.push(`/decks/${newDeck._id || newDeck.id}`);
       setDeckName("");
       setSelectedLegion("");
       setError("");
       closeModal();
-      router.push(`/decks/${newDeck._id || newDeck.id}`);
     } catch (err) {
       console.error("Error creating deck:", err);
       setError("Failed to create deck. Please try again.");

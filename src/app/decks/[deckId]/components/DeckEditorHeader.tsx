@@ -41,7 +41,7 @@ export default function DeckEditorHeader({
       try {
         setLoading(true);
         setError(null);
-        fetchDecks((param) => {
+        fetchDecks([],(param) => {
           setDecks((param as unknown[]) || []);
           setLoading(false);
         });

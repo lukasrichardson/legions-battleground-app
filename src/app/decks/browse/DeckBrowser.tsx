@@ -3,17 +3,26 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import { renderCardTile } from "../[deckId]/components/CardTile";
 import { CARD_TYPE } from "@/shared/enums/CardType";
-import { fetchPublishedDecks } from "@/client/utils/api.utils";
+import { fetchPublishedDeckFilterOptions, fetchPublishedDecks } from "@/client/utils/api.utils";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FullPage from "@/app/components/FullPage";
+import { MultiSelect } from "@/client/ui/multiselect";
 
 export default function DeckBrowser() {
   const router = useRouter();
   const [decks, setDecks] = useState([]);
+  const [legion, setLegion] = useState<string[]>([]);
+  const [filterOptions, setFilterOptions] = useState<{ legion: string[] }>({ legion: [] });
+
+  const handleLegionSelect = (legionVal: string[]) => {
+    setLegion(legionVal);
+  }
+
   useEffect(() => {
-    fetchPublishedDecks(setDecks);
-  }, [])
+    fetchPublishedDecks(legion, setDecks);
+    fetchPublishedDeckFilterOptions(legion, (data: {legion: string[]}) => setFilterOptions(data));
+  }, [legion])
   const handleDeckSelect = (deckId) => () => {
     if (!deckId) return;
     router.push("/decks/browse/" + deckId);
@@ -31,7 +40,7 @@ export default function DeckBrowser() {
       <div className="flex-1 min-h-0">
         <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="flex items-center justify-between text-lg">
+            <CardTitle className="flex items-center justify-start text-lg">
               <span className="flex items-center gap-2">
                 <div className="w-5 h-5 bg-green-500 rounded-lg flex items-center justify-center">
                   <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -40,9 +49,16 @@ export default function DeckBrowser() {
                 </div>
                 Published Decks
               </span>
-              <span className="text-sm text-gray-400">
+              <span className="text-sm text-gray-400 mx-2">
                 {decks.length} decks
               </span>
+              <MultiSelect
+                options={filterOptions?.legion?.map((option) => ({ value: option, label: option[0].toUpperCase() + option.slice(1) })) || []}
+                value={legion}
+                onChange={handleLegionSelect}
+                placeholder="Legion"
+                className="cursor-pointer text-xs"
+              />
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0 flex-1 overflow-hidden">

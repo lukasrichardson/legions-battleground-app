@@ -8,10 +8,24 @@ import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 
 export default function publishedDecksController(app: ExpressApp) {
-  app.get("/api/published_decks", optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/published_decks", optionalAuth, async (req: AuthenticatedRequest, res: Response) => {    
     const db = getDatabase();
-    const decks = await db.collection("published_decks").find({}).toArray();
+    const {legion} = req.query;
+    const query = {};
+    if (legion && typeof legion === 'string' && legion.trim() !== '') {
+      query['legion'] = legion;
+    } else if (legion && Array.isArray(legion)) {
+      query['legion'] = { $in: legion };
+    }
+    const decks = await db.collection("published_decks").find(query).toArray();
     return res.send(decks);
+  }
+  );
+
+  app.get("/api/published_decks/filterOptions", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    const db = getDatabase();
+    const legion = await db.collection("published_decks").distinct("legion");
+    return res.send({legion});
   }
   );
 

@@ -82,7 +82,7 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
   } = ModalConstants;
 
   const getDecks = async () => {
-    fetchDecks((param: { name: string, _id: string }[]) => { setDecks(param) });
+    fetchDecks([], (param: { name: string, _id: string }[]) => { setDecks(param) });
   };
 
   useEffect(() => {

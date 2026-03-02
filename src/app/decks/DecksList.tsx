@@ -1,18 +1,26 @@
-import { fetchDecks } from "@/client/utils/api.utils";
+import { fetchDeckFilterOptions, fetchDecks } from "@/client/utils/api.utils";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { renderCardTile } from "./[deckId]/components/CardTile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import axios from "axios";
+import { MultiSelect } from "@/client/ui/multiselect";
 
 export const DecksList = () => {
   const router = useRouter();
   const [decks, setDecks] = useState([]);
-  
+  const [legion, setLegion] = useState<string[]>([]);
+  const [filterOptions, setFilterOptions] = useState<{ legion: string[] }>({ legion: [] });
+
+  const handleLegionSelect = (legionVal: string[]) => {
+    setLegion(legionVal);
+  }
+
   useEffect(() => {
-    fetchDecks(setDecks);
-  }, [])
+    fetchDecks(legion, (data: []) => setDecks(data));
+    fetchDeckFilterOptions((data: {legion: string[]}) => setFilterOptions(data));
+  }, [legion])
   
   const handleDeckSelect = (deckId) => () => {
     if (!deckId) return;
@@ -22,16 +30,20 @@ export const DecksList = () => {
   const handleDeleteDeckClick = (deckId) => (e) => {
     e.stopPropagation();
     axios.delete(`/api/decks/${deckId}`).then(() => {
-      fetchDecks(setDecks);
+      fetchDecks(legion, (data: []) => setDecks(data));
     }).catch((err) => {
       console.error("Error deleting deck:", err);
     });
+  }
+
+  const clearFilters = () => {
+    setLegion([]);
   }
   return (
     <div className="flex-1 min-h-0">
       <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
         <CardHeader className="p-4 pb-2">
-          <CardTitle className="flex items-center justify-between text-lg">
+          <CardTitle className="flex items-center justify-start text-lg">
             <span className="flex items-center gap-2">
               <div className="w-5 h-5 bg-green-500 rounded-lg flex items-center justify-center">
                 <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -40,9 +52,19 @@ export const DecksList = () => {
               </div>
               Your Decks
             </span>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-gray-400 mx-2">
               {decks.length} decks
             </span>
+            <MultiSelect
+              options={filterOptions?.legion?.map((option) => ({ value: option, label: option[0].toUpperCase() + option.slice(1) })) || []}
+              value={legion}
+              onChange={handleLegionSelect}
+              placeholder="Legion"
+              className="cursor-pointer text-xs"
+            />
+            <button onClick={clearFilters} className="ml-2 text-xs text-gray-400 hover:text-gray-200 transition-colors cursor-pointer border border-gray-400 rounded p-0.5">
+              Clear
+            </button>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-0 flex-1 overflow-hidden">

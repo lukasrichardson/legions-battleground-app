@@ -116,7 +116,7 @@ export default function Home() {
                     {"Card Gallery"}
                   </CardTitle>
                   <CardDescription className="text-gray-300 text-sm">
-                    Search & Filter through all cards
+                    Search & Filter all cards
                   </CardDescription>
                 </CardHeader>
               </Card>

@@ -146,7 +146,7 @@ export const routes = (app: ExpressApp) => {
     res.send({cards, page: Number(page) || 1, pageSize: Number(pageSize) || 50, total: await db.collection("cards").countDocuments(query)});
   })
 
-  app.get("/api/filterOptions", async (req: Request, res: Response) => {
+  app.get("/api/cards/filterOptions", async (req: Request, res: Response) => {
     const db = getDatabase();
     const legion = await db.collection("cards").distinct("legion.names.0", {});
     const type = await db.collection("cards").distinct("card_type.names.0", {});
@@ -179,7 +179,7 @@ export const routes = (app: ExpressApp) => {
       id: req.body.id,
       name: req.body.name,
       cards_in_deck: req.body.cards_in_deck,
-      legion: req.body.legion,
+      legion: req.body.legion[0].toUpperCase() + req.body.legion.slice(1),
       subtitle: req.body.subtitle,
       userId: req.user!.id,
       created_at: new Date(),
