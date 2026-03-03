@@ -1,5 +1,6 @@
 import axios from "axios";
 import { appendQueryParams } from "./string.util";
+import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
 const publishedDecksPath = "/api/published_decks";
 
 //cards
@@ -116,6 +117,26 @@ export const fetchPublishedDeckFilterOptions = async (legion: string[] | null, c
   const URL = window.location.origin + publishedDecksPath + '/filterOptions';
   try {
     const res = await axios.get(URL);
+    callback?.(res?.data);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+export const fetchBanlist = async (callback: (data: unknown) => void) => {
+  const URL = '/api/banlist';
+  try {
+    const res = await axios.get(URL);
+    callback?.(res?.data);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+export const postBanlistUpdate = async (banlistData: BanlistItem, callback: (data: unknown) => void) => {
+  const URL = '/api/banlist';
+  try {
+    const res = await axios.post(URL, banlistData);
     callback?.(res?.data);
   } catch (err) {
     console.log(err);

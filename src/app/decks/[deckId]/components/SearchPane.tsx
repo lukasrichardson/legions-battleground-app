@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CardDocument } from "@/shared/interfaces/Card.mongo";
-import { fetchCards, fetchFilterOptions } from "@/client/utils/api.utils";
+import { fetchBanlist, fetchCards, fetchFilterOptions, postBanlistUpdate } from "@/client/utils/api.utils";
 import { Input } from "@/client/ui/input";
 import { Card, CardContent } from "@/client/ui/card";
 import { Button } from "@/client/ui/button";
@@ -9,6 +9,7 @@ import { SearchCardTile } from "./CardTile";
 import { preloadSearchResults } from "@/client/utils/imagePreloader";
 import { legionColours } from "@/client/constants/colours.constants";
 import { LEGIONS } from "@/client/constants/legions.constants";
+import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 
 export default function SearchPane({
   setHoveredCard,
@@ -32,8 +33,13 @@ export default function SearchPane({
   const [type, setType] = useState<string[]>([]);
   const [rarity, setRarity] = useState<string[]>([]);
   const [set, setSet] = useState<string[]>([]);
+  const [banlist, setBanlist] = useState<BanlistItem[]>([]);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const horizontalScrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    fetchBanlist((data: BanlistItem[]) => setBanlist(data));
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -203,6 +209,46 @@ export default function SearchPane({
     }
   }, [setHoveredCard]);
 
+  const handleCardSrlClick = (card, status) => {
+    console.log(`Updating banlist status for ${card.title} to ${status}`);
+    postBanlistUpdate({
+      name: card.title,
+      status
+    }, (data: BanlistItem[]) => {
+      setBanlist(data);
+    });
+  }
+
+  const suspendedCards = useMemo(() => {
+    const suspended = {};
+    banlist.forEach(item => {
+      if (item.status === BanlistStatus.SUSPENDED) {
+        suspended[item.name] = true;
+      }
+    });
+    return suspended;
+  }, [banlist]);
+
+  const restrictedCards = useMemo(() => {
+    const restricted = {};
+    banlist.forEach(item => {
+      if (item.status === BanlistStatus.RESTRICTED) {
+        restricted[item.name] = true;
+      }
+    });
+    return restricted;
+  }, [banlist]);
+
+  const limitedCards = useMemo(() => {
+    const limited = {};
+    banlist.forEach(item => {
+      if (item.status === BanlistStatus.LIMITED) {
+        limited[item.name] = true;
+      }
+    });
+    return limited;
+  }, [banlist]);
+
   return (
     <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
       <CardContent className="p-2 pt-0 h-full flex flex-col overflow-hidden">
@@ -278,7 +324,27 @@ export default function SearchPane({
                     className="w-full xs:w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/10 cursor-pointer max-h-full inline-block box-border relative"
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
-
+                    {process.env.NODE_ENV === "development" && <div className="absolute opacity-0 hover:opacity-100 w-1/2 h-full bg-white/50 z-1 flex flex-col items-center justify-center gap-1 cursor-default">
+                    <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.SUSPENDED)}>0</div>
+                    <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.RESTRICTED)}>1</div>
+                    <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.LIMITED)}>2</div>
+                    <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.UNRESTRICTED)}>-</div>
+                    </div>}
+                    {suspendedCards[card.title] && (
+                      <div className="absolute top-1 right-2 bg-red-500 text-white text-[20px] px-1 py-0.5 rounded z-50">
+                        0
+                      </div>
+                    )}
+                    {restrictedCards[card.title] && (
+                      <div className="absolute top-1 right-2 bg-yellow-500 text-white text-[20px] px-1 py-0.5 rounded z-50">
+                        1
+                      </div>
+                    )}
+                    {limitedCards[card.title] && (
+                      <div className="absolute top-1 right-2 bg-purple-500 text-white text-[20px] px-1 py-0.5 rounded z-50">
+                        2
+                      </div>
+                    )}
                     <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
                   </div>
                 ))}
@@ -290,7 +356,22 @@ export default function SearchPane({
                     
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
-                    <div className="w-full lg:w-1/4 xl:w-1/6 h-full">
+                    <div className="w-full lg:w-1/4 xl:w-1/6 h-full relative">
+                    {suspendedCards[card.title] && (
+                      <div className="absolute top-0 right-0 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
+                        0
+                      </div>
+                    )}
+                    {restrictedCards[card.title] && (
+                      <div className="absolute top-0 right-0 bg-yellow-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
+                        1
+                      </div>
+                    )}
+                    {limitedCards[card.title] && (
+                      <div className="absolute top-0 right-0 bg-purple-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
+                        2
+                      </div>
+                    )}
                       <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
                     </div>
                     <div className="hidden w-4/5 lg:flex flex-col xl:w-6/7 h-full justify-between">

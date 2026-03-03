@@ -1,6 +1,7 @@
 import CardImage from "@/app/components/Card/CardImage";
+import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 import { CardDocument } from "@/shared/interfaces/Card.mongo";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const renderHoverContent = (card, removeCardFromDeck, addCardToDeck) => (
   <div className="absolute w-full h-full opacity-0 hover:opacity-100 bg-white/20 z-50 flex items-center justify-around">
@@ -39,7 +40,7 @@ export const renderCardTile = (card: { id: string | number; title: string; featu
   </div>)
 }
 
-export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped, readOnly = false }: { card: CardDocument, index: number, removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void, addCardToDeck: (card: CardDocument) => void, grouped: boolean, readOnly?: boolean }) => {
+export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped, readOnly = false, banlist }: { card: CardDocument, index: number, removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void, addCardToDeck: (card: CardDocument) => void, grouped: boolean, readOnly?: boolean, banlist: BanlistItem[] }) => {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const handleOnMouseEnter = () => {
     const timeoutId = setTimeout(() => {
@@ -61,6 +62,35 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
       }
     }
   }, [timeoutId]);
+  const suspendedCards = useMemo(() => {
+    const suspended = {};
+    banlist.forEach(item => {
+      if (item.status === BanlistStatus.SUSPENDED) {
+        suspended[item.name] = true;
+      }
+    });
+    return suspended;
+  }, [banlist]);
+
+  const restrictedCards = useMemo(() => {
+    const restricted = {};
+    banlist.forEach(item => {
+      if (item.status === BanlistStatus.RESTRICTED) {
+        restricted[item.name] = true;
+      }
+    });
+    return restricted;
+  }, [banlist]);
+
+  const limitedCards = useMemo(() => {
+    const limited = {};
+    banlist.forEach(item => {
+      if (item.status === BanlistStatus.LIMITED) {
+        limited[item.name] = true;
+      }
+    });
+    return limited;
+  }, [banlist]);
   return (
     grouped ? (
       <div
@@ -71,6 +101,21 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
       >
         {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck)}
         <div key={card.id.toString() + index}>
+          {suspendedCards[card.title] && (
+            <div className="absolute top-1 right-2 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
+              0
+            </div>
+          )}
+          {restrictedCards[card.title] && (
+            <div className="absolute top-1 right-2 bg-yellow-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
+              1
+            </div>
+          )}
+          {limitedCards[card.title] && (
+            <div className="absolute top-1 right-2 bg-purple-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
+              2
+            </div>
+          )}
           {renderCardTile(card, index, () => null)}
         </div>
       </div>
@@ -83,7 +128,22 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
       >
         {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck)}
         <div onContextMenu={(e) => removeCardFromDeck(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
-        {renderCardTile(card, index, () => null)}
+          {suspendedCards[card.title] && (
+            <div className="absolute top-1 right-1 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
+              0
+            </div>
+          )}
+          {restrictedCards[card.title] && (
+            <div className="absolute top-1 right-1 bg-yellow-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
+              1
+            </div>
+          )}
+          {limitedCards[card.title] && (
+            <div className="absolute top-1 right-1 bg-purple-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
+              2
+            </div>
+          )}
+          {renderCardTile(card, index, () => null)}
         </div>
       </div>
     )

@@ -200,6 +200,31 @@ export const routes = (app: ExpressApp) => {
   }
   );
 
+  app.get("/api/banlist", async (req: Request, res: Response) => {
+    const db = getDatabase();
+    const banlist = await db.collection("banlist").find({}).toArray();
+    return res.send(banlist);
+  }
+  );
+
+  app.post("/api/banlist", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.body.name) {
+      return res.status(400).send("name is required");
+    }
+    if (!req.body.status) {
+      return res.status(400).send("status is required");
+    }
+    const db = getDatabase();
+    const existingItem = await db.collection("banlist").findOne({ name: req.body.name });
+    if (!existingItem) {
+        await db.collection("banlist").insertOne({ name: req.body.name, status: req.body.status });
+    }
+    await db.collection("banlist").updateOne({ name: req.body.name }, { $set: { status: req.body.status } });
+    const updatedBanlist = await db.collection("banlist").find({}).toArray();
+    return res.send(updatedBanlist);
+  }
+  );
+
   decksController(app);
   publishedDecksController(app);
 }
