@@ -6,6 +6,7 @@ import { decreaseAttackModifier, decreaseCooldown, decreaseOtherModifier, increa
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { CardState } from "@/shared/interfaces/CardState";
 import { setCardInFocus, clearCardInFocus } from "../redux/clientGameStateSlice";
+import back_of_card from "PUBLIC/back_of_card.jpg";
 
 export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TARGET, hidden: boolean, inPileView: boolean, index?: number, zoneIndex?: number, faceUp?: boolean, p1?: boolean) {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
@@ -82,13 +83,22 @@ export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TA
 
   const handleCardRightClick: MouseEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
+    const cardToSelect = hidden ? {
+      ...card,
+      img: back_of_card.src,
+      name: "Face Down Card",
+      text: "",
+      type: "",
+      effect: [],
+      code: ""
+    } : card;
     if (e.shiftKey) {
       //multi select
-      dispatch(multiSelectCard({ card, side: p1 ? "p1" : "p2" }));
-      emitGameEvent({ type: GAME_EVENT.multiSelectCard, data: { card, side: p1 ? "p1" : "p2" } });
+      dispatch(multiSelectCard({ card: cardToSelect, side: p1 ? "p1" : "p2" }));
+      emitGameEvent({ type: GAME_EVENT.multiSelectCard, data: { card: cardToSelect, side: p1 ? "p1" : "p2" } });
     } else {
-      dispatch(selectCard({ card, side: p1 ? "p1" : "p2" }));
-      emitGameEvent({ type: GAME_EVENT.selectCard, data: { card, side: p1 ? "p1" : "p2" } });
+      dispatch(selectCard({ card: cardToSelect, side: p1 ? "p1" : "p2" }));
+      emitGameEvent({ type: GAME_EVENT.selectCard, data: { card: cardToSelect, side: p1 ? "p1" : "p2" } });
     }
   }
 
