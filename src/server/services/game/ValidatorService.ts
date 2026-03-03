@@ -1,4 +1,4 @@
-import { GameEventPayload, JoinGamePayload, RoomEventPayload } from "../interfaces/SocketTypes";
+import { GameEventPayload, JoinGamePayload, RoomEventPayload } from "../../interfaces/SocketTypes";
 
 interface ValidationResult {
   valid: boolean;

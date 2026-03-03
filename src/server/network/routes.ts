@@ -93,7 +93,6 @@ export const routes = (app: ExpressApp) => {
     try {
       const deck: DeckResponse = await fetchToolboxDeckById({deckId});
       if (!deck?.id || !deck?.legion || !deck?.cards_in_deck) {
-        console.log("Deck not found:", deckId, deck);
         return res.status(404).send("Deck not found");
       }
       return res.send(deck);

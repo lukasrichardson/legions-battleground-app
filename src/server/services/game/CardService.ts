@@ -1,15 +1,15 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CARD_TYPE } from "@/shared/enums/CardType";
-import { IOServer } from "../interfaces/SocketTypes";
-import { MoveCardActionInterface } from "../events/cardEvents";
-import { games } from "../game/game";
-import { CardState } from "../../shared/interfaces/CardState";
-import { removeCardFromZone, addCardToZone } from "../utils/cardZone.util";
-import { addGameLog } from "../utils/generateGameLog";
-import { shuffle } from "../utils/shuffleDeck.util";
-import { drawCardP1, drawCardP2, STARTING_HAND_SIZE } from "../utils/game.util";
-import { renderNumberthSuffix } from "../utils/string.utils";
-import { goNextPhase } from "../events/playerEvents";
+import { IOServer } from "../../interfaces/SocketTypes";
+import { MoveCardActionInterface } from "../../events/cardEvents";
+import { games } from "../../game/game";
+import { CardState } from "../../../shared/interfaces/CardState";
+import { removeCardFromZone, addCardToZone } from "../../utils/cardZone.util";
+import { addGameLog } from "../../utils/generateGameLog";
+import { shuffle } from "../../utils/shuffleDeck.util";
+import { drawCardP1, drawCardP2, STARTING_HAND_SIZE } from "../../utils/game.util";
+import { renderNumberthSuffix } from "../../utils/string.utils";
+import { goNextPhase } from "../../events/playerEvents";
 import { GameStateData } from "@/shared/interfaces/GameState";
 import { multiSelectCardHelper, selectCardHelper } from "@/shared/utils";
 

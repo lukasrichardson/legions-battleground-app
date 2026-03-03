@@ -2,11 +2,11 @@ import { CustomSocket, GameEventPayload, IOServer, JoinGamePayload, RoomEventPay
 import { games, users } from "../game/game";
 import { setDeck } from "./game.util";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
-import { GameService } from "../services/GameService";
-import { RoomService } from "../services/RoomService";
-import { EventHandler } from "../services/EventHandler";
+import { GameService } from "../services/game/GameService";
+import { RoomService } from "../services/game/RoomService";
+import { EventHandler } from "../services/game/EventHandler";
 import { ROOM_EVENT } from "@/shared/enums/RoomEvent";
-import ValidatorService from "../services/ValidatorService";
+import ValidatorService from "../services/game/ValidatorService";
 
 // Create service instances
 const gameService = new GameService();

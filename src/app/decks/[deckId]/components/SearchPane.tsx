@@ -210,7 +210,6 @@ export default function SearchPane({
   }, [setHoveredCard]);
 
   const handleCardSrlClick = (card, status) => {
-    console.log(`Updating banlist status for ${card.title} to ${status}`);
     postBanlistUpdate({
       name: card.title,
       status

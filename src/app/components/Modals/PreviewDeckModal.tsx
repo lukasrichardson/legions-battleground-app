@@ -92,10 +92,8 @@ export default function PreviewDeckModal() {
         // Axios error: response may contain server error details
         setError("Error: " + (err.response?.data ?? err.message));
       } else if (err instanceof Error) {
-        console.log("err from preview deck", err.message);
         setError("Error: " + err.message);
       } else {
-        console.log("err from preview deck", err);
         setError("Error: An Error Occurred, try again");
       }
       setLoading(false);

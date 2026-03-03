@@ -36,8 +36,7 @@ function Page() {
                   const { roomName: newRoomName } = res.data;
                   // router.push(`/play?room=${newRoomName}&playerName=Testingroom123&deckId=68d414053a94febdaeab0678`);
                   router.push(`/play?room=${newRoomName}&playerName=Testingroom123&deckId=698a41dd054ab7b3d538f1fd`);
-                } catch (error) {
-                  console.log('Error creating test game:', error);
+                } catch {
                   alert(" U R FAIL");
                 }
               }}

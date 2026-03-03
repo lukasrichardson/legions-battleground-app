@@ -1,5 +1,5 @@
-import { rooms } from '../network/socketHandler';
-import { RoomsCollection } from '../../shared/interfaces/RoomInterface';
+import { rooms } from '../../network/socketHandler';
+import { RoomsCollection } from '@/shared/interfaces/RoomInterface';
 import IPlayer from './interfaces/IPlayer';
 
 export class RoomService {

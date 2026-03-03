@@ -1,11 +1,11 @@
 import {
   games,
-} from '../game/game';
-import { fetchInitialDecks, resetPlayersCards, fetchPlayerDeckById } from '../utils/game.util';
-import { rooms } from '../network/socketHandler';
-import { addGameLog } from '../utils/generateGameLog';
+} from '../../game/game';
+import { fetchInitialDecks, resetPlayersCards, fetchPlayerDeckById } from '../../utils/game.util';
+import { rooms } from '../../network/socketHandler';
+import { addGameLog } from '../../utils/generateGameLog';
 import { initialGameState } from '@/shared/constants/initialGameState';
-import { PreGamePhase } from '../../shared/enums/Phases';
+import { PreGamePhase } from '../../../shared/enums/Phases';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { GameStateData } from '@/shared/interfaces/GameState';
 

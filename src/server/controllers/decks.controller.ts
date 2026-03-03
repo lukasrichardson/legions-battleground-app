@@ -1,56 +1,41 @@
 import { ExpressApp } from "../interfaces/ExpressTypes";
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
-import {Response} from 'express';
-import { getDatabase } from '../utils/database.util';
-import { ObjectId } from 'mongodb';
-import { DeckResponse } from "@/shared/interfaces/DeckResponse";
-import PublishedDeck from "@/shared/interfaces/PublishedDeck";
+import { Response } from 'express';
+import { createNewDeck,
+  duplicateDeckById,
+  getDeckById,
+  getDecksForPlayer,
+  getFilterOptionsForPlayerDecks,
+  updateDeckById,
+  copyPublishedDeck,
+  deleteDeckById
+} from "../services/api/DecksService";
 
 export default function decksController(app: ExpressApp) {
+
   app.get("/api/decks", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    const db = getDatabase();
-    const {legion} = req.query;
-    const query = { userId: req?.user?.id };
 
-    if (legion && typeof legion === 'string' && legion.trim() !== '') {
-      query['legion'] = legion;
-    } else if (legion && Array.isArray(legion)) {
-      query['legion'] = { $in: legion };
-    }
+    const { legion } = req.query;
+    const decks = await getDecksForPlayer(req.user, legion as string | string[] | undefined);
 
-    const decks = await db.collection("decks").find(query).toArray();
-    
-    return res.send(decks.reverse());
+    return res.send(decks);
   }
   );
 
-  
+
   app.get("/api/decks/filterOptions", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    const db = getDatabase();
-    const query = { userId: req?.user?.id };
-    const legion = await db.collection("decks").distinct("legion", query);
-    return res.send({legion});
+    const legion = await getFilterOptionsForPlayerDecks(req.user);
+    return res.send({ legion });
   }
   );
-  
+
   app.get("/api/decks/:deckId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    const db = getDatabase();
+
     const deckId = req.params.deckId.toString();
     if (!deckId || deckId === "undefined") return res.status(400).send("Deck ID is required");
-    
-    let deck;
-    if (deckId.length > 6) {
-      const query = req.user?.id 
-        ? { _id: new ObjectId(deckId), userId: req.user.id }
-        : { _id: new ObjectId(deckId) };
-      deck = await db.collection("decks").findOne(query);
-    } else {
-      const query = req.user?.id 
-        ? { id: deckId, userId: req.user.id }
-        : { id: deckId };
-      deck = await db.collection("decks").findOne(query);
-    }
-    
+
+    const deck = await getDeckById(req.user, deckId);
+
     if (!deck) {
       return res.status(404).send("Deck not found");
     }
@@ -59,72 +44,32 @@ export default function decksController(app: ExpressApp) {
   );
 
   app.patch("/api/decks/:deckId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    const db = getDatabase();
     const deckId = req.params.deckId;
     if (!deckId) return res.status(400).send("Deck ID is required");
-    
-    // Check if deck exists and belongs to user
-    const existingDeck = await db.collection("decks").findOne({ 
-      _id: new ObjectId(deckId),
-      userId: req.user!.id 
-    });
-    
+
+    const existingDeck = await getDeckById(req.user, deckId);
     if (!existingDeck) {
       return res.status(404).send("Deck not found or you don't have permission to edit this deck");
     }
-    
-    const updatedDeck = {
-      ...req.body,
-      updated_at: new Date(),
-    };
-    delete updatedDeck._id;
-    
-    const result = await db.collection("decks").updateOne({ 
-      _id: new ObjectId(deckId),
-      userId: req.user!.id 
-    }, {
-      $set: {...updatedDeck}
-    });
-    
-    if (result.modifiedCount === 0) {
+
+    const updatedDeck = await updateDeckById(req.user, deckId, req.body);
+    if (!updatedDeck) {
       return res.status(404).send("Deck not found or no changes made");
     }
-    return res.send({...updatedDeck, _id: deckId});
+
+    return res.send(updatedDeck);
   }
   );
 
   app.post("/api/decks/:deckId/duplicate", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
 
-      const db = getDatabase();
-      
-      // Check if deck with same deckId
-      const existingDeck: DeckResponse = await db.collection<DeckResponse>("decks").findOne({ 
-        _id: new ObjectId(req.params.deckId),
-      });
-      if (!existingDeck) {
-        return res.status(409).json({ 
-          error: "Conflict", 
-          message: `cant find deck with deck with id "${req.params.deckId}"` 
-        });
-      }
+      const duplicateDeck = await duplicateDeckById(req.user, req.params.deckId);
 
-      // Create the new deck object with userId
-      const newDeck: DeckResponse = {
-        ...existingDeck,
-        name: existingDeck.name + " Copy",
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
-      delete newDeck._id;
-
-      // Insert the deck into MongoDB
-      const result = await db.collection("decks").insertOne(newDeck);
-      
-      if (!result.insertedId) {
-        return res.status(500).json({ 
-          error: "Internal server error", 
-          message: "Failed to create deck in database" 
+      if (!duplicateDeck) {
+        return res.status(500).json({
+          error: "Internal server error",
+          message: "Failed to create deck in database"
         });
       }
 
@@ -133,236 +78,145 @@ export default function decksController(app: ExpressApp) {
         success: true,
         message: "Deck created successfully",
         deck: {
-          _id: result.insertedId,
-          name: newDeck.name,
-          subtitle: newDeck.subtitle,
-          legion: newDeck.legion,
-          userId: newDeck.userId,
-          created_at: newDeck.created_at
+          _id: duplicateDeck._id,
+          name: duplicateDeck.name,
+          subtitle: duplicateDeck.subtitle,
+          legion: duplicateDeck.legion,
+          userId: duplicateDeck.userId,
+          created_at: duplicateDeck.created_at
         }
       });
 
     } catch (error: unknown) {
       console.error("Error creating deck:", error);
-      
+
       // Handle specific MongoDB errors
       if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
-        return res.status(409).json({ 
-          error: "Conflict", 
-          message: "A deck with this ID or name already exists" 
+        return res.status(409).json({
+          error: "Conflict",
+          message: "A deck with this ID or name already exists"
         });
       }
-      
+
       // Handle connection errors
-      if (error && typeof error === 'object' && 'name' in error && 
-          (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError')) {
-        return res.status(503).json({ 
-          error: "Service unavailable", 
-          message: "Database connection failed. Please try again later." 
+      if (error && typeof error === 'object' && 'name' in error &&
+        (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError')) {
+        return res.status(503).json({
+          error: "Service unavailable",
+          message: "Database connection failed. Please try again later."
         });
       }
 
       // Generic server error
-      return res.status(500).json({ 
-        error: "Internal server error", 
-        message: "An unexpected error occurred while creating the deck" 
+      return res.status(500).json({
+        error: "Internal server error",
+        message: "An unexpected error occurred while creating the deck"
       });
     }
   });
 
   app.post("/api/decks", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      // Input validation
-      if (!req.body.name || typeof req.body.name !== 'string' || req.body.name.trim() === '') {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          message: "Deck name is required and must be a non-empty string" 
+      const createdDeck = await createNewDeck(req.user, req.body);
+      if (!createdDeck) {
+        return res.status(500).json({
+          error: "Internal server error",
+          message: "Failed to create deck in database"
         });
       }
 
-      if (!req.body.legion || typeof req.body.legion !== 'string' || req.body.legion.trim() === '') {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          message: "Legion is required and must be a non-empty string" 
-        });
-      }
-
-      const db = getDatabase();
-      
-      // Check if deck with same name already exists for this user
-      const existingDeck = await db.collection("decks").findOne({ 
-        name: req.body.name.trim(),
-        userId: req.user!.id 
-      });
-      if (existingDeck) {
-        return res.status(400).json({ 
-          error: "Validation Failed", 
-          message: `You already have a deck with that name` 
-        });
-      }
-
-      // Create the new deck object with userId
-      const newDeck = {
-        name: req.body.name.trim(),
-        subtitle: "",
-        legion: req.body.legion.toLowerCase(),
-        userId: req.user!.id,
-        cards_in_deck: [],
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
-
-      // Insert the deck into MongoDB
-      const result = await db.collection("decks").insertOne(newDeck);
-      
-      if (!result.insertedId) {
-        return res.status(500).json({ 
-          error: "Internal server error", 
-          message: "Failed to create deck in database" 
-        });
-      }
-
-      // Return success response with deck ID
       return res.status(201).json({
         success: true,
         message: "Deck created successfully",
         deck: {
-          _id: result.insertedId,
-          name: newDeck.name,
-          subtitle: newDeck.subtitle,
-          legion: newDeck.legion,
-          userId: newDeck.userId,
-          created_at: newDeck.created_at
+          _id: createdDeck._id,
+          name: createdDeck.name,
+          subtitle: createdDeck.subtitle,
+          legion: createdDeck.legion,
+          userId: createdDeck.userId,
+          created_at: createdDeck.created_at
         }
       });
 
     } catch (error: unknown) {
       console.error("Error creating deck:", error);
-      
+
       // Handle specific MongoDB errors
       if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
-        return res.status(409).json({ 
-          error: "Conflict", 
-          message: "A deck with this ID or name already exists" 
+        return res.status(409).json({
+          error: "Conflict",
+          message: "A deck with this ID or name already exists"
         });
       }
-      
+
       // Handle connection errors
-      if (error && typeof error === 'object' && 'name' in error && 
-          (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError')) {
-        return res.status(503).json({ 
-          error: "Service unavailable", 
-          message: "Database connection failed. Please try again later." 
+      if (error && typeof error === 'object' && 'name' in error &&
+        (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError')) {
+        return res.status(503).json({
+          error: "Service unavailable",
+          message: "Database connection failed. Please try again later."
         });
       }
 
       // Generic server error
-      return res.status(500).json({ 
-        error: "Internal server error", 
-        message: "An unexpected error occurred while creating the deck" 
+      return res.status(500).json({
+        error: "Internal server error",
+        message: "An unexpected error occurred while creating the deck"
       });
     }
   });
 
   app.post("/api/decks/:publishedDeckId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
-
-      const db = getDatabase();
-      
-      // Check if deck with same deckId
-      const existingDeck: PublishedDeck = await db.collection<PublishedDeck>("published_decks").findOne({ 
-        _id: new ObjectId(req.params.publishedDeckId),
-      });
-      if (!existingDeck) {
-        return res.status(409).json({ 
-          error: "Conflict", 
-          message: `cant find deck` 
-        });
-      }
-
-      // Create the new deck object with userId
-      const newDeck: PublishedDeck = {
-        ...existingDeck,
-        name: existingDeck.name + " Copy",
-        userId: req.user!.id,
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
-      delete newDeck._id;
-      delete newDeck.published_date;
-      delete newDeck.author;
-
-      // Insert the deck into MongoDB
-      const result = await db.collection("decks").insertOne(newDeck);
-      
-      if (!result.insertedId) {
-        return res.status(500).json({ 
-          error: "Internal server error", 
-          message: "Failed to create deck in database" 
-        });
-      }
-
-      const insertedDeck = await db.collection("decks").findOne({ _id: result.insertedId });
-      if (!insertedDeck) {
+      const copiedDeck = await copyPublishedDeck(req.user, req.params.publishedDeckId);
+      if (!copiedDeck) {
         return res.status(500).json({
           error: "Internal server error",
-          message: "Failed to retrieve newly created deck from database"
+          message: "Failed to create deck in database"
         });
       }
 
-      // Return success response with deck ID
       return res.status(201).json({
         success: true,
         message: "Deck created successfully",
         deck: {
-          _id: insertedDeck._id,
-          name: insertedDeck.name,
-          subtitle: insertedDeck.subtitle,
-          legion: insertedDeck.legion,
-          userId: insertedDeck.userId,
-          created_at: insertedDeck.created_at
+          _id: copiedDeck._id,
+          name: copiedDeck.name,
+          subtitle: copiedDeck.subtitle,
+          legion: copiedDeck.legion,
+          userId: copiedDeck.userId,
+          created_at: copiedDeck.created_at
         }
       });
 
     } catch (error: unknown) {
       console.error("Error creating deck:", error);
-      
-      // Handle specific MongoDB errors
+
       if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
-        return res.status(409).json({ 
-          error: "Conflict", 
-          message: "A deck with this ID or name already exists" 
-        });
-      }
-      
-      // Handle connection errors
-      if (error && typeof error === 'object' && 'name' in error && 
-          (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError')) {
-        return res.status(503).json({ 
-          error: "Service unavailable", 
-          message: "Database connection failed. Please try again later." 
+        return res.status(409).json({
+          error: "Conflict",
+          message: "A deck with this ID or name already exists"
         });
       }
 
-      // Generic server error
-      return res.status(500).json({ 
-        error: "Internal server error", 
-        message: "An unexpected error occurred while creating the deck" 
+      if (error && typeof error === 'object' && 'name' in error &&
+        (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError')) {
+        return res.status(503).json({
+          error: "Service unavailable",
+          message: "Database connection failed. Please try again later."
+        });
+      }
+
+      return res.status(500).json({
+        error: "Internal server error",
+        message: "An unexpected error occurred while creating the deck"
       });
     }
   });
 
-  app.delete("/api/decks/:deckId", requireAuth,  async (req: AuthenticatedRequest, res: Response) => {
-    const db = getDatabase();
+  app.delete("/api/decks/:deckId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     const deckId = req.params.deckId;
-    if (!deckId) return res.status(400).send("Deck ID is required");
-    const result = await db.collection("decks").deleteOne({ 
-      _id: new ObjectId(deckId),
-      userId: req.user.id
-    });
-    if (result.deletedCount === 0) {
-      return res.status(404).send("Deck not found or you don't have permission to delete this deck");
-    }
+    await deleteDeckById(req.user, deckId);
     return res.send({ success: true });
   });
 }

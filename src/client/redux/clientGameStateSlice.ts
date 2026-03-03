@@ -35,7 +35,6 @@ const clientGameStateSlice = createSlice({
     },
     setPileInView: (state, action) => {
       const { cardTarget, targetIndex, limit, bottom, pile } = action.payload;
-      console.log("Setting pile in view with payload:", action.payload);
       state.pileInViewTarget = cardTarget;
       state.pileInViewLimit = limit || null;
       state.pileInViewIndex = targetIndex || null;

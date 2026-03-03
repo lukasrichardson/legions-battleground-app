@@ -1,12 +1,12 @@
-import { gameEventMap } from '../game/game';
+import { gameEventMap } from '../../game/game';
 import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { ROOM_EVENT } from '@/shared/enums/RoomEvent';
 import { GameService } from './GameService';
 import { RoomService } from './RoomService';
-import { IOServer } from '../interfaces/SocketTypes';
+import { IOServer } from '../../interfaces/SocketTypes';
 import IPlayer from './interfaces/IPlayer';
-import { MoveCardActionInterface } from '../events/cardEvents';
-import { CardState } from '../../shared/interfaces/CardState';
+import { MoveCardActionInterface } from '../../events/cardEvents';
+import { CardState } from '../../../shared/interfaces/CardState';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { CardService } from './CardService';
 
