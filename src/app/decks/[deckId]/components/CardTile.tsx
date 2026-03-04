@@ -28,7 +28,7 @@ export const renderCardTile = (card: { id: string | number; title: string; featu
     key={card?.id.toString() + index}
     onMouseEnter={() => onMouseEnter(card)}
     onClick={() => onMouseEnter(card)}
-    className="overflow-hidden rounded-sm text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md h-full w-full cursor-pointer"
+    className="overflow-hidden rounded-sm text-left shadow-sm transition hover:shadow-md h-full w-full cursor-pointer"
   >
     <div className="aspect-[3/4] w-full h-full overflow-hidden rounded-lg relative">
       <CardImage

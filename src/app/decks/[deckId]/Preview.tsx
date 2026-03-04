@@ -15,9 +15,9 @@ export default function Preview({ hoveredCard }: { hoveredCard: { title: string;
               className="aspect-[3/4] object-contain object-top hover:scale-250 hover:top-0 hover:right-0 transition-transform duration-200 origin-top-right hover:z-95"
             />
           </div>
-          <div className="space-y-2 w-1/2 h-full overflow-scroll">
-            <h3 className="text-sm font-semibold text-white">{cardToUse.title}</h3>
-            <div className="bg-white/5 rounded-lg p-2">
+          <div className="flex flex-col gap-2 w-1/2 h-full">
+            <h3 className="text-sm font-semibold text-white flex-shrink-0">{cardToUse.title}</h3>
+            <div className="bg-white/5 rounded-lg p-2 flex-1 overflow-y-auto min-h-0">
               <p className="text-xs leading-relaxed text-gray-300 whitespace-pre-wrap">{cardToUse.text}</p>
             </div>
           </div>

@@ -172,7 +172,7 @@ export default function DeckBuilder() {
           {/* Right Sidebar - Search and Preview on large screens */}
           <div className="flex flex-1 lg:flex-1 flex-col gap-2 order-2 lg:order-2 lg:w-80 xl:w-96">
             {/* Preview Pane - Only show on large screens */}
-            <div className="hidden lg:block h-1/3">
+            <div className="hidden lg:block h-1/3 max-h-1/3">
               <Preview hoveredCard={hoveredCard} />
             </div>
             

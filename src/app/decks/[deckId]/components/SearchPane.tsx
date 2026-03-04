@@ -7,9 +7,11 @@ import { Button } from "@/client/ui/button";
 import { MultiSelect } from "@/client/ui/multiselect";
 import { SearchCardTile } from "./CardTile";
 import { preloadSearchResults } from "@/client/utils/imagePreloader";
-import { legionColours } from "@/client/constants/colours.constants";
+import { cardTypeColours, legionColours } from "@/client/constants/colours.constants";
 import { LEGIONS } from "@/client/constants/legions.constants";
 import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
+import { CARD_TYPE } from "@/shared/enums/CardType";
+// import { cardTypeAbbreviations } from "@/client/constants/general.constants";
 
 export default function SearchPane({
   setHoveredCard,
@@ -277,8 +279,8 @@ export default function SearchPane({
                   />
                 ))}
                 <Button onClick={clearFilters} size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs">
-                Clear
-              </Button>
+                  Clear
+                </Button>
               </div>
             )}
           </div>
@@ -324,23 +326,23 @@ export default function SearchPane({
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
                     {process.env.NODE_ENV === "development" && <div className="absolute opacity-0 hover:opacity-100 w-1/2 h-full bg-white/50 z-1 flex flex-col items-center justify-center gap-1 cursor-default">
-                    <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.SUSPENDED)}>0</div>
-                    <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.RESTRICTED)}>1</div>
-                    <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.LIMITED)}>2</div>
-                    <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.UNRESTRICTED)}>-</div>
+                      <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.SUSPENDED)}>0</div>
+                      <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.RESTRICTED)}>1</div>
+                      <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.LIMITED)}>2</div>
+                      <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.UNRESTRICTED)}>-</div>
                     </div>}
                     {suspendedCards[card.title] && (
-                      <div className="absolute top-1 right-2 bg-red-500 text-white text-[20px] px-1 py-0.5 rounded z-50">
+                      <div className="absolute top-1 right-2 bg-red-500 text-white text-[20px] px-1 py-0.5 rounded z-10">
                         0
                       </div>
                     )}
                     {restrictedCards[card.title] && (
-                      <div className="absolute top-1 right-2 bg-yellow-500 text-white text-[20px] px-1 py-0.5 rounded z-50">
+                      <div className="absolute top-1 right-2 bg-yellow-500 text-white text-[20px] px-1 py-0.5 rounded z-10">
                         1
                       </div>
                     )}
                     {limitedCards[card.title] && (
-                      <div className="absolute top-1 right-2 bg-purple-500 text-white text-[20px] px-1 py-0.5 rounded z-50">
+                      <div className="absolute top-1 right-2 bg-purple-500 text-white text-[20px] px-1 py-0.5 rounded z-10">
                         2
                       </div>
                     )}
@@ -351,35 +353,40 @@ export default function SearchPane({
                 {cards.map((card, index) => (
                   <div
                     key={card.toString() + index}
-                    className="bg-white/10 hover:bg-white/20 inline-block w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-full cursor-pointer max-h-full lg:flex justify-start items-center overflow-hidden rounded p-1 pr-0.5 my-0.5"
-                    
+                    className="bg-white/10 hover:bg-white/20 inline-block w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-full cursor-pointer max-h-full lg:flex justify-start items-center overflow-hidden rounded pr-0.5 border-b-white border-b-2 relative "
+                    style={{ backgroundColor: legionColours[card.legion.names[0]] ? `${legionColours[card.legion.names[0]]}` : "", color: [LEGIONS.ANGELS.toString(), LEGIONS.TITANS.toString()].includes(card.legion.names[0]) ? "black" : "white"}}
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
-                    <div className="w-full lg:w-1/4 xl:w-1/6 h-full relative">
-                    {suspendedCards[card.title] && (
-                      <div className="absolute top-0 right-0 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
-                        0
-                      </div>
-                    )}
-                    {restrictedCards[card.title] && (
-                      <div className="absolute top-0 right-0 bg-yellow-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
-                        1
-                      </div>
-                    )}
-                    {limitedCards[card.title] && (
-                      <div className="absolute top-0 right-0 bg-purple-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
-                        2
-                      </div>
-                    )}
+                    <div className="w-full lg:w-1/5 xl:w-1/6 h-full relative z-2">
+                      {suspendedCards[card.title] && (
+                        <div className="absolute top-0 right-0 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-10">
+                          0
+                        </div>
+                      )}
+                      {restrictedCards[card.title] && (
+                        <div className="absolute top-0 right-0 bg-yellow-500 text-white text-[16px] px-1 py-0.5 rounded z-10">
+                          1
+                        </div>
+                      )}
+                      {limitedCards[card.title] && (
+                        <div className="absolute top-0 right-0 bg-purple-500 text-white text-[16px] px-1 py-0.5 rounded z-10">
+                          2
+                        </div>
+                      )}
                       <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
                     </div>
-                    <div className="hidden w-4/5 lg:flex flex-col xl:w-6/7 h-full justify-between">
-                      <span className="text-wrap text-sm font-extrabold tracking-tighter underline">{card.title}</span>
-                      <span className="text-wrap text-xs font-semibold w-fit p-0.5 my-0.5 rounded" style={{ backgroundColor: legionColours[card.legion.names[0]] ? `${legionColours[card.legion.names[0]]}` : "", color: card.legion.names[0] === LEGIONS.ANGELS ? "black" : "white" }}>{card.legion.names[0]} | {card.card_type.names[0]}</span>
-                      <div className="flex justify-between"><span className="text-wrap text-xs">{card.rarity.names[0]}</span>
-                        <span className="text-wrap text-xs">{card.card_code}</span>
+                    <div className="hidden w-4/5 lg:flex flex-col xl:w-5/6 h-full justify-between" onClick={() => setHoveredCard(card)}>
+                      <span className="text-md underline truncate">{card.title}</span>
+                      <span>
+                        <span className="text-[10px] font-semibold w-fit p-0.5 my-0.5 rounded" style={{ backgroundColor: cardTypeColours[card.card_type.names[0]] ? `${cardTypeColours[card.card_type.names[0]]}` : "", color: [CARD_TYPE.WARRIOR.toString(), CARD_TYPE.GUARDIAN.toString(), CARD_TYPE.SYNERGY.toString(), CARD_TYPE.VEIL_REALM.toString(), CARD_TYPE.WARLORD.toString()].includes(card.card_type.names[0]) ? "black" : "white" }}>
+                          {card.card_type.names[0]}
+                        </span>
+                      </span>
+                      <div className="flex justify-between"><span className="text-[10px]">{card.rarity.names[0]}</span>
+                        <span className="text-[8px]">{card.card_code}</span>
                       </div>
                     </div>
+                    <div className="w-full h-full absolute bg-transparent hover:bg-white/20 transition-all duration-100"></div>
                   </div>
                 ))}
               </div>}
