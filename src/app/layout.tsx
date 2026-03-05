@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description: "A Legions Realms At War TCG simulator",
   icons: {
     icon: grue.src,
+    apple: grue.src,
   },
 };
 
