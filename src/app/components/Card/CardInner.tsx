@@ -9,6 +9,7 @@ import IMenuItem from "@/client/interfaces/IMenuItem";
 import { useAppSelector } from "@/client/redux/hooks";
 import CardImage from "./CardImage";
 import useHandlePlayerEvents from "@/client/hooks/useHandlePlayerEvents";
+import { decodeHTMLEntities } from "@/shared/string.utils";
 
 const PILE_OFFSETS = {
   LEFT: 15,
@@ -207,11 +208,11 @@ export default function CardInner({
             !isDragging && <>
               <CardImage
                 src={imageSrc}
-                alt={card?.name || "Card Image"}
+                alt={card?.name ? decodeHTMLEntities(card.name) : "Card Image"}
                 className="object-contain transition-transform duration-200 group-hover:scale-[1.03] w-full h-full"
               />
             </>
-          ) : <span>{card?.name}</span>}
+          ) : <span>{card?.name ? decodeHTMLEntities(card.name) : ''}</span>}
           {!isDragging && (
             <>{(!cardInView && index === 0 && faceUp) && (
               <>

@@ -11,6 +11,7 @@ import { cardTypeColours, legionColours } from "@/client/constants/colours.const
 import { LEGIONS } from "@/client/constants/legions.constants";
 import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 import { CARD_TYPE } from "@/shared/enums/CardType";
+import { decodeHTMLEntities } from "@/shared/string.utils";
 // import { cardTypeAbbreviations } from "@/client/constants/general.constants";
 
 export default function SearchPane({
@@ -376,7 +377,7 @@ export default function SearchPane({
                       <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
                     </div>
                     <div className="hidden w-4/5 lg:flex flex-col xl:w-5/6 h-full justify-between" onClick={() => setHoveredCard(card)}>
-                      <span className="text-md underline truncate">{card.title}</span>
+                      <span className="text-md underline truncate">{decodeHTMLEntities(card.title)}</span>
                       <span>
                         <span className="text-[10px] font-semibold w-fit p-0.5 my-0.5 rounded" style={{ backgroundColor: cardTypeColours[card.card_type.names[0]] ? `${cardTypeColours[card.card_type.names[0]]}` : "", color: [CARD_TYPE.WARRIOR.toString(), CARD_TYPE.GUARDIAN.toString(), CARD_TYPE.SYNERGY.toString(), CARD_TYPE.VEIL_REALM.toString(), CARD_TYPE.WARLORD.toString()].includes(card.card_type.names[0]) ? "black" : "white" }}>
                           {card.card_type.names[0]}

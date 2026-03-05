@@ -1,5 +1,6 @@
 import axios from'axios';
 import { MongoClient, ServerApiVersion } from 'mongodb';
+import { decodeHTMLEntities } from '../src/shared/string.utils';
 const uri = process.env.MONGO_URL || "your-mongodb-connection-string-here";
 console.log("url:", uri)
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -50,9 +51,9 @@ const main = async () => {
         }
         const mappedCardToInsert = {
           id: cards[i].id,
-          title: cards[i].title,
+          title: decodeHTMLEntities(cards[i].title),
           featured_image: cards[i].thumb,
-          text: cards[i].content.text,
+          text: decodeHTMLEntities(cards[i].content.text),
           content: {
             paragraphs: cards[i].content.paragraphs,
             lines: cards[i].content.lines,

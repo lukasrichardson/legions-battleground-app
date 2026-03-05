@@ -2,6 +2,7 @@ import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { useState } from "react";
 import SearchPane from "../decks/[deckId]/components/SearchPane";
 import CardImage from "../components/Card/CardImage";
+import { decodeHTMLEntities } from "@/shared/string.utils";
 
 export const CardGallery = () => {
   const [hoveredCard, setHoveredCard] = useState<CardDocument | null>(null);
@@ -33,8 +34,8 @@ export const CardGallery = () => {
           <div className="h-1/2">
             {hoveredCard && (
               <div className="h-full flex flex-col justify-start p-2 gap-2">
-                {hoveredCard.title && <h2 className="text-white text-lg font-bold p2 flex-1 bg-blue-200/15 rounded">{hoveredCard.title}</h2>}
-                {hoveredCard.text && <div className="h-full overflow-scroll flex-5"><p className="text-gray-300 text-sm p-2 whitespace-pre-wrap  bg-blue-200/15 rounded">{hoveredCard.text}</p></div>}
+                {hoveredCard.title && <h2 className="text-white text-lg font-bold p2 flex-1 bg-blue-200/15 rounded">{decodeHTMLEntities(hoveredCard.title)}</h2>}
+                {hoveredCard.text && <div className="h-full overflow-scroll flex-5"><p className="text-gray-300 text-sm p-2 whitespace-pre-wrap  bg-blue-200/15 rounded">{decodeHTMLEntities(hoveredCard.text)}</p></div>}
               </div>
             )}
           </div>

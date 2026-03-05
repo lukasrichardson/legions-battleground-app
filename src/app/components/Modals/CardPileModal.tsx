@@ -7,6 +7,7 @@ import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import useClientSettings from "@/client/hooks/useClientSettings";
+import { decodeHTMLEntities } from "@/shared/string.utils";
 
 const ModalConstants = {
   ShuffleBtnText: "shuffle",
@@ -188,7 +189,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
 
   const renderModalContent = () => {
     const filteredPile = (cardPile as ExtendedCardState[]).filter(c => tab === "All" ? true : c.type === tab).filter(card =>
-      card.name?.toLowerCase().includes(search.toLowerCase())
+      card.name?.toLowerCase().includes(search.toLowerCase()) || decodeHTMLEntities(card.name || '').toLowerCase().includes(search.toLowerCase())
     ) as ExtendedCardState[];
     const hidden = p1 ? pileInViewTarget === CARD_TARGET.P2_PLAYER_DECK : pileInViewTarget === CARD_TARGET.P1_PLAYER_DECK;
 

@@ -3,6 +3,7 @@ import { DeckCardTile } from "./CardTile";
 import { useEffect, useState } from "react";
 import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
 import { fetchBanlist } from "@/client/utils/api.utils";
+import { decodeHTMLEntities } from "@/shared/string.utils";
 
 export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck, readOnly = false }: { cards: CardDocument[], removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, setHoveredCard: (card: CardDocument) => void, useGroupedView: boolean, addCardToDeck: (card: CardDocument) => void, readOnly?: boolean }) {
   const [banlist, setBanlist] = useState<BanlistItem[]>([]);
@@ -12,7 +13,7 @@ export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard,
 
   // Group cards by name to apply grouping styling
   const groupedCards = cards.reduce((groups: Record<string, CardDocument[]>, card) => {
-    const name = card.title;
+    const name = decodeHTMLEntities(card.title);
     if (!groups[name]) {
       groups[name] = [];
     }
