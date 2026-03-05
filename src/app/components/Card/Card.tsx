@@ -4,14 +4,15 @@ import { CardState } from "@/shared/interfaces/CardState";
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { useAppDispatch, useAppSelector } from '@/client/redux/hooks';
 import { moveCard, flipCard } from '@/client/redux/gameStateSlice';
-import { setPileInView } from '@/client/redux/clientGameStateSlice';
-import { cardMenuItems, deckMenuItems, newCardMenuItems, newDeckMenuItems } from '@/client/constants/cardMenu.constants';
+import { setCardForSelectingZone, setPileInView, setSelectingZone } from '@/client/redux/clientGameStateSlice';
+import { cardMenuItems, deckMenuItems, newCardMenuItems, newDeckMenuItems, newFortifiedMenuItems, newOnFieldMenuItems, newUnifiedMenuItems, newWarriorMenuItems } from '@/client/constants/cardMenu.constants';
 import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { emitGameEvent } from '@/client/utils/emitEvent';
 import MenuItemAction from '@/client/enums/MenuItemAction';
 import CardInner from './CardInner';
 import { openPlunderModal } from '@/client/redux/modalsSlice';
 import useHandleCardEvents from '@/client/hooks/useHandleCardEvents';
+import { CARD_TYPE } from '@/shared/enums/CardType';
 
 export default function Card({ card, cardTarget, index, inPileView = false, zoneIndex, hidden = false }: { card: CardState, cardTarget: CARD_TARGET, index?: number, inPileView?: boolean, zoneIndex?: number, hidden?: boolean }) {
   const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -142,10 +143,48 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
         dispatch(openPlunderModal())
         closePopover();
         break;
+      case MenuItemAction.CONSCRIPT:
+        dispatch(setSelectingZone(CARD_TYPE.WARRIOR))
+        dispatch(setCardForSelectingZone({
+          id: card.id,
+          cardTarget,
+          type: card.type,
+          name: card.name,
+          zoneIndex
+        }))
+        closePopover();
+        break;
+      case MenuItemAction.ACTIVATE:
+        dispatch(setSelectingZone(CARD_TYPE.UNIFIED))
+        dispatch(setCardForSelectingZone({
+          id: card.id,
+          cardTarget,
+          type: card.type,
+          name: card.name,
+          zoneIndex
+        }))
+        closePopover();
+        break;
+      case MenuItemAction.SET:
+        dispatch(setSelectingZone(CARD_TYPE.FORTIFIED))
+        dispatch(setCardForSelectingZone({
+          id: card.id,
+          cardTarget,
+          type: card.type,
+          name: card.name,
+          zoneIndex
+        }))
+        closePopover();
+        break;
+      case MenuItemAction.FLIP:
+        dispatch(flipCard({ cardTarget, cardIndex: index, zoneIndex }));
+        emitGameEvent(({ type: GAME_EVENT.flipCard, data: { cardTarget, cardIndex: index, zoneIndex } }));
+        closePopover();
+        break;
       default:
         break;
     }
-  }, [card, cardTarget, dispatch, zoneIndex, p1]);
+  }, [card, cardTarget, dispatch, zoneIndex, p1, index]);
 
   const legacyonMenuItemClick = useCallback((items: IMenuItem[], key: string | number) => {
     const menuItemClicked: IMenuItem | undefined = items?.find((item) => item.key === key || item.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key)));
@@ -216,9 +255,28 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
     if (cardTarget.includes("Deck")) {
       return [...newDeckMenuItems]
     }
-    const filteredMenuItems = [...newCardMenuItems];
+    let filteredMenuItems = [...newCardMenuItems];
+    if (card.type === CARD_TYPE.WARRIOR && cardTarget !== CARD_TARGET.P1_PLAYER_WARRIOR && cardTarget !== CARD_TARGET.P2_PLAYER_WARRIOR) {
+      filteredMenuItems = [...filteredMenuItems, ...newWarriorMenuItems];
+    }
+    if (card.type === CARD_TYPE.UNIFIED && cardTarget !== CARD_TARGET.P1_PLAYER_UNIFIED && cardTarget !== CARD_TARGET.P2_PLAYER_UNIFIED) {
+      filteredMenuItems = [...filteredMenuItems, ...newUnifiedMenuItems];
+    }
+    if (card.type === CARD_TYPE.FORTIFIED && cardTarget !== CARD_TARGET.P1_PLAYER_FORTIFIED && cardTarget !== CARD_TARGET.P2_PLAYER_FORTIFIED) {
+      filteredMenuItems = [...filteredMenuItems, ...newFortifiedMenuItems];
+    }
+    if (
+      cardTarget === CARD_TARGET.P1_PLAYER_WARRIOR ||
+      cardTarget === CARD_TARGET.P1_PLAYER_UNIFIED ||
+      cardTarget === CARD_TARGET.P1_PLAYER_FORTIFIED ||
+      cardTarget === CARD_TARGET.P2_PLAYER_WARRIOR ||
+      cardTarget === CARD_TARGET.P2_PLAYER_UNIFIED ||
+      cardTarget === CARD_TARGET.P2_PLAYER_FORTIFIED
+    ) {
+      filteredMenuItems = [...filteredMenuItems, ...newOnFieldMenuItems];
+    }
     return filteredMenuItems;
-  }, [cardTarget]);
+  }, [cardTarget, card.type]);
 
   const legacycardMenuItemsFiltered = useMemo(() => {
     let filteredMenuItems = [...cardMenuItems];

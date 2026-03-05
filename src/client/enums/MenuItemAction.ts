@@ -12,5 +12,8 @@ enum MenuItemAction {
   TO_REVEALED = "toRevealed",
   TO_BOTTOM_DECK = "toBottomDeck",
   TO_TOP_DECK = "toTopDeck",
+  CONSCRIPT = "conscript",
+  ACTIVATE = "activate",
+  SET = "set",
 } 
 export default MenuItemAction

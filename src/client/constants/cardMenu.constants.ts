@@ -106,7 +106,49 @@ export const newCardMenuItems: INewMenuItem[] = [
     target: CARD_TARGET.CONTROLLER_DECK,
     label: "-> Top of Deck",
   },
+  
 ]
+export const newOnFieldMenuItems: INewMenuItem[] = [
+  {
+    key: "onField-0",
+    title: "flip",
+    icon: null,
+    menuAction: MenuItemAction.FLIP,
+    target: null,
+    label: "Flip",
+  }
+]
+export const newWarriorMenuItems: INewMenuItem[] = [
+  {
+    key: "newWarriorMenuItems-0",
+    title: "conscript",
+    icon: null,
+    menuAction: MenuItemAction.CONSCRIPT,
+    target: null,
+    label: "Conscript",
+  }
+]
+export const newUnifiedMenuItems: INewMenuItem[] = [
+  {
+    key: "newUnifiedMenuItems-0",
+    title: "activate",
+    icon: null,
+    menuAction: MenuItemAction.ACTIVATE,
+    target: null,
+    label: "Activate",
+  }
+]
+export const newFortifiedMenuItems: INewMenuItem[] = [
+  {
+    key: "newFortifiedMenuItems-0",
+    title: "set",
+    icon: null,
+    menuAction: MenuItemAction.SET,
+    target: null,
+    label: "Set",
+  }
+]
+
 export const cardMenuItems: IMenuItem[] = [
   {
     key: "0",

@@ -1,16 +1,17 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
-import { useAppDispatch } from "../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { emitGameEvent } from "../utils/emitEvent";
 import { MouseEventHandler, useCallback, useState } from "react";
 import { decreaseAttackModifier, decreaseCooldown, decreaseOtherModifier, increaseAttackModifier, increaseCooldown, increaseOtherModifier, multiSelectCard, selectCard } from "../redux/gameStateSlice";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { CardState } from "@/shared/interfaces/CardState";
-import { setCardInFocus, clearCardInFocus } from "../redux/clientGameStateSlice";
+import { setCardInFocus, clearCardInFocus, setCardForSelectingZone, setSelectingZone } from "../redux/clientGameStateSlice";
 import back_of_card from "PUBLIC/back_of_card.jpg";
 
 export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TARGET, hidden: boolean, inPileView: boolean, index?: number, zoneIndex?: number, faceUp?: boolean, p1?: boolean) {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
-  
+  const clientGameState = useAppSelector((state) => state.clientGameState);
+  const {selectingZone} = clientGameState;
   const dispatch = useAppDispatch();
   const cardOnP1Side = cardTarget.includes("p1");
   const cardOnClientSide = (cardOnP1Side && p1) || (!cardOnP1Side && !p1);
@@ -99,6 +100,10 @@ export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TA
     } else {
       dispatch(selectCard({ card: cardToSelect, side: p1 ? "p1" : "p2" }));
       emitGameEvent({ type: GAME_EVENT.selectCard, data: { card: cardToSelect, side: p1 ? "p1" : "p2" } });
+    }
+    if (selectingZone) {
+      dispatch(setSelectingZone(null));
+      dispatch(setCardForSelectingZone(null));
     }
   }
 

@@ -1,12 +1,14 @@
 import { useDrop } from "react-dnd";
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { moveCard } from "@/client/redux/gameStateSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { GamePhase } from "@/client/redux/phaseSlice";
+import { setCardForSelectingZone, setSelectingZone } from "@/client/redux/clientGameStateSlice";
+import { CardState } from "@/shared/interfaces/CardState";
 
 
 export default function GridItem({ children, cardTarget, targetIndex }: { children: ReactNode, cardTarget: CARD_TARGET, targetIndex?: number }) {
@@ -18,20 +20,20 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
   const { sequences, resolving } = sequenceState;
   const { currentPhase, turnNumber } = phaseState;
   const { playerConscripted, sandboxMode } = gameState;
-  const { side } = clientGameState;
-
+  const { side, selectingZone, cardForSelectingZone } = clientGameState;
+  const cardsInZone = (targetIndex || targetIndex === 0) ? gameState[cardTarget as keyof typeof gameState][targetIndex] as CardState[] : gameState[cardTarget as keyof typeof gameState] as CardState[];
   const canDropCard = (target: CARD_TARGET, side: string, card: { type: CARD_TYPE, cardTarget: CARD_TARGET }) => {
-    
+
     if (sandboxMode) return true;
 
     //aborted conscription logic, needs to be reworked with new sequence system
     const p1 = side === "p1";
     const { type, cardTarget: currentTarget } = card;
     if (!sequences.length) {
-      if (!resolving){
+      if (!resolving) {
         //conscriptions
         if (target.includes("p1") && p1 && currentPhase === GamePhase.P1War) {
-          if ( currentTarget === CARD_TARGET.P1_PLAYER_HAND) {
+          if (currentTarget === CARD_TARGET.P1_PLAYER_HAND) {
             if (type === CARD_TYPE.WARRIOR && cardTarget === CARD_TARGET.P1_PLAYER_WARRIOR) {
               if (!playerConscripted) {
                 return true;
@@ -40,7 +42,7 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
           }
         };
         if (target.includes("p2") && !p1 && currentPhase === GamePhase.P2War) {
-          if ( currentTarget === CARD_TARGET.P2_PLAYER_HAND) {
+          if (currentTarget === CARD_TARGET.P2_PLAYER_HAND) {
             if (type === CARD_TYPE.WARRIOR && cardTarget === CARD_TARGET.P2_PLAYER_WARRIOR) {
               if (!playerConscripted) {
                 return true;
@@ -99,12 +101,14 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
           target: cardTarget,
           targetIndex
         }));
-        emitGameEvent({ type: GAME_EVENT.moveCard, data: {
-          id: cardToDrop.id,
-          from: {target: cardToDrop.cardTarget, targetIndex: cardToDrop.zoneIndex},
-          target: cardTarget,
-          targetIndex
-        }})
+        emitGameEvent({
+          type: GAME_EVENT.moveCard, data: {
+            id: cardToDrop.id,
+            from: { target: cardToDrop.cardTarget, targetIndex: cardToDrop.zoneIndex },
+            target: cardTarget,
+            targetIndex
+          }
+        })
       },
       collect: (monitor) => ({
         isOver: !!monitor.isOver(),
@@ -113,6 +117,59 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
     }),
     [cardTarget, side, sequences, resolving, currentPhase, turnNumber, targetIndex] // dependencies for the drop hook
   )
+  const selecting = useMemo(() => {
+    if (!selectingZone) return false;
+    if (cardsInZone && cardsInZone.length) return false;
+    if (selectingZone === CARD_TYPE.WARRIOR) {
+      return (
+        cardTarget === CARD_TARGET.P1_PLAYER_WARRIOR && side === "p1" ||
+        cardTarget === CARD_TARGET.P2_PLAYER_WARRIOR && side === "p2"
+      );
+    }
+    if (selectingZone === CARD_TYPE.UNIFIED) {
+      return (
+        cardTarget === CARD_TARGET.P1_PLAYER_UNIFIED && side === "p1" ||
+        cardTarget === CARD_TARGET.P2_PLAYER_UNIFIED && side === "p2"
+      );
+    }
+    if (selectingZone === CARD_TYPE.FORTIFIED) {
+      return (
+        cardTarget === CARD_TARGET.P1_PLAYER_FORTIFIED && side === "p1" ||
+        cardTarget === CARD_TARGET.P2_PLAYER_FORTIFIED && side === "p2"
+      );
+    }
+    return false;
+  }, [selectingZone, cardTarget, side, cardsInZone]);
+
+  const handleZoneSelect = () => {
+    if (selecting) {
+      if (cardForSelectingZone) {
+        dispatch(moveCard({
+          id: cardForSelectingZone.id,
+          target: cardTarget,
+          targetIndex,
+          from: cardForSelectingZone.cardTarget,
+        }));
+        emitGameEvent({
+          type: GAME_EVENT.moveCard, data: {
+            id: cardForSelectingZone.id,
+            target: cardTarget,
+            targetIndex,
+            from: {target: cardForSelectingZone.cardTarget, targetIndex: cardForSelectingZone.zoneIndex},
+          }
+        })
+      }
+      dispatch(setSelectingZone(null));
+      dispatch(setCardForSelectingZone(null));
+    }
+  }
+  const handleCancelZoneSelect = (e: React.MouseEvent) => {
+    if (selecting) {
+      e.preventDefault();
+      dispatch(setSelectingZone(null));
+      dispatch(setCardForSelectingZone(null));
+    }
+  }
   return (
     drop(
       <div
@@ -121,10 +178,13 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
           "border-gray-300",
           "hover:scale-[1.02]",
           "mx-1",
+          selecting ? "border-yellow-400 bg-yellow-400/50 hover:bg-yellow-300/80 cursor-pointer" : "",
           isOver && canDrop ? "border-green-400 bg-green-400/50 scale-[1.02]" : "",
           isOver && !canDrop ? "border-red-400 bg-red-400/10" : "",
           canDrop && !isOver ? "border-green-400 bg-blue-400/10" : "",
         ].join(" ")}
+        onClick={handleZoneSelect}
+        onContextMenu={handleCancelZoneSelect}
       >
         {children}
       </div>

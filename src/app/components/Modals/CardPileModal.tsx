@@ -233,7 +233,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
                 >
                   <Card
                     card={card}
-                    cardTarget={card.target || pileInViewTarget}
+                    cardTarget={card.target || pileInViewTarget as CARD_TARGET}
                     inPileView={true}
                     index={index}
                     zoneIndex={(card.targetIndex || pileInViewIndex != undefined ? pileInViewIndex : undefined) || undefined}

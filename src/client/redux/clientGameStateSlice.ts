@@ -1,18 +1,43 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { CardState } from "@/shared/interfaces/CardState";
 import { moveCard } from "./gameStateSlice";
+import { CARD_TYPE } from "@/shared/enums/CardType";
+import { CARD_TARGET } from "@/shared/enums/CardTarget";
+
+interface ClientGameState {
+  cardInFocus: CardState | null;
+  previousCardInFocus: CardState | null;
+  pileInViewTarget: string | null;
+  pileInViewIndex: number | null;
+  pileInViewLimit: number | null;
+  topXCards: CardState[] | null;
+  side: "p1" | "p2";
+  selectingZone: CARD_TYPE | null;
+  cardForSelectingZone: {
+    id: string;
+    cardTarget: CARD_TARGET;
+    type: CARD_TYPE;
+    name: string;
+    zoneIndex?: number;
+  } | null;
+}
+
+const initialState: ClientGameState =
+{
+  cardInFocus: null,
+  previousCardInFocus: null,
+  pileInViewLimit: null,
+  pileInViewTarget: null,
+  pileInViewIndex: null,
+  topXCards: [],
+  side: "p1",
+  selectingZone: null,
+  cardForSelectingZone: null
+}
 
 const clientGameStateSlice = createSlice({
   name: "clientGameState",
-  initialState: {
-    cardInFocus: null,
-    previousCardInFocus: null,
-    pileInViewLimit: null,
-    pileInViewTarget: null,
-    pileInViewIndex: null,
-    topXCards: [],
-    side: "p1",
-  },
+  initialState,
   reducers: {
     setCardInFocus: (state, action) => {
       state.cardInFocus = action.payload;
@@ -56,6 +81,12 @@ const clientGameStateSlice = createSlice({
           }
         }
       }
+    },
+    setSelectingZone: (state, action) => {
+      state.selectingZone = action.payload;
+    },
+    setCardForSelectingZone: (state, action) => {
+      state.cardForSelectingZone = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -75,6 +106,8 @@ export const {
   setTopXCards,
   setSide,
   clearPileInView,
-  setPileInView
+  setPileInView,
+  setSelectingZone,
+  setCardForSelectingZone
 } = clientGameStateSlice.actions;
 export default clientGameStateSlice.reducer;

@@ -20,7 +20,7 @@ const PILE_OFFSETS = {
 const useCardGameState = (cardTarget: CARD_TARGET) => {
   const gameState = useAppSelector(state => state.gameState);
   const clientGameState = useAppSelector(state => state.clientGameState);
-  const { side } = clientGameState;
+  const { side, cardForSelectingZone } = clientGameState;
   const { p1PlayerHealth, p2PlayerHealth, p1PlayerAP, p2PlayerAP } = gameState;
   const p1Card = cardTarget.includes("p1");
   return {
@@ -35,6 +35,7 @@ const useCardGameState = (cardTarget: CARD_TARGET) => {
       p1: p1PlayerAP,
       p2: p2PlayerAP,
     },
+    cardForSelectingZone
   };
 };
 
@@ -96,9 +97,10 @@ export default function CardInner({
   const gameState = useCardGameState(cardTarget);
   const clientSettings = useAppSelector(state => state.clientSettings);
 
-  const { p1Side, p1Card, playerHealth, playerAP } = gameState;
+  const { p1Side, p1Card, playerHealth, playerAP, cardForSelectingZone } = gameState;
   const pileOfCard = (zoneIndex || zoneIndex === 0) ? gameState[cardTarget as keyof typeof gameState][zoneIndex] as CardState[] | undefined : gameState[cardTarget as keyof typeof gameState] as CardState[] | undefined;
   const inPileOfMinTwo = pileOfCard && pileOfCard.length >= 2;
+  const isBeingPlayed = cardForSelectingZone && cardForSelectingZone.id === card.id;
 
 
   const rotated = p1Side ? (!p1Card && !inPileView) : (p1Card && !inPileView);
@@ -180,7 +182,8 @@ export default function CardInner({
       : "absolute",
     inPileOfMinTwo ? "left-0" : "",
     isPlayerHandCard ? "[&:hover]:z-[1000] hover:transform hover:-translate-y-[40%] hover:scale-[1.5]" : "",
-  ].join(" "), [cardInView, inPileView, inPileOfMinTwo, isPlayerHandCard]);
+    isBeingPlayed ? "border-yellow-400 border-4 animate-bounce duration-800" : "",
+  ].join(" "), [cardInView, inPileView, inPileOfMinTwo, isPlayerHandCard, isBeingPlayed]);
 
   return (
     <Popover

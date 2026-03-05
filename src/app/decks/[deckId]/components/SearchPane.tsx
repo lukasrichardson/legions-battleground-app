@@ -358,7 +358,7 @@ export default function SearchPane({
                     style={{ backgroundColor: legionColours[card.legion.names[0]] ? `${legionColours[card.legion.names[0]]}` : "", color: [LEGIONS.ANGELS.toString(), LEGIONS.TITANS.toString()].includes(card.legion.names[0]) ? "black" : "white"}}
                     onClick={(e) => handleSearchedCardClick(e, card)}
                   >
-                    <div className="w-full lg:w-1/5 xl:w-1/6 h-full relative z-2">
+                    <div className="w-full lg:w-1/7 xl:w-1/8 h-full relative z-2">
                       {suspendedCards[card.title] && (
                         <div className="absolute top-0 right-0 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-10">
                           0
@@ -376,14 +376,15 @@ export default function SearchPane({
                       )}
                       <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
                     </div>
-                    <div className="hidden w-4/5 lg:flex flex-col xl:w-5/6 h-full justify-between" onClick={() => setHoveredCard(card)}>
+                    <div className="hidden w-6/7 lg:flex flex-col xl:w-7/8 h-full justify-between" onClick={() => setHoveredCard(card)}>
                       <span className="text-md underline truncate">{decodeHTMLEntities(card.title)}</span>
                       <span>
-                        <span className="text-[10px] font-semibold w-fit p-0.5 my-0.5 rounded" style={{ backgroundColor: cardTypeColours[card.card_type.names[0]] ? `${cardTypeColours[card.card_type.names[0]]}` : "", color: [CARD_TYPE.WARRIOR.toString(), CARD_TYPE.GUARDIAN.toString(), CARD_TYPE.SYNERGY.toString(), CARD_TYPE.VEIL_REALM.toString(), CARD_TYPE.WARLORD.toString()].includes(card.card_type.names[0]) ? "black" : "white" }}>
+                        <span className="text-[12px] font-semibold w-fit p-0.5 my-0.5 rounded" style={{ backgroundColor: cardTypeColours[card.card_type.names[0]] ? `${cardTypeColours[card.card_type.names[0]]}` : "", color: [CARD_TYPE.WARRIOR.toString(), CARD_TYPE.GUARDIAN.toString(), CARD_TYPE.SYNERGY.toString(), CARD_TYPE.VEIL_REALM.toString(), CARD_TYPE.WARLORD.toString()].includes(card.card_type.names[0]) ? "black" : "white" }}>
                           {card.card_type.names[0]}
                         </span>
+                        <span className="text-[10px] ml-1">{card.rarity.names[0]}</span>
                       </span>
-                      <div className="flex justify-between"><span className="text-[10px]">{card.rarity.names[0]}</span>
+                      <div className="flex justify-between">
                         <span className="text-[8px]">{card.card_code}</span>
                       </div>
                     </div>
