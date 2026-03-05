@@ -3,7 +3,7 @@ import { DeckCardTile } from "./CardTile";
 import { useEffect, useState } from "react";
 import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
 import { fetchBanlist } from "@/client/utils/api.utils";
-import { decodeHTMLEntities } from "@/shared/string.utils";
+import { decodeHTMLEntities } from "@/client/utils/string.util";
 
 export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck, readOnly = false }: { cards: CardDocument[], removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, setHoveredCard: (card: CardDocument) => void, useGroupedView: boolean, addCardToDeck: (card: CardDocument) => void, readOnly?: boolean }) {
   const [banlist, setBanlist] = useState<BanlistItem[]>([]);

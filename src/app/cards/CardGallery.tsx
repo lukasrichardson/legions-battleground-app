@@ -2,7 +2,7 @@ import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { useState } from "react";
 import SearchPane from "../decks/[deckId]/components/SearchPane";
 import CardImage from "../components/Card/CardImage";
-import { decodeHTMLEntities } from "@/shared/string.utils";
+import { decodeHTMLEntities } from "@/client/utils/string.util";
 
 export const CardGallery = () => {
   const [hoveredCard, setHoveredCard] = useState<CardDocument | null>(null);

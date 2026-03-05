@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/client/ui/card";
 import CardImage from "@/app/components/Card/CardImage";
 import back_of_card from "PUBLIC/back_of_card.jpg";
-import { decodeHTMLEntities } from "@/shared/string.utils";
+import { decodeHTMLEntities } from "@/client/utils/string.util";
 
 export default function Preview({ hoveredCard }: { hoveredCard: { title: string; text: string; featured_image: string } }) {
   const cardToUse = hoveredCard || { title: "No card selected", text: "Hover over a card to see details", featured_image: back_of_card.src };

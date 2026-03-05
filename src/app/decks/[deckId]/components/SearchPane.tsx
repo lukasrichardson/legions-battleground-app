@@ -11,7 +11,7 @@ import { cardTypeColours, legionColours } from "@/client/constants/colours.const
 import { LEGIONS } from "@/client/constants/legions.constants";
 import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 import { CARD_TYPE } from "@/shared/enums/CardType";
-import { decodeHTMLEntities } from "@/shared/string.utils";
+import { decodeHTMLEntities } from "@/client/utils/string.util";
 // import { cardTypeAbbreviations } from "@/client/constants/general.constants";
 
 export default function SearchPane({

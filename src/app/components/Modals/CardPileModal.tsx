@@ -7,7 +7,7 @@ import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import useClientSettings from "@/client/hooks/useClientSettings";
-import { decodeHTMLEntities } from "@/shared/string.utils";
+import { decodeHTMLEntities } from "@/client/utils/string.util";
 
 const ModalConstants = {
   ShuffleBtnText: "shuffle",

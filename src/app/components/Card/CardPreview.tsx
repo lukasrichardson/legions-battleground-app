@@ -2,7 +2,7 @@
 "use client";
 import { useAppSelector } from "@/client/redux/hooks";
 import CardImage from "./CardImage";
-import { decodeHTMLEntities } from "@/shared/string.utils"; 
+import { decodeHTMLEntities } from "@/client/utils/string.util"; 
 
 //preview for toolbar in game. deck builder and gallery have their own versions of preview
 export default function CardPreview({}) {

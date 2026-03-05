@@ -9,7 +9,7 @@ import IMenuItem from "@/client/interfaces/IMenuItem";
 import { useAppSelector } from "@/client/redux/hooks";
 import CardImage from "./CardImage";
 import useHandlePlayerEvents from "@/client/hooks/useHandlePlayerEvents";
-import { decodeHTMLEntities } from "@/shared/string.utils";
+import { decodeHTMLEntities } from "@/client/utils/string.util";
 
 const PILE_OFFSETS = {
   LEFT: 15,

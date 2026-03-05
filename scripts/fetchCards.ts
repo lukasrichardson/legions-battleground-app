@@ -1,6 +1,6 @@
 import axios from'axios';
 import { MongoClient, ServerApiVersion } from 'mongodb';
-import { decodeHTMLEntities } from '../src/shared/string.utils';
+import { decodeHTMLEntities } from '../src/server/utils/string.utils';
 const uri = process.env.MONGO_URL || "your-mongodb-connection-string-here";
 console.log("url:", uri)
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
