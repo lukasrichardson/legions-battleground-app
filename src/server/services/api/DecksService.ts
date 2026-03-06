@@ -114,7 +114,7 @@ export const createNewDeck = async (user, deckData: { name: string; subtitle?: s
   const newDeck = {
     name: deckData.name.trim(),
     subtitle: "",
-    legion: deckData.legion.toLowerCase(),
+    legion: deckData.legion,
     userId: user.id,
     cards_in_deck: [],
     created_at: new Date(),
