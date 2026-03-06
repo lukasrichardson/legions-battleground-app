@@ -15,5 +15,6 @@ enum MenuItemAction {
   CONSCRIPT = "conscript",
   ACTIVATE = "activate",
   SET = "set",
+  WISDOM = "wisdom",
 } 
 export default MenuItemAction

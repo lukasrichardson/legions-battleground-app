@@ -1,13 +1,15 @@
 import { CardState } from "@/shared/interfaces/CardState";
 import Card from "@/app/components/Card/Card";
 import { MouseEventHandler, useEffect, useState } from "react";
-import { useAppSelector } from "@/client/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import Modal from "./Modal";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import useClientSettings from "@/client/hooks/useClientSettings";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
+import { moveCard } from "@/client/redux/gameStateSlice";
+import { setWisdoming } from "@/client/redux/clientGameStateSlice";
 
 const ModalConstants = {
   ShuffleBtnText: "shuffle",
@@ -20,6 +22,7 @@ interface ExtendedCardState extends CardState {
   targetIndex: number | null;
 }
 export default function CardPileModal({ closeModal }: { closeModal: () => void }) {
+  const dispatch = useAppDispatch();
   const [tab, setTab] = useState<string>("All");
   const [search, setSearch] = useState<string>("");
   const [selected, setSelected] = useState<ExtendedCardState[] | null>([]);
@@ -29,7 +32,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   const sequenceState = useAppSelector((state) => state.sequenceState);
   const { transparentOnBlur } = useClientSettings();
 
-  const { side, topXCards, pileInViewTarget, pileInViewIndex, pileInViewLimit } = clientGameState;
+  const { side, topXCards, pileInViewTarget, pileInViewIndex, pileInViewLimit, wisdoming } = clientGameState;
   const { sequences, resolving } = sequenceState;
   const p1 = side === "p1";
   const resolvingEffectStep = sequences?.[0]?.items?.[0]?.effect?.[0];
@@ -107,6 +110,9 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
     setTab("All");
     closeModal();
     emitGameEvent({ type: side === "p1" ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget: null, limit: null } })
+    if (wisdoming) {
+      dispatch(setWisdoming(false));
+    }
   }
 
   const closeAndShuffle = () => {
@@ -114,7 +120,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
     handleCloseModal();
   }
 
-  const renderModalHeader = () => !waitingForUserInput ? (
+  const renderModalHeader = () => wisdoming ? <div className="w-full text-center">Wisdom: Select a card to keep.</div> : !waitingForUserInput ? (
     <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-2">
         <button
@@ -160,17 +166,49 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   )
 
   const handleCardSelect = (card: ExtendedCardState) => () => {
-    const isOneTarget = resolvingEffectStep?.to?.length === 1;
-    const isBounceEffect = resolvingEffectStep?.to?.find(to => to.target.includes(CARD_TARGET.P1_PLAYER_HAND)) && resolvingEffectStep?.to?.find(to => to.target.includes(CARD_TARGET.P1_PLAYER_HAND)) && resolvingEffectStep.to.length === 2;
-
-    if (selected?.find(c => c.id === card.id)) {
-
-      setSelected(selected.filter(c => c.id !== card.id));
+    if (wisdoming) {
+      let indexToBottom = 0;
+      if (cardPile[0]?.id === card.id) indexToBottom = 1;
+      dispatch(moveCard({
+        id: card.id,
+        target: p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND,
+        from: pileInViewTarget,
+      }));
+      emitGameEvent({
+        type: GAME_EVENT.moveCard, data: {
+          id: card.id,
+          target: p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND,
+          from: pileInViewTarget ? { target: pileInViewTarget, targetIndex: pileInViewIndex } : undefined,
+        }
+      });
+      dispatch(moveCard({
+        id: cardPile[indexToBottom].id,
+        target: pileInViewTarget,
+        from: pileInViewTarget,
+        bottom: true
+      }));
+      emitGameEvent({
+        type: GAME_EVENT.moveCard, data: {
+          id: cardPile[indexToBottom].id,
+          target: pileInViewTarget,
+          from: pileInViewTarget ? { target: pileInViewTarget, targetIndex: pileInViewIndex } : undefined,
+          bottom: true
+        }
+      });
+      handleCloseModal();
     } else {
-      setSelected([...(selected ?? []), {
-        ...card,
-        newTarget: isOneTarget ? resolvingEffectStep.to?.[0].target : isBounceEffect ? (card.target.includes("p1") ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND) : null
-      }]);
+      const isOneTarget = resolvingEffectStep?.to?.length === 1;
+      const isBounceEffect = resolvingEffectStep?.to?.find(to => to.target.includes(CARD_TARGET.P1_PLAYER_HAND)) && resolvingEffectStep?.to?.find(to => to.target.includes(CARD_TARGET.P1_PLAYER_HAND)) && resolvingEffectStep.to.length === 2;
+
+      if (selected?.find(c => c.id === card.id)) {
+
+        setSelected(selected.filter(c => c.id !== card.id));
+      } else {
+        setSelected([...(selected ?? []), {
+          ...card,
+          newTarget: isOneTarget ? resolvingEffectStep.to?.[0].target : isBounceEffect ? (card.target.includes("p1") ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND) : null
+        }]);
+      }
     }
   }
 
@@ -210,15 +248,15 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
     }
     return (
       <div className="relative">
-        <div className="flex gap-4 relative -top-2">
+        {!wisdoming && <div className="flex gap-4 relative -top-2">
           <span>Filter By: </span>
           {renderTab("All")}
           {renderTab("Warrior")}
           {renderTab("Unified")}
           {renderTab("Fortified")}
-        </div>
+        </div>}
         <div className={waitingForUserInput ? "pb-20" : "pb-0"}>
-          <div className="grid grid-cols-2 xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1">
+          <div className={["grid grid-cols-2 gap-1", !wisdoming ? "xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-8 " : ""].join(" ")}>
             {filteredPile.map((card, index) => {
               const isSelected = !!selected?.find(c => c.id === card.id);
               return (

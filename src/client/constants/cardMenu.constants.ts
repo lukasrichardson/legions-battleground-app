@@ -4,20 +4,40 @@ import IMenuItem, { INewMenuItem } from '@/client/interfaces/IMenuItem';
 
 export const newDeckMenuItems: INewMenuItem[] = [
   {
-    key: "0",
-    title: "draw",
+    key: "6",
+    title: "reveal",
     icon: null,
     menuAction: MenuItemAction.MOVE,
-    target: CARD_TARGET.CONTROLLER_HAND,
-    label: "Draw",
+    target: CARD_TARGET.CONTROLLER_REVEALED,
+    label: "Reveal",
   },
   {
-    key: "1",
-    title: "mill",
+    key: "5",
+    title: "plunder",
     icon: null,
-    menuAction: MenuItemAction.MOVE,
-    target: CARD_TARGET.CONTROLLER_DISCARD,
-    label: "Mill",
+    menuAction: MenuItemAction.PLUNDER,
+    label: "Plunder"
+  },
+  {
+    key: "7",
+    title: "wisdom",
+    icon: null,
+    menuAction: MenuItemAction.WISDOM,
+    label: "Wisdom",
+  },
+  {
+    key: "4",
+    title: "view",
+    icon: null,
+    menuAction: MenuItemAction.VIEW,
+    label: "Search Deck",
+  },
+  {
+    key: "3",
+    title: "shuffle",
+    icon: null,
+    menuAction: MenuItemAction.SHUFFLE,
+    label: "Shuffle",
   },
   {
     key: "2",
@@ -28,33 +48,20 @@ export const newDeckMenuItems: INewMenuItem[] = [
     label: "Eradicate",
   },
   {
-    key: "3",
-    title: "shuffle",
-    icon: null,
-    menuAction: MenuItemAction.SHUFFLE,
-    label: "Shuffle",
-  },
-  {
-    key: "4",
-    title: "view",
-    icon: null,
-    menuAction: MenuItemAction.VIEW,
-    label: "View",
-  },
-  {
-    key: "5",
-    title: "plunder",
-    icon: null,
-    menuAction: MenuItemAction.PLUNDER,
-    label: "Plunder"
-  },
-  {
-    key: "6",
-    title: "reveal",
+    key: "1",
+    title: "mill",
     icon: null,
     menuAction: MenuItemAction.MOVE,
-    target: CARD_TARGET.CONTROLLER_REVEALED,
-    label: "Reveal",
+    target: CARD_TARGET.CONTROLLER_DISCARD,
+    label: "Mill",
+  },
+  {
+    key: "0",
+    title: "draw",
+    icon: null,
+    menuAction: MenuItemAction.MOVE,
+    target: CARD_TARGET.CONTROLLER_HAND,
+    label: "Draw",
   }
 ]
 export const newCardMenuItems: INewMenuItem[] = [

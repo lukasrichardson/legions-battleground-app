@@ -20,6 +20,7 @@ interface ClientGameState {
     name: string;
     zoneIndex?: number;
   } | null;
+  wisdoming: boolean;
 }
 
 const initialState: ClientGameState =
@@ -32,7 +33,8 @@ const initialState: ClientGameState =
   topXCards: [],
   side: "p1",
   selectingZone: null,
-  cardForSelectingZone: null
+  cardForSelectingZone: null,
+  wisdoming: false,
 }
 
 const clientGameStateSlice = createSlice({
@@ -87,6 +89,9 @@ const clientGameStateSlice = createSlice({
     },
     setCardForSelectingZone: (state, action) => {
       state.cardForSelectingZone = action.payload;
+    },
+    setWisdoming: (state, action) => {
+      state.wisdoming = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -108,6 +113,7 @@ export const {
   clearPileInView,
   setPileInView,
   setSelectingZone,
-  setCardForSelectingZone
+  setCardForSelectingZone,
+  setWisdoming,
 } = clientGameStateSlice.actions;
 export default clientGameStateSlice.reducer;

@@ -2,15 +2,15 @@ import { CARD_TYPE } from "@/shared/enums/CardType";
 import { LEGIONS } from "./legions.constants";
 
 export const legionColours = {
-  [LEGIONS.ANGELS]: "darkkhaki",
-  [LEGIONS.DEMONS]: "darkred",
-  [LEGIONS.UNDEAD]: "purple",
-  [LEGIONS.MYTHICALBEASTS]: "deeppink",
-  [LEGIONS.ORCS]: "green",
-  [LEGIONS.DWARFS]: "#1a1a1a",
-  [LEGIONS.HEROES]: "darkblue",
-  [LEGIONS.TITANS]: "darkgoldenrod",
-  [LEGIONS.BOUNTY]: "dimgray",
+  [LEGIONS.ANGELS]: "rgba(255, 215, 0, 0.7)",
+  [LEGIONS.DEMONS]: "rgba(255, 0, 0, 0.6)",
+  [LEGIONS.UNDEAD]: "rgba(128, 0, 128, 0.6)",
+  [LEGIONS.MYTHICALBEASTS]: "rgba(255, 20, 147, 0.6)",
+  [LEGIONS.ORCS]: "rgba(0, 128, 0, 0.6)",
+  [LEGIONS.DWARFS]: "rgba(16, 16, 16, 0.6)",
+  [LEGIONS.HEROES]: "rgba(0, 0, 139, 0.6)",
+  [LEGIONS.TITANS]: "rgba(255, 165, 0, 0.7)",
+  [LEGIONS.BOUNTY]: "rgba(105, 105, 105, 0.6)",
 }
 
 export const cardTypeColours = {

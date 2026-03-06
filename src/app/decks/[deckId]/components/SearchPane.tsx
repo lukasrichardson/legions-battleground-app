@@ -12,7 +12,6 @@ import { LEGIONS } from "@/client/constants/legions.constants";
 import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
-// import { cardTypeAbbreviations } from "@/client/constants/general.constants";
 
 export default function SearchPane({
   setHoveredCard,

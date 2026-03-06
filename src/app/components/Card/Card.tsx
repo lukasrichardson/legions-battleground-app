@@ -4,7 +4,7 @@ import { CardState } from "@/shared/interfaces/CardState";
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { useAppDispatch, useAppSelector } from '@/client/redux/hooks';
 import { moveCard, flipCard } from '@/client/redux/gameStateSlice';
-import { setCardForSelectingZone, setPileInView, setSelectingZone } from '@/client/redux/clientGameStateSlice';
+import { setCardForSelectingZone, setPileInView, setSelectingZone, setWisdoming } from '@/client/redux/clientGameStateSlice';
 import { cardMenuItems, deckMenuItems, newCardMenuItems, newDeckMenuItems, newFortifiedMenuItems, newOnFieldMenuItems, newUnifiedMenuItems, newWarriorMenuItems } from '@/client/constants/cardMenu.constants';
 import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { emitGameEvent } from '@/client/utils/emitEvent';
@@ -181,10 +181,16 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
         emitGameEvent(({ type: GAME_EVENT.flipCard, data: { cardTarget, cardIndex: index, zoneIndex } }));
         closePopover();
         break;
+      case MenuItemAction.WISDOM:
+        dispatch(setWisdoming(true));
+        emitGameEvent({ type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: 2 } })
+        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: 2, pile: cardPileZone }));
+        closePopover();
+        break;
       default:
         break;
     }
-  }, [card, cardTarget, dispatch, zoneIndex, p1, index]);
+  }, [card, cardTarget, dispatch, zoneIndex, p1, index, cardPileZone]);
 
   const legacyonMenuItemClick = useCallback((items: IMenuItem[], key: string | number) => {
     const menuItemClicked: IMenuItem | undefined = items?.find((item) => item.key === key || item.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key)));
