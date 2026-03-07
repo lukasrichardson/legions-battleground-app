@@ -173,12 +173,22 @@ export const routes = (app: ExpressApp) => {
     if (existingDeckWithId) {
       return res.status(400).send("You already have a deck with id " + req.body.id);
     }
+    // if legion is "mythical-beasts" change it to "Mythical Beasts"  otherwise capitalize first letter and lowercase the rest
+    let legion = null;
+    if (!req.body.legion || typeof req.body.legion !== 'string') {
+      return res.status(400).send("legion is required and must be a string");
+    }
+    if (req.body.legion[0] === "mythical-beasts") {
+      legion = "Mythical Beasts";
+    } else {
+      legion = req.body.legion[0].charAt(0).toUpperCase() + req.body.legion[0].slice(1).toLowerCase();
+    }
     
     const newDeck = {
       id: req.body.id,
       name: req.body.name,
       cards_in_deck: req.body.cards_in_deck,
-      legion: req.body.legion[0].toUpperCase() + req.body.legion.slice(1),
+      legion,
       subtitle: req.body.subtitle,
       userId: req.user!.id,
       created_at: new Date(),
