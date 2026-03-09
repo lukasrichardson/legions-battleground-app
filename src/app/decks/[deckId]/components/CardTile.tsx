@@ -4,9 +4,10 @@ import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { useEffect, useMemo, useState } from "react";
 import { useDrag } from "react-dnd";
 
-const renderHoverContent = (card, removeCardFromDeck, addCardToDeck) => (
+const renderHoverContent = (card, removeCardFromDeck, addCardToDeck, countInDeck) => (
   <div className="absolute w-full h-full opacity-0 hover:opacity-100 bg-white/20 z-50 flex items-center justify-around">
     <div className="bg-red-800 hover:bg-red-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={(e) => removeCardFromDeck(e, card)}>-</div>
+    <span className="bg-gray-600 rounded font-bold">{countInDeck}</span>
     <div className="bg-green-800 hover:bg-green-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={() => addCardToDeck(card)}>+</div>
   </div>
 )
@@ -41,7 +42,7 @@ export const renderCardTile = (card: { id: string | number; title: string; featu
   </div>)
 }
 
-export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped, readOnly = false, banlist }: { card: CardDocument, index: number, removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void, addCardToDeck: (card: CardDocument) => void, grouped: boolean, readOnly?: boolean, banlist: BanlistItem[] }) => {
+export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped, readOnly = false, banlist, countInDeck }: { card: CardDocument, index: number, removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void, addCardToDeck: (card: CardDocument) => void, grouped: boolean, readOnly?: boolean, banlist: BanlistItem[], countInDeck: number }) => {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const handleOnMouseEnter = () => {
     const timeoutId = setTimeout(() => {
@@ -98,7 +99,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-  }));
+  }), [card]);
   return (
     grouped ? (
       <div
@@ -107,25 +108,27 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
         onMouseEnter={handleOnMouseEnter}
         onMouseLeave={handleOnMouseLeave}
       >
-        {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck)}
-        <div key={card.id.toString() + index}>
-          {suspendedCards[card.title] && (
-            <div className="absolute top-1 right-2 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
-              0
-            </div>
-          )}
-          {restrictedCards[card.title] && (
-            <div className="absolute top-1 right-2 bg-yellow-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
-              1
-            </div>
-          )}
-          {limitedCards[card.title] && (
-            <div className="absolute top-1 right-2 bg-purple-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
-              2
-            </div>
-          )}
-          {renderCardTile(card, index, () => null)}
-        </div>
+        {drag(<div>
+          {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck)}
+          <div key={card.id.toString() + index}>
+            {suspendedCards[card.title] && (
+              <div className="absolute top-1 right-2 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
+                0
+              </div>
+            )}
+            {restrictedCards[card.title] && (
+              <div className="absolute top-1 right-2 bg-yellow-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
+                1
+              </div>
+            )}
+            {limitedCards[card.title] && (
+              <div className="absolute top-1 right-2 bg-purple-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
+                2
+              </div>
+            )}
+            {renderCardTile(card, index, () => null)}
+          </div>
+        </div>)}
       </div>
     ) : (!isDragging ?
       <div
@@ -135,7 +138,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
         onMouseLeave={handleOnMouseLeave}
       >
         {drag(<div>
-          {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck)}
+          {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck)}
           <div onContextMenu={(e) => removeCardFromDeck(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
             {suspendedCards[card.title] && (
               <div className="absolute top-1 right-1 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
@@ -190,7 +193,7 @@ export const SearchCardTile = ({ card, index, onContextMenu, onMouseEnter }: { c
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-  }), []);
+  }), [card]);
   return (
     <div onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
       {drag(!isDragging ? renderCardTile(card, index, handleOnMouseEnter) : null)}

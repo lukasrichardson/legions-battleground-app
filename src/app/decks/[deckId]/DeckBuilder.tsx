@@ -43,7 +43,7 @@ export default function DeckBuilder() {
   }, [deck?.cards_in_deck]);
 
   const handleRemoveCardFromDeck = async (card) => {
-    const cardInDeckIndex = deck.cards_in_deck.findIndex(item => item.id === card.id);
+    const cardInDeckIndex = deck.cards_in_deck.findLastIndex(item => item.id === card.id);
     if (cardInDeckIndex || cardInDeckIndex === 0) {
       setSaving(true);
       patchDeckById(deck._id.toString(), {
@@ -138,7 +138,7 @@ export default function DeckBuilder() {
     }
   }
 
-  const [{ }, deckDrop] = useDrop(() => ({
+  const [{ isOverDeck }, deckDrop] = useDrop(() => ({
     accept: ["cardFromDeck", "cardFromSearch"],
     drop: (item: CardDocument, monitor) => {
       const itemType = monitor.getItemType();
@@ -149,9 +149,12 @@ export default function DeckBuilder() {
         handleAddCardToDeck(item);
       }
     },
+    collect: (monitor) => ({
+      isOverDeck: monitor.isOver() && monitor.getItemType() === 'cardFromSearch',
+    })
   }), [handleAddCardToDeck]);
 
-  const [{}, searchPaneDrop] = useDrop(() => ({
+  const [{ isOverSearchPane }, searchPaneDrop] = useDrop(() => ({
     accept: ["cardFromDeck", "cardFromSearch"],
     drop: (item: CardDocument, monitor) => {
       const itemType = monitor.getItemType();
@@ -162,6 +165,9 @@ export default function DeckBuilder() {
         // Handle card dropped within search results (no action needed)
       }
     },
+    collect: (monitor) => ({
+      isOverSearchPane: monitor.isOver() && monitor.getItemType() === 'cardFromDeck',
+    })
   }), [handleRemoveCardFromDeck]);
 
   return (
@@ -185,19 +191,27 @@ export default function DeckBuilder() {
       {/* Main Content Area - Takes remaining space */}
       <div className="flex-1 min-h-0 flex flex-col-reverse lg:flex-row gap-2">
         {/* Deck Grid Pane - Full width on mobile, left side on large screens */}
-        {deckDrop(<div className="flex-2 lg:flex-3 min-h-0 order-1 lg:order-1">
-          <DeckGrid
-            deck={deck}
-            setHoveredCard={setHoveredCard}
-            handleRemoveCardFromDeck={handleRemoveCardFromDeck}
-            handleSortClick={handleSortClick}
-            saving={saving}
-            handleAddCardToDeck={handleAddCardToDeck}
-          />
-        </div>)}
+        {deckDrop(
+          <div className={["flex-2 lg:flex-3 min-h-0 order-1 lg:order-1 relative"].join(" ")}>
+            {isOverDeck && (
+            <div className="absolute w-full h-full bg-green-600/50 z-10"></div>
+          )}
+            <DeckGrid
+              deck={deck}
+              setHoveredCard={setHoveredCard}
+              handleRemoveCardFromDeck={handleRemoveCardFromDeck}
+              handleSortClick={handleSortClick}
+              saving={saving}
+              handleAddCardToDeck={handleAddCardToDeck}
+            />
+          </div>
+        )}
 
         {/* Right Sidebar - Search and Preview on large screens */}
-        {searchPaneDrop(<div className="flex flex-1 lg:flex-1 flex-col gap-2 order-2 lg:order-2 lg:w-80 xl:w-96">
+        {searchPaneDrop(<div className={["flex flex-1 lg:flex-1 flex-col gap-2 order-2 lg:order-2 lg:w-80 xl:w-96 relative"].join(" ")}>
+          {isOverSearchPane && (
+            <div className="absolute w-full h-full bg-red-600/50 z-10"></div>
+          )}
           {/* Preview Pane - Only show on large screens */}
           <div className="hidden lg:block h-1/3 max-h-1/3">
             <Preview hoveredCard={hoveredCard} />
