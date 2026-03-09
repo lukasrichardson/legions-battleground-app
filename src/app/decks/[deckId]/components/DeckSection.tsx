@@ -22,7 +22,6 @@ export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard,
   }, {});
 
   if (!cards || cards.length === 0) return null;
-
   return useGroupedView ? (
     <>
       {Object.entries(groupedCards).map(([name, cardGroup]) => (
@@ -36,8 +35,6 @@ export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard,
   ) : (
     <>
       {cards.map((card, index) => (
-
-
         <DeckCardTile readOnly={readOnly} key={card.id.toString() + index} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped={false} banlist={banlist} />))}
     </>
   )

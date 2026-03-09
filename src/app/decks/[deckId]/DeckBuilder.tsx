@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState} from "react";
-import { useParams} from 'next/navigation'
+import React, { useEffect, useState } from "react";
+import { useParams } from 'next/navigation'
 import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import Preview from "./Preview";
 import DeckGrid from "./components/DeckGrid";
@@ -11,6 +11,7 @@ import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { preloadDeckImages } from "@/client/utils/imagePreloader";
 import FullPage from "@/app/components/FullPage";
 import { CARD_TYPE } from "@/shared/enums/CardType";
+import { useDrop } from "react-dnd";
 
 export default function DeckBuilder() {
   const params = useParams<{ deckId: string }>()
@@ -40,7 +41,7 @@ export default function DeckBuilder() {
       }
     }
   }, [deck?.cards_in_deck]);
-  
+
   const handleRemoveCardFromDeck = async (card) => {
     const cardInDeckIndex = deck.cards_in_deck.findIndex(item => item.id === card.id);
     if (cardInDeckIndex || cardInDeckIndex === 0) {
@@ -48,7 +49,7 @@ export default function DeckBuilder() {
       patchDeckById(deck._id.toString(), {
         ...deck,
         cards_in_deck: deck.cards_in_deck.filter((_, i) => i !== cardInDeckIndex)
-      }, (deckRes) =>{
+      }, (deckRes) => {
         setDeck(deckRes as DeckResponse);
         setSaving(false);
       });
@@ -61,7 +62,7 @@ export default function DeckBuilder() {
       patchDeckById(deck._id.toString(), {
         ...deck,
         cards_in_deck: [...deck.cards_in_deck, card]
-      }, (deckRes) =>{
+      }, (deckRes) => {
         setDeck(deckRes as DeckResponse);
         setSaving(false);
       });
@@ -88,10 +89,10 @@ export default function DeckBuilder() {
       }), ...restOfDeck.sort((a, b) => {
         return counts[b.id] - counts[a.id];
       })]
-      
+
     };
     setSaving(true);
-    patchDeckById(deck._id.toString(), sortedDeck, (deckRes) =>{
+    patchDeckById(deck._id.toString(), sortedDeck, (deckRes) => {
       setDeck(deckRes as DeckResponse);
       setSaving(false);
     });
@@ -137,55 +138,81 @@ export default function DeckBuilder() {
     }
   }
 
+  const [{ }, deckDrop] = useDrop(() => ({
+    accept: ["cardFromDeck", "cardFromSearch"],
+    drop: (item: CardDocument, monitor) => {
+      const itemType = monitor.getItemType();
+      
+      if (itemType === 'cardFromDeck') {
+        // Handle card dropped from deck (e.g., reordering within deck)
+      } else if (itemType === 'cardFromSearch') {
+        handleAddCardToDeck(item);
+      }
+    },
+  }), [handleAddCardToDeck]);
+
+  const [{}, searchPaneDrop] = useDrop(() => ({
+    accept: ["cardFromDeck", "cardFromSearch"],
+    drop: (item: CardDocument, monitor) => {
+      const itemType = monitor.getItemType();
+      
+      if (itemType === 'cardFromDeck') {
+        handleRemoveCardFromDeck(item);
+      } else if (itemType === 'cardFromSearch') {
+        // Handle card dropped within search results (no action needed)
+      }
+    },
+  }), [handleRemoveCardFromDeck]);
+
   return (
     <FullPage showBreadcrumbs={true}>
-        {/* Header - Fixed height, no overflow issues */}
-        <div className="h-auto mb-1">
-          <DeckEditorHeader 
+      {/* Header - Fixed height, no overflow issues */}
+      <div className="h-auto mb-1">
+        <DeckEditorHeader
+          deck={deck}
+          isEditingName={isEditingName}
+          editedName={editedName}
+          saving={saving}
+          onStartEditingName={handleStartEditingName}
+          onCancelEditingName={handleCancelEditingName}
+          onSaveDeckName={handleSaveDeckName}
+          onNameChange={setEditedName}
+          onNameKeyPress={handleNameKeyPress}
+          deckListRefreshTrigger={deckListRefreshTrigger}
+        />
+      </div>
+
+      {/* Main Content Area - Takes remaining space */}
+      <div className="flex-1 min-h-0 flex flex-col-reverse lg:flex-row gap-2">
+        {/* Deck Grid Pane - Full width on mobile, left side on large screens */}
+        {deckDrop(<div className="flex-2 lg:flex-3 min-h-0 order-1 lg:order-1">
+          <DeckGrid
             deck={deck}
-            isEditingName={isEditingName}
-            editedName={editedName}
+            setHoveredCard={setHoveredCard}
+            handleRemoveCardFromDeck={handleRemoveCardFromDeck}
+            handleSortClick={handleSortClick}
             saving={saving}
-            onStartEditingName={handleStartEditingName}
-            onCancelEditingName={handleCancelEditingName}
-            onSaveDeckName={handleSaveDeckName}
-            onNameChange={setEditedName}
-            onNameKeyPress={handleNameKeyPress}
-            deckListRefreshTrigger={deckListRefreshTrigger}
+            handleAddCardToDeck={handleAddCardToDeck}
           />
-        </div>
-        
-        {/* Main Content Area - Takes remaining space */}
-        <div className="flex-1 min-h-0 flex flex-col-reverse lg:flex-row gap-2">
-          {/* Deck Grid Pane - Full width on mobile, left side on large screens */}
-          <div className="flex-2 lg:flex-3 min-h-0 order-1 lg:order-1">
-            <DeckGrid
-              deck={deck}
+        </div>)}
+
+        {/* Right Sidebar - Search and Preview on large screens */}
+        {searchPaneDrop(<div className="flex flex-1 lg:flex-1 flex-col gap-2 order-2 lg:order-2 lg:w-80 xl:w-96">
+          {/* Preview Pane - Only show on large screens */}
+          <div className="hidden lg:block h-1/3 max-h-1/3">
+            <Preview hoveredCard={hoveredCard} />
+          </div>
+
+          {/* Search Pane - Responsive height to prevent overlap on small screens */}
+          <div className="h-full lg:h-2/3 overflow-hidden">
+            <SearchPane
               setHoveredCard={setHoveredCard}
-              handleRemoveCardFromDeck={handleRemoveCardFromDeck}
-              handleSortClick={handleSortClick}
-              saving={saving}
               handleAddCardToDeck={handleAddCardToDeck}
+              deckLegion={deck?.legion || null}
             />
           </div>
-          
-          {/* Right Sidebar - Search and Preview on large screens */}
-          <div className="flex flex-1 lg:flex-1 flex-col gap-2 order-2 lg:order-2 lg:w-80 xl:w-96">
-            {/* Preview Pane - Only show on large screens */}
-            <div className="hidden lg:block h-1/3 max-h-1/3">
-              <Preview hoveredCard={hoveredCard} />
-            </div>
-            
-            {/* Search Pane - Responsive height to prevent overlap on small screens */}
-            <div className="h-full lg:h-2/3 overflow-hidden">
-              <SearchPane
-                setHoveredCard={setHoveredCard}
-                handleAddCardToDeck={handleAddCardToDeck}
-                deckLegion={deck?.legion || null}
-              />
-            </div>
-          </div>
-        </div>
+        </div>)}
+      </div>
     </FullPage>
   );
 }
