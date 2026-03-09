@@ -138,7 +138,7 @@ export default function DeckBuilder() {
     }
   }
 
-  const [{ isOverDeck }, deckDrop] = useDrop(() => ({
+  const [{ isOverDeck, canDropDeck }, deckDrop] = useDrop(() => ({
     accept: ["cardFromDeck", "cardFromSearch"],
     drop: (item: CardDocument, monitor) => {
       const itemType = monitor.getItemType();
@@ -149,13 +149,22 @@ export default function DeckBuilder() {
         handleAddCardToDeck(item);
       }
     },
+    canDrop: (item, monitor) => {
+      const itemType = monitor.getItemType();
+      return itemType === 'cardFromSearch';
+    },
     collect: (monitor) => ({
       isOverDeck: monitor.isOver() && monitor.getItemType() === 'cardFromSearch',
+      canDropDeck: monitor.canDrop()
     })
   }), [handleAddCardToDeck]);
 
-  const [{ isOverSearchPane }, searchPaneDrop] = useDrop(() => ({
+  const [{ isOverSearchPane, canDropSearch }, searchPaneDrop] = useDrop(() => ({
     accept: ["cardFromDeck", "cardFromSearch"],
+    canDrop: (item, monitor) => {
+      const itemType = monitor.getItemType();
+      return itemType === 'cardFromDeck';
+    },
     drop: (item: CardDocument, monitor) => {
       const itemType = monitor.getItemType();
       
@@ -167,6 +176,7 @@ export default function DeckBuilder() {
     },
     collect: (monitor) => ({
       isOverSearchPane: monitor.isOver() && monitor.getItemType() === 'cardFromDeck',
+      canDropSearch: monitor.canDrop()
     })
   }), [handleRemoveCardFromDeck]);
 
@@ -193,8 +203,8 @@ export default function DeckBuilder() {
         {/* Deck Grid Pane - Full width on mobile, left side on large screens */}
         {deckDrop(
           <div className={["flex-2 lg:flex-3 min-h-0 order-1 lg:order-1 relative"].join(" ")}>
-            {isOverDeck && (
-            <div className="absolute w-full h-full bg-green-600/50 z-10"></div>
+            {canDropDeck && (
+            <div className={["absolute w-full h-full z-10 border-3 border-white border-dashed", isOverDeck ? "bg-green-600/30" : "bg-green-800/30"].join(" ")}></div>
           )}
             <DeckGrid
               deck={deck}
@@ -209,8 +219,8 @@ export default function DeckBuilder() {
 
         {/* Right Sidebar - Search and Preview on large screens */}
         {searchPaneDrop(<div className={["flex flex-1 lg:flex-1 flex-col gap-2 order-2 lg:order-2 lg:w-80 xl:w-96 relative"].join(" ")}>
-          {isOverSearchPane && (
-            <div className="absolute w-full h-full bg-red-600/50 z-10"></div>
+          {canDropSearch && (
+            <div className={["absolute w-full h-full z-10 border-3 border-white border-dashed", isOverSearchPane ? "bg-red-600/30" : "bg-red-800/30"].join(" ")}></div>
           )}
           {/* Preview Pane - Only show on large screens */}
           <div className="hidden lg:block h-1/3 max-h-1/3">
