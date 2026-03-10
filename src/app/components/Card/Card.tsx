@@ -5,7 +5,7 @@ import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { useAppDispatch, useAppSelector } from '@/client/redux/hooks';
 import { moveCard, flipCard } from '@/client/redux/gameStateSlice';
 import { setCardForSelectingZone, setPileInView, setSelectingZone, setWisdoming } from '@/client/redux/clientGameStateSlice';
-import { cardMenuItems, deckMenuItems, newCardMenuItems, newDeckMenuItems, newFortifiedMenuItems, newOnFieldMenuItems, newUnifiedMenuItems, newWarriorMenuItems } from '@/client/constants/cardMenu.constants';
+import { cardMenuItems, deckMenuItems, newCardMenuItems, newDeckMenuItems, newDiscardMenuItems, newFortifiedMenuItems, newOnFieldMenuItems, newUnifiedMenuItems, newWarriorMenuItems } from '@/client/constants/cardMenu.constants';
 import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { emitGameEvent } from '@/client/utils/emitEvent';
 import MenuItemAction from '@/client/enums/MenuItemAction';
@@ -280,6 +280,9 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
       cardTarget === CARD_TARGET.P2_PLAYER_FORTIFIED
     ) {
       filteredMenuItems = [...filteredMenuItems, ...newOnFieldMenuItems];
+    }
+    if (cardTarget === CARD_TARGET.P1_PLAYER_DISCARD || cardTarget === CARD_TARGET.P2_PLAYER_DISCARD) {
+      filteredMenuItems = [...filteredMenuItems, ...newDiscardMenuItems];
     }
     return filteredMenuItems;
   }, [cardTarget, card.type]);

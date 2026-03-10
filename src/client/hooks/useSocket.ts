@@ -1,6 +1,6 @@
 "use-client";
 import { setState } from "../redux/gameStateSlice";
-import { setSide } from "../redux/clientGameStateSlice";
+import { setSide, setRoom as setRoomRedux } from "../redux/clientGameStateSlice";
 import { useAppDispatch } from "../redux/hooks";
 import { socket } from "../socket";
 import { useCallback, useEffect, useState } from "react";
@@ -47,6 +47,7 @@ export const useSocket = () => {
         room.password !== payload[roomName].password
       ) {
         setRoom(payload[roomName]);
+        setRoomRedux(payload[roomName]);
       }
     }
   }
@@ -55,6 +56,8 @@ export const useSocket = () => {
   }
 
   const handleRoomEvent = useCallback((payload) => {
+    console.log("Received room event:", payload);
+    dispatch(setRoomRedux(payload));
     const p1 = payload?.players?.[socket.id]?.p1;
     dispatch(setSide(p1 ? "p1" : "p2"));
   }, [dispatch])

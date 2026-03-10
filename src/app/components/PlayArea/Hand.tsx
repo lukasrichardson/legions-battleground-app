@@ -10,7 +10,7 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
-  const { side } = clientGameState;
+  const { side, room } = clientGameState;
   const { p1Viewing, p2Viewing, sandboxMode} = gameState;
   const p1Side = side === "p1";
   const viewing = cardTarget.includes("p1") ? p1Viewing : p2Viewing;
@@ -52,7 +52,8 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
     [cardTarget, viewing]
   )
   const playerHand = (p1Side && cardTarget === CARD_TARGET.P1_PLAYER_HAND) || (!p1Side && cardTarget === CARD_TARGET.P2_PLAYER_HAND);
-
+  const p1Name = Object.values(room?.players || {})?.find(player => player.p1)?.name || "Player 1";
+  const p2Name = Object.values(room?.players || {})?.find(player => !player.p1)?.name || "Player 2";
   return (
     drop(
       <div className={[
@@ -69,7 +70,17 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
             viewing {viewing}
           </div>
         )}
+        <div className="w-1/8 h-full flex items-center justify-center text-3xl">
+          {(p1Side && playerHand) || (!p1Side && !playerHand) ? "P1" : "P2"}
+        </div>
+        <div className="w-6/8 h-full flex justify-center">
         {children}
+        </div>
+        <div className="w-1/8 h-full flex items-center justify-center text-xl overflow-hidden">
+        <span className="w-full max-h-full wrap-anywhere text-center">
+          {(p1Side && playerHand) || (!p1Side && !playerHand) ? p1Name : p2Name}
+        </span>
+        </div>
       </div>
     )
   )

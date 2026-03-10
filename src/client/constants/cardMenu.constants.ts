@@ -155,6 +155,15 @@ export const newFortifiedMenuItems: INewMenuItem[] = [
     label: "Set",
   }
 ]
+export const newDiscardMenuItems: INewMenuItem[] = [
+  {
+    key: "newDiscardMenuItems_0",
+    title: "view",
+    icon: null,
+    menuAction: MenuItemAction.VIEW,
+    label: "View",
+  },
+]
 
 export const cardMenuItems: IMenuItem[] = [
   {

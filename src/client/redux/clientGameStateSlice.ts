@@ -3,6 +3,16 @@ import { CardState } from "@/shared/interfaces/CardState";
 import { moveCard } from "./gameStateSlice";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
+interface GameRoom {
+    id: string;
+    password: string;
+    players: {[id: string]: {
+      id: string;
+      name: string;
+      p1: boolean;
+    }};
+    sandboxMode: boolean;
+  }
 
 interface ClientGameState {
   cardInFocus: CardState | null;
@@ -21,6 +31,7 @@ interface ClientGameState {
     zoneIndex?: number;
   } | null;
   wisdoming: boolean;
+  room?: GameRoom;
 }
 
 const initialState: ClientGameState =
@@ -92,6 +103,9 @@ const clientGameStateSlice = createSlice({
     },
     setWisdoming: (state, action) => {
       state.wisdoming = action.payload;
+    },
+    setRoom: (state, action) => {
+      state.room = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -115,5 +129,6 @@ export const {
   setSelectingZone,
   setCardForSelectingZone,
   setWisdoming,
+  setRoom,
 } = clientGameStateSlice.actions;
 export default clientGameStateSlice.reducer;
