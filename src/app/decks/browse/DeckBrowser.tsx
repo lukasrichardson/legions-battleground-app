@@ -93,7 +93,7 @@ export default function DeckBrowser() {
                             <p className="text-sm font-medium text-white truncate">
                               {deck.name}
                               <span className="text-xs text-gray-400 mt-1">
-                              {" - " + (deck.cards_in_deck?.filter(card => ![CARD_TYPE.WARLORD, CARD_TYPE.VEIL_REALM, CARD_TYPE.SYNERGY, CARD_TYPE.GUARDIAN].includes(card.card_type.names[0]))?.length || 0) + " cards"}
+                              {" - " + (deck.cards_in_deck?.filter(card => ![CARD_TYPE.WARLORD, CARD_TYPE.VEIL_REALM, CARD_TYPE.SYNERGY, CARD_TYPE.GUARDIAN, CARD_TYPE.TOKEN].includes(card.card_type.names[0]))?.length || 0) + " cards"}
                               </span>
                             </p>
                           </div>

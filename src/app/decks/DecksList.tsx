@@ -104,7 +104,7 @@ export const DecksList = () => {
                           {deck.name}
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {deck.cards_in_deck?.filter(card => ![CARD_TYPE.WARLORD, CARD_TYPE.VEIL_REALM, CARD_TYPE.SYNERGY, CARD_TYPE.GUARDIAN].includes(card.card_type.names[0]))?.length || 0} cards
+                          {deck.cards_in_deck?.filter(card => ![CARD_TYPE.WARLORD, CARD_TYPE.VEIL_REALM, CARD_TYPE.SYNERGY, CARD_TYPE.GUARDIAN, CARD_TYPE.TOKEN].includes(card.card_type.names[0]))?.length || 0} cards
                         </p>
                       </div>
                     </div>
