@@ -7,12 +7,14 @@ import { RoomService } from "../services/game/RoomService";
 import { EventHandler } from "../services/game/EventHandler";
 import { ROOM_EVENT } from "@/shared/enums/RoomEvent";
 import ValidatorService from "../services/game/ValidatorService";
+import { GameHistoryService } from "../services/game/GameHistoryService";
 
 // Create service instances
 const gameService = new GameService();
 const roomService = new RoomService();
 const eventHandler = new EventHandler();
 const validatorService = new ValidatorService();
+const gameHistoryService = new GameHistoryService();
 
 export const handleSocketJoinGame = async (
   io: IOServer,
@@ -183,6 +185,8 @@ export const handleSocketDisconnect = async (
     }
 
     console.log("User disconnected:", socket.id);
+    gameHistoryService.clearGameHistory(socket.room);
+
 
   } catch (error) {
     console.error('Disconnect cleanup failed:', error);

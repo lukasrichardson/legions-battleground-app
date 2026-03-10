@@ -8,7 +8,6 @@ import { removeCardFromZone, addCardToZone } from "../../utils/cardZone.util";
 import { addGameLog } from "../../utils/generateGameLog";
 import { shuffle } from "../../utils/shuffleDeck.util";
 import { drawCardP1, drawCardP2, STARTING_HAND_SIZE } from "../../utils/game.util";
-import { renderNumberthSuffix } from "../../utils/string.utils";
 import { goNextPhase } from "../../events/playerEvents";
 import { GameStateData } from "@/shared/interfaces/GameState";
 import { multiSelectCardHelper, selectCardHelper } from "@/shared/utils";
@@ -68,7 +67,7 @@ export class CardService {
     if (shouldLog) {
       games[roomId].gameLog = addGameLog(
         games[roomId].gameLog,
-        `${player.name} (${player.p1 ? "P1" : "P2"}) moved: ${cardToAdd?.name} from: ${from.target} to: ${target}${targetIndex != undefined ? " at index: " + targetIndex : ""}`
+        `${player.name} (${player.p1 ? "P1" : "P2"}) moved: ${cardToAdd.faceUp ? cardToAdd?.name : " a face-down card"} from: ${from.target} to: ${target}${targetIndex != undefined ? " at index: " + targetIndex : ""}`
       );
     }
     return games[roomId];
@@ -197,16 +196,6 @@ export class CardService {
         break;
     }
     games[roomId].gameLog = addGameLog(games[roomId].gameLog, "shuffled " + action.cardTarget + (action.targetIndex != undefined ? " at index " + action.targetIndex : ""));
-    return games[roomId];
-  }
-
-  plunder(roomId: string, action: { number: number }, player: { name: string, p1: boolean }): GameStateData {
-    if (player.p1) {
-      drawCardP1(roomId, player, action.number - 1);
-    } else {
-      drawCardP2(roomId, player, action.number - 1);
-    }
-    games[roomId].gameLog = addGameLog(games[roomId].gameLog, `${player.name} (${player.p1 ? "P1" : "P2"}) ` + "plundered: " + action.number + renderNumberthSuffix(action.number) + " card from their deck. ");
     return games[roomId];
   }
 

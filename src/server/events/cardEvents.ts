@@ -11,7 +11,17 @@ import { Server } from "socket.io";
 import { removeCardFromZone, addCardToZone } from "../utils/cardZone.util";
 import { validateForSandbox } from "../utils/sandboxValidator.util";
 
-export interface MoveCardActionInterface { id: string, from: {target: CARD_TARGET, targetIndex: number | null}, target: CARD_TARGET, targetIndex?: number, keywords?: string[], bottom?: boolean }
+export interface MoveCardActionInterface {
+  id: string,
+  from: {
+    target: CARD_TARGET,
+    targetIndex: number | null
+  },
+  target: CARD_TARGET,
+  targetIndex?: number,
+  keywords?: string[],
+  bottom?: boolean
+}
 
 export const moveCard = (
   roomId: string,

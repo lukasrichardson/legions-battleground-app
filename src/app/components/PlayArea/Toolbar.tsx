@@ -30,7 +30,8 @@ const renderToolbarButton = ({
   onClick,
   className = "",
   iconOnly = false,
-  ariaLabel
+  ariaLabel,
+  disabled = false
 }: {
   text?: string;
   icon?: AppIconName;
@@ -38,11 +39,13 @@ const renderToolbarButton = ({
   className?: string;
   iconOnly?: boolean;
   ariaLabel?: string;
+  disabled?: boolean;
 }) => (
   <button
     type="button"
-    className={`text-[12px] font-bold px-2 py-1.5 cursor-pointer text-white rounded-lg border border-white/10 transition-all duration-150 ${className}`}
+    className={[`text-[12px] font-bold px-2 py-1.5 text-white rounded-lg border border-white/10 transition-all duration-150 ${className}`, disabled ? "opacity-50 pointer-events-none cursor-not-allowed" : "cursor-pointer"].join(" ")}
     onClick={onClick}
+    disabled={disabled}
     aria-label={ariaLabel || text}
   >
     <Tooltip title={ariaLabel || text} placement="top" mouseEnterDelay={0.2}>
@@ -69,7 +72,7 @@ export default function Toolbar({ }) {
   const clientGameState = useAppSelector((state) => state.clientGameState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
   const gameLogRef = useRef<HTMLDivElement>(null);
-  const { side } = clientGameState;
+  const { side, gameHistory, undoneHistory } = clientGameState;
   const p1 = side === "p1";
   const { gameLog } = gameState;
 
@@ -187,12 +190,30 @@ export default function Toolbar({ }) {
             className: "w-full bg-gradient-to-r from-indigo-900/85 to-slate-800/95 hover:from-indigo-800/85 hover:to-slate-700/95"
           })}
         </div>
-        {renderToolbarButton({
-          text: LeaveGameButtonText,
-          icon: "leave-game",
-          onClick: handleLeaveGame,
-          className: "w-full bg-gradient-to-r from-rose-900/90 to-slate-800/95 hover:from-rose-800/90 hover:to-slate-700/95"
-        })}
+        <div className="grid grid-cols-2 gap-1">
+          {renderToolbarButton({
+            text: LeaveGameButtonText,
+            icon: "leave-game",
+            onClick: handleLeaveGame,
+            className: "w-full bg-gradient-to-r from-rose-900/90 to-slate-800/95 hover:from-rose-800/90 hover:to-slate-700/95"
+          })}
+          <div className="grid grid-cols-2 gap-1">
+            {renderToolbarButton({
+              text: "Undo",
+              icon: null,
+              onClick: () => emitGameEvent({ type: GAME_EVENT.undo, data: null }),
+              className: "w-full bg-gradient-to-r from-yellow-900/85 to-slate-800/95 hover:from-yellow-800/85 hover:to-slate-700/95",
+              disabled: gameHistory.length === 0
+            })}
+            {renderToolbarButton({
+              text: "Redo",
+              icon: null,
+              onClick: () => emitGameEvent({ type: GAME_EVENT.redo, data: null }),
+              className: "w-full bg-gradient-to-r from-yellow-900/85 to-slate-800/95 hover:from-yellow-800/85 hover:to-slate-700/95",
+              disabled: undoneHistory.length === 0
+            })}
+          </div>
+        </div>
       </div>
     </div>
   )

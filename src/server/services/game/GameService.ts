@@ -8,8 +8,14 @@ import { initialGameState } from '@/shared/constants/initialGameState';
 import { PreGamePhase } from '../../../shared/enums/Phases';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { GameStateData } from '@/shared/interfaces/GameState';
+import { GameHistoryService } from './GameHistoryService';
+import { GAME_EVENT } from '@/shared/enums/GameEvent';
+import { CardService } from './CardService';
+import { MoveCardActionInterface } from '../../events/cardEvents';
 
 export class GameService {
+  private gameHistoryService = new GameHistoryService();
+  private cardService = new CardService();
 
   async startGame(roomId: string, deckId: string, p2DeckId?: string): Promise<GameStateData> {
     if (games[roomId]?.started) {
@@ -130,6 +136,93 @@ export class GameService {
   changeP1AP(roomId: string, action: number): GameStateData {
     games[roomId].p1PlayerAP += action;
     games[roomId].gameLog = addGameLog(games[roomId].gameLog, "p1 player AP changed by " + action);
+    return games[roomId];
+  }
+
+  undoGameEvent(roomId: string): GameStateData {
+    const gameHistory = this.gameHistoryService.getGameHistory(roomId);
+    if (gameHistory.length === 0) {
+      return games[roomId];
+    }
+    const lastEvent = gameHistory[gameHistory.length - 1];
+    if (!lastEvent) {
+      return games[roomId];
+    }
+    switch (lastEvent.event.type) {
+      case GAME_EVENT.moveCard: {
+        const { id, from, target, targetIndex, keywords, bottom } = lastEvent.event.data as MoveCardActionInterface;
+      this.cardService.moveCard(roomId, {
+        id,
+        from: { target, targetIndex },
+        target: from.target,
+        targetIndex: from.targetIndex,
+        keywords,
+        bottom
+      }, { p1: lastEvent.p1, name: lastEvent.playerName }, null);
+        break;
+      }
+      case GAME_EVENT.flipCard: {
+        const { cardTarget, cardIndex, zoneIndex } = lastEvent.event.data as { cardTarget: CARD_TARGET; cardIndex: number; zoneIndex?: number };
+        this.cardService.flipCard(roomId, { cardTarget, cardIndex, zoneIndex });
+        break;
+      }
+      case GAME_EVENT.increaseCardAttackModifier: {
+        const { cardTarget, cardIndex, zoneIndex } = lastEvent.event.data as { cardTarget: CARD_TARGET; cardIndex: number; zoneIndex?: number };
+        this.cardService.decreaseCardAttackModifier(roomId, { cardTarget, cardIndex, zoneIndex});
+        break;
+      }
+      case GAME_EVENT.decreaseCardAttackModifier: {
+        const { cardTarget, cardIndex, zoneIndex } = lastEvent.event.data as { cardTarget: CARD_TARGET; cardIndex: number; zoneIndex?: number };
+        this.cardService.increaseCardAttackModifier(roomId, { cardTarget, cardIndex, zoneIndex});
+        break;
+      }
+      case GAME_EVENT.increaseCardOtherModifier: {
+        const { cardTarget, cardIndex, zoneIndex } = lastEvent.event.data as { cardTarget: CARD_TARGET; cardIndex: number; zoneIndex?: number };
+        this.cardService.decreaseCardOtherModifier(roomId, { cardTarget, cardIndex, zoneIndex});
+        break;
+      }
+      case GAME_EVENT.decreaseCardOtherModifier: {
+        const { cardTarget, cardIndex, zoneIndex } = lastEvent.event.data as { cardTarget: CARD_TARGET; cardIndex: number; zoneIndex?: number };
+        this.cardService.increaseCardOtherModifier(roomId, { cardTarget, cardIndex, zoneIndex});
+        break;
+      }
+      case GAME_EVENT.increaseCardCooldown: {
+        const { cardTarget, cardIndex, zoneIndex } = lastEvent.event.data as { cardTarget: CARD_TARGET; cardIndex: number; zoneIndex?: number };
+        this.cardService.decreaseCardCooldown(roomId, { cardTarget, cardIndex, zoneIndex});
+        break;
+      }
+      case GAME_EVENT.decreaseCardCooldown: {
+        const { cardTarget, cardIndex, zoneIndex } = lastEvent.event.data as { cardTarget: CARD_TARGET; cardIndex: number; zoneIndex?: number };
+        this.cardService.increaseCardCooldown(roomId, { cardTarget, cardIndex, zoneIndex});
+        break;
+      }
+      case GAME_EVENT.changeP1AP: {
+        const changeAmount = lastEvent.event.data as number;
+        this.changeP1AP(roomId, -changeAmount);
+        break;
+      }
+      case GAME_EVENT.changeP2AP: {
+        const changeAmount = lastEvent.event.data as number;
+        this.changeP2AP(roomId, -changeAmount);
+        break;
+      }
+      case GAME_EVENT.changeP1Health: {
+        const changeAmount = lastEvent.event.data as number;
+        this.changeP1Health(roomId, -changeAmount);
+        break;
+      }
+      case GAME_EVENT.changeP2Health: {
+        const changeAmount = lastEvent.event.data as number;
+        this.changeP2Health(roomId, -changeAmount);
+        break;
+      }
+      default: {
+        this.gameHistoryService.removeLastGameEvent(roomId);
+        return this.undoGameEvent(roomId);
+      }
+    }
+
+    this.gameHistoryService.removeLastGameEvent(roomId);
     return games[roomId];
   }
 

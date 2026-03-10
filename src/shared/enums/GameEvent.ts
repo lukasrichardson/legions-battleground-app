@@ -28,4 +28,6 @@ export enum GAME_EVENT {
   //
   playerInput = "playerInput",
   conscript = "conscript",
+  undo = "undo",
+  redo = "redo",
 }

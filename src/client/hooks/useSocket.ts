@@ -1,6 +1,6 @@
 "use-client";
 import { setState } from "../redux/gameStateSlice";
-import { setSide, setRoom as setRoomRedux } from "../redux/clientGameStateSlice";
+import { setSide, setRoom as setRoomRedux, setHistoryState } from "../redux/clientGameStateSlice";
 import { useAppDispatch } from "../redux/hooks";
 import { socket } from "../socket";
 import { useCallback, useEffect, useState } from "react";
@@ -15,6 +15,7 @@ export enum SOCKET_PAYLOAD_TYPE {
   roomEvent = "roomEvent",
   rooms = "rooms",
   "joinedGame" = "joinedGame",
+  gameHistoryEvent = "gameHistoryEvent"
 }
 
 export const useSocket = () => {
@@ -62,11 +63,19 @@ export const useSocket = () => {
     dispatch(setSide(p1 ? "p1" : "p2"));
   }, [dispatch])
 
+  const handleHistoryEvent = useCallback((payload) => {
+    dispatch(setHistoryState({
+      gameHistory: payload.gameHistory,
+      undoneHistory: payload.undoneHistory,
+    }))
+  }, [dispatch])
+
   useEffect(() => {
     socket.on(SOCKET_PAYLOAD_TYPE.gameEvent, handleGameEvent)
     socket.on(SOCKET_PAYLOAD_TYPE.phaseEvent, handlePhaseEvent)
     socket.on(SOCKET_PAYLOAD_TYPE.rooms, handleRooms)
     socket.on(SOCKET_PAYLOAD_TYPE.roomEvent, handleRoomEvent)
+    socket.on(SOCKET_PAYLOAD_TYPE.gameHistoryEvent, handleHistoryEvent);
     if (!socket.connected) socket.connect();
 
     return () => {
@@ -74,6 +83,7 @@ export const useSocket = () => {
       socket.off(SOCKET_PAYLOAD_TYPE.phaseEvent, handlePhaseEvent)
       socket.off(SOCKET_PAYLOAD_TYPE.rooms, handleRooms)
       socket.off(SOCKET_PAYLOAD_TYPE.roomEvent, handleRoomEvent)
+      socket.off(SOCKET_PAYLOAD_TYPE.gameHistoryEvent, handleHistoryEvent);
       if (socket.connected) socket.disconnect();
     }
   }, []);

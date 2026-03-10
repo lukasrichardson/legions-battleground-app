@@ -57,10 +57,13 @@ export default function PlunderModal({ closeModal }: { closeModal: () => void })
         from: p1 ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK,
         target: p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND
       }));
-      emitGameEvent({type: GAME_EVENT.plunder, data: {
-        number: cardToTake,
-        p1
-      }})
+      emitGameEvent({
+        type: GAME_EVENT.moveCard, data: {
+          id: cardToMove.id,
+          from: { target: p1 ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK, targetIndex: cardToTake - 1 },
+          target: p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND,
+        }
+      });
       handleCloseModal();
     }
   }
