@@ -105,6 +105,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
       <div
         className={"[&:not(:first-child)]:-mt-[115%] relative"}
         onContextMenu={e => removeCardFromDeck(e, card)}
+        onClick={e => removeCardFromDeck(e, card)}
         onMouseEnter={handleOnMouseEnter}
         onMouseLeave={handleOnMouseLeave}
       >

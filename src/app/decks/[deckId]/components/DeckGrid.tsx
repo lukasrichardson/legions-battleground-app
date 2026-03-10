@@ -5,6 +5,7 @@ import { CardInDeck, DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import useClientSettings from "@/client/hooks/useClientSettings";
 import DeckSection from "./DeckSection";
+import useIsMobile from "@/client/hooks/useIsMobile";
 
 const renderSectionStructure = (name: string, cards: CardInDeck[], renderSubSection: (cards: CardInDeck[]) => JSX.Element) => (
   cards && cards.length > 0 && (
@@ -69,17 +70,17 @@ export default function DeckGrid({
   const handleGroupedViewToggle = () => {
     setDeckbuildGroupedView(!deckbuild_groupedView);
   }
+  const isMobile = useIsMobile();
   return (
     <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
       <CardHeader className="p-2 pb-1">
         <CardTitle className="flex items-center justify-between text-xs">
           <span className="flex items-center gap-1">
             Main: {mainDeck?.length}
-            <span>|  Warriors: {warriors?.length}</span>
+            {!isMobile &&(<><span>|  Warriors: {warriors?.length}</span>
             <span>|  Unified: {unifieds?.length}</span>
-            <span>|  Fortified: {fortifieds?.length}</span>
+            <span>|  Fortified: {fortifieds?.length}</span></>)}
           </span>
-          <span></span>
           <div className="flex items-center gap-2">
             {!readOnly && <Button
               onClick={handleSortClick}

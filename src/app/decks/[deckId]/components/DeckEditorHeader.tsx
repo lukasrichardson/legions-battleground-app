@@ -1,3 +1,4 @@
+import useIsMobile from "@/client/hooks/useIsMobile";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
 import { createPublishedDeck, fetchDecks } from "@/client/utils/api.utils";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
@@ -83,16 +84,15 @@ export default function DeckEditorHeader({
       router.push(`/decks/browse/${publishedDeck?.deck?._id}`);
     });
   }
-
+  const isMobile = useIsMobile();
   return (
     <div className="space-y-1">
       <div className="text-center">
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
+        {!isMobile ? <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
           Deck Editor
-        </h1>
-        <span className="text-sm text-gray-400">Left Click to add cards, Right Click to remove cards</span>
+        </h1> : <div className="w-full h-1"></div>}
+        {!isMobile && (<span className="text-sm text-gray-400">Click or Drag to add / remove cards from deck</span>)}
         <div className="flex items-center justify-center gap-1 flex-wrap">
-          <span className="text-white/70 text-xs">{deck?.legion?.toLocaleUpperCase() || ""}</span>
           <Select value={deck?._id?.toString()} onValueChange={handleDeckChange} disabled={loading}>
             <SelectTrigger className="h-6 max-w-fit text-sm bg-white/10 border-white/20 text-white">
               <SelectValue placeholder={loading ? "Loading..." : "Select deck"} />

@@ -35,7 +35,7 @@ export default function PublishedDeckViewer() {
   return (
     <FullPage showBreadcrumbs={true}>
       {deck && <div className="pt-10">
-        <div className="w-full flex justify-center">
+        <div className="w-full flex justify-center flex-wrap">
           <span className="text-white mx-1">{deck?.name}</span>
           <span className="text-white/50 mx-1">By:{deck?.author}</span>
           <span className="text-white/50 mx-1">Published:{new Date(deck?.published_date).toLocaleDateString()}</span>

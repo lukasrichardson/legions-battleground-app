@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import FullPage from "./components/FullPage";
 import PerformanceDashboard from "./components/Modals/PerformanceDashboard";
 import useBackgroundPreload from "@/client/hooks/useBackgroundPreload";
+import useIsMobile from "@/client/hooks/useIsMobile";
 
 const HomeConstants = {
   HomeTitle: "Legions Battleground",
@@ -22,6 +23,32 @@ const HomeConstants = {
   ImportDeckText: "Import Deck",
   BrowseDecksText: "Browse Decks"
 }
+
+const renderQuickActionCard = ({
+  title,
+  description,
+  icon,
+  onClick
+}: {
+  title: string;
+  description: string;
+  icon: JSX.Element;
+  onClick: () => void;
+}) => (
+  <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={onClick}>
+    <CardHeader className="p-4">
+      <CardTitle className="flex items-center gap-2 text-lg">
+        <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center">
+          {icon}
+        </div>
+        {title}
+      </CardTitle>
+      <CardDescription className="text-gray-300 text-sm">
+        {description}
+      </CardDescription>
+    </CardHeader>
+  </Card>
+)
 
 export default function Home() {
   const dispatch = useAppDispatch();
@@ -71,11 +98,13 @@ export default function Home() {
     ImportDeckText,
     BrowseDecksText
   } = HomeConstants;
-  
+
+  const isDev = process.env.NODE_ENV === "development";
+  const isMobile = useIsMobile();
   return (
     <FullPage>
           {/* Header */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-6 mt-3">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
               {HomeTitle}
             </h1>
@@ -89,89 +118,62 @@ export default function Home() {
           {session &&<>
             {/* Quick Actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 max-w-6xl mx-auto w-full">
-              <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={handleDecksClick}>
-                <CardHeader className="p-4">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center">
+              {renderQuickActionCard({
+                title: "Decks",
+                description: "Create and edit your decks",
+                icon: <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                       </svg>
-                    </div>
-                    {"Decks"}
-                  </CardTitle>
-                  <CardDescription className="text-gray-300 text-sm">
-                    Create and edit your decks
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-              
-              <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={handleCardsClick}>
-                <CardHeader className="p-4">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <div className="w-6 h-6 bg-purple-500 rounded-lg flex items-center justify-center">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                      </svg>
-                    </div>
-                    {"Card Gallery"}
-                  </CardTitle>
-                  <CardDescription className="text-gray-300 text-sm">
-                    Search & Filter all cards
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-              
-              <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={handleCreateGame}>
-                <CardHeader className="p-4">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <div className="w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center">
+                    </div>,
+                onClick: handleDecksClick
+              })}
+              {renderQuickActionCard({
+                title: "Card Gallery",
+                description: "Search & Filter all cards",
+                icon: <div className="w-6 h-6 bg-purple-500 rounded-lg flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                      </div>,
+                onClick: handleCardsClick
+              })}
+              {!isMobile && (
+                renderQuickActionCard({
+                  title: CreateGameBtnText,
+                  description: "Create a VS or Solo game",
+                  icon: <div className="w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
-                    </div>
-                    {CreateGameBtnText}
-                  </CardTitle>
-                  <CardDescription className="text-gray-300 text-sm">
-                    Create a VS or Solo game
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={handleImportDeck}>
-                <CardHeader className="p-4">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <div className="w-6 h-6 bg-orange-500 rounded-lg flex items-center justify-center">
+                    </div>,
+                  onClick: handleCreateGame
+                })
+              )}
+              {renderQuickActionCard({
+                title: ImportDeckText,
+                description: "Import a deck from Toolbox",
+                icon: <div className="w-6 h-6 bg-orange-500 rounded-lg flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                       </svg>
-                    </div>
-                    {ImportDeckText}
-                  </CardTitle>
-                  <CardDescription className="text-gray-300 text-sm">
-                    Import a deck from Toolbox
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={handleBrowseDecksClick}>
-                <CardHeader className="p-4">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <div className="w-6 h-6 bg-pink-500 rounded-lg flex items-center justify-center">
+                    </div>,
+                onClick: handleImportDeck
+              })}
+              {renderQuickActionCard({
+                title: BrowseDecksText,
+                description: "Browse published decklists",
+                icon: <div className="w-6 h-6 bg-pink-500 rounded-lg flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                       </svg>
-                    </div>
-                    {BrowseDecksText}
-                  </CardTitle>
-                  <CardDescription className="text-gray-300 text-sm">
-                    Browse published decklists
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+                    </div>,
+                onClick: handleBrowseDecksClick
+              })}
             </div>
 
             {/* Game Rooms */}
-            <div className="flex-1 min-h-0">
+            {!isMobile &&(<div className="flex-1 min-h-0">
               <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
                 <CardHeader className="p-4 pb-2">
                   <CardTitle className="flex items-center justify-between text-lg">
@@ -240,10 +242,10 @@ export default function Home() {
                   )}
                 </CardContent>
               </Card>
-            </div>
+            </div>)}
             
             {/* Performance Dashboard Button */}
-            <div className="mt-4 flex justify-center">
+            {isDev &&(<div className="mt-4 flex justify-center">
               <Button
                 onClick={() => setShowPerformanceDashboard(true)}
                 size="sm"
@@ -251,15 +253,17 @@ export default function Home() {
               >
                 📊 Image Performance
               </Button>
-            </div>
+            </div>)}
             
           </>}
           
           {/* Performance Dashboard Modal */}
-          <PerformanceDashboard 
-            isOpen={showPerformanceDashboard}
-            onClose={() => setShowPerformanceDashboard(false)}
-          />
+          {process.env.NODE_ENV === "development" && (
+            <PerformanceDashboard 
+              isOpen={showPerformanceDashboard}
+              onClose={() => setShowPerformanceDashboard(false)}
+            />
+          )}
     </FullPage>
   )
 }

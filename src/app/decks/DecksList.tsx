@@ -44,7 +44,7 @@ export const DecksList = () => {
       <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
         <CardHeader className="p-4 pb-2">
           <CardTitle className="flex items-center justify-start text-lg">
-            <span className="flex items-center gap-2">
+            <span className="flex items-center gap-2 text-sm">
               <div className="w-5 h-5 bg-green-500 rounded-lg flex items-center justify-center">
                 <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -80,7 +80,7 @@ export const DecksList = () => {
             </div>
           ) : (
             <div className="h-full overflow-auto">
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
                 {decks.map(deck => {
                   const warlordOrNull = deck.cards_in_deck.find(card => card.card_type.names[0] === CARD_TYPE.WARLORD); 
                   return(
@@ -89,17 +89,21 @@ export const DecksList = () => {
                     className="cursor-pointer group relative" 
                     onClick={handleDeckSelect(deck._id || deck.id)}
                   >
-                    <div className="text-white bg-amber-900 w-full h-0 absolute bottom-0 overflow-hidden group-hover:h-6 text-center"
-                      onClick={handleDeleteDeckClick(deck._id || deck.id)}>DELETE</div>
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-3 hover:bg-white/10 transition-colors">
-                      <div className="flex justify-center mb-2">
+                    <div
+                      className="text-white bg-amber-900 w-full h-0 absolute bottom-0 overflow-hidden group-hover:h-6 text-center"
+                      onClick={handleDeleteDeckClick(deck._id || deck.id)}
+                    >
+                      DELETE
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-lg p-1 hover:bg-white/10 transition-colors">
+                      <div className="flex justify-center mb-1">
                         {renderCardTile(warlordOrNull || deck.cards_in_deck?.[0], 0, () => null)}
                       </div>
                       <div className="text-center">
                         <p className="text-sm font-medium text-white truncate">
                           {deck.name}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-gray-400 mt-0.5">
                           {deck.cards_in_deck?.filter(card => ![CARD_TYPE.WARLORD, CARD_TYPE.VEIL_REALM, CARD_TYPE.SYNERGY, CARD_TYPE.GUARDIAN].includes(card.card_type.names[0]))?.length || 0} cards
                         </p>
                       </div>

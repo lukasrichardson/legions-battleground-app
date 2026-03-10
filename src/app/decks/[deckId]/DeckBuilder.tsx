@@ -12,6 +12,7 @@ import { preloadDeckImages } from "@/client/utils/imagePreloader";
 import FullPage from "@/app/components/FullPage";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { useDrop } from "react-dnd";
+import useIsMobile from "@/client/hooks/useIsMobile";
 
 export default function DeckBuilder() {
   const params = useParams<{ deckId: string }>()
@@ -179,10 +180,12 @@ export default function DeckBuilder() {
       canDropSearch: monitor.canDrop()
     })
   }), [handleRemoveCardFromDeck]);
-
+  const isMobile = useIsMobile();
   return (
     <FullPage showBreadcrumbs={true}>
-      {/* Header - Fixed height, no overflow issues */}
+      {isMobile && (
+        <div className="w-full h-6"></div>
+      )}
       <div className="h-auto mb-1">
         <DeckEditorHeader
           deck={deck}

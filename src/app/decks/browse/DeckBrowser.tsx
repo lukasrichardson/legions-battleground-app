@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FullPage from "@/app/components/FullPage";
 import { MultiSelect } from "@/client/ui/multiselect";
+import useIsMobile from "@/client/hooks/useIsMobile";
 
 export default function DeckBrowser() {
   const router = useRouter();
@@ -27,10 +28,14 @@ export default function DeckBrowser() {
     if (!deckId) return;
     router.push("/decks/browse/" + deckId);
   }
+  const isMobile = useIsMobile();
   return (
     <FullPage showBreadcrumbs={true}>
-      <div className="text-center mb-6">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
+      {isMobile && (
+        <div className="w-full h-6"></div>
+      )}
+      <div className="text-center mb-2">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
           Published Decks
         </h1>
         <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">

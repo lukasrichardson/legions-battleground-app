@@ -265,9 +265,10 @@ export default function SearchPane({
           />
 
           {/* Only show filters on larger screens to save space on mobile */}
-          <div className="hidden lg:block">
+          {/* <div className="hidden lg:block"> */}
+          <div className="block">
             {(Object.keys(filterOptionsForDeckLegion).length > 0) && (
-              <div className="space-y-0.5">
+              <div className="md:space-y-0.5">
                 {Object.keys(filterOptionsForDeckLegion).map((key) => (
                   <MultiSelect
                     key={key}
