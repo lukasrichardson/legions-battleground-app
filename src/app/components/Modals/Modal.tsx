@@ -40,7 +40,6 @@ export default function Modal({
   const ref = useRef<HTMLDivElement>(null);
   useClickOutside(ref, closeModal as () => void);
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && open) {
@@ -65,22 +64,20 @@ export default function Modal({
 
   return (
     drop(
-      <div className={"absolute left-0 top-0 w-full h-full z-50 flex items-center justify-center p-4 bg-black/20" + (!isDragging ? " pointer-events-none" : "")}>
+      <div className={"absolute left-0 top-0 w-full h-full z-50 p-4 bg-black/20" + (!isDragging ? " pointer-events-none" : "")}>
         {drag(
           <div
             ref={ref}
-            className={["relative max-w-[75%] max-h-[85%] border border-white/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto",
+            className={["relative max-w-[75%] max-h-[85%] border border-white/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto left-1/2 top-1/2 transform",
               transparentOnBlur ? "bg-white/25" : ""
             ].join(" ")}
-            style={{ transform: modalState ? `translate(${modalState.left}px, ${modalState.top}px)` : undefined }}
+            style={{ transform: modalState ? `translate(calc(-50% + ${modalState.left}px), calc(-50% + ${modalState.top}px))` : "translate(-50%, -50%)" }}
           >
             {!isDragging && <>
-              {/* Header */}
               <div className="border-b border-white/10 px-6 hover:cursor-grab active:cursor-grabbing bg-slate-900">
                 {modalHeader}
               </div>
 
-              {/* Content */}
               <div className={["flex-1 overflow-y-auto min-h-0 bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-slate-900/95", transparentOnBlur ? "opacity-5 hover:opacity-100" : ""].join(" ")}>
                 <div className="p-6">
                   {modalContent}

@@ -173,8 +173,8 @@ export default function CardInner({
   }, [rotated, inPileView, cardInView, index, p1Selected, p2Selected]);
 
   const cardClasses = useMemo(() => [
-    "h-[100px]",
-    "w-[75px]",
+    !inPileView ? "h-[100px]" : "h-[80px]",
+    !inPileView ? "w-[75px]" : "w-[60px]",
     "card-inner",
     `transform scale-100 transition-transform duration-75 cursor-pointer`,
     cardInView || inPileView

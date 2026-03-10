@@ -247,7 +247,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
       )
     }
     return (
-      <div className="relative">
+      <div className="relative max-h-[30vh]">
         {!wisdoming && <div className="flex gap-4 relative -top-2">
           <span>Filter By: </span>
           {renderTab("All")}
@@ -256,7 +256,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
           {renderTab("Fortified")}
         </div>}
         <div className={waitingForUserInput ? "pb-20" : "pb-0"}>
-          <div className={["grid grid-cols-2 gap-1", !wisdoming ? "xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-8 " : ""].join(" ")}>
+          <div className={["grid grid-cols-2 gap-1", !wisdoming ? "xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-10 " : ""].join(" ")}>
             {filteredPile.map((card, index) => {
               const isSelected = !!selected?.find(c => c.id === card.id);
               return (
