@@ -71,7 +71,7 @@ export const newCardMenuItems: INewMenuItem[] = [
     icon: null,
     menuAction: MenuItemAction.MOVE,
     target: CARD_TARGET.CONTROLLER_HAND,
-    label: "-> Hand",
+    label: "To Hand",
   },
   {
     key: "1",
@@ -79,7 +79,7 @@ export const newCardMenuItems: INewMenuItem[] = [
     icon: null,
     menuAction: MenuItemAction.MOVE,
     target: CARD_TARGET.CONTROLLER_DISCARD,
-    label: "-> Discard",
+    label: "To Discard",
   },
   {
     key: "2",
@@ -87,7 +87,7 @@ export const newCardMenuItems: INewMenuItem[] = [
     icon: null,
     menuAction: MenuItemAction.MOVE,
     target: CARD_TARGET.CONTROLLER_ERADICATION,
-    label: "-> Eradication",
+    label: "To Eradication",
   },
   {
     key: "3",
@@ -95,7 +95,7 @@ export const newCardMenuItems: INewMenuItem[] = [
     icon: null,
     menuAction: MenuItemAction.MOVE,
     target: CARD_TARGET.CONTROLLER_REVEALED,
-    label: "-> Revealed",
+    label: "To Revealed",
   },
   {
     key: "4",
@@ -103,7 +103,7 @@ export const newCardMenuItems: INewMenuItem[] = [
     icon: null,
     menuAction: MenuItemAction.MOVE,
     target: CARD_TARGET.CONTROLLER_DECK,
-    label: "-> Bottom of Deck",
+    label: "To Bottom of Deck",
   },
   {
     key: "5",
@@ -111,7 +111,7 @@ export const newCardMenuItems: INewMenuItem[] = [
     icon: null,
     menuAction: MenuItemAction.MOVE,
     target: CARD_TARGET.CONTROLLER_DECK,
-    label: "-> Top of Deck",
+    label: "To Top of Deck",
   },
   
 ]

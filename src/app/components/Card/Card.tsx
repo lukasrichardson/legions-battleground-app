@@ -1,29 +1,27 @@
-import IMenuItem, { INewMenuItem } from '@/client/interfaces/IMenuItem';
 import { useCallback, useMemo, useState } from 'react';
-import { CardState } from "@/shared/interfaces/CardState";
-import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { useAppDispatch, useAppSelector } from '@/client/redux/hooks';
 import { moveCard, flipCard } from '@/client/redux/gameStateSlice';
 import { setPileInView } from '@/client/redux/clientGameStateSlice';
-import { GAME_EVENT } from '@/shared/enums/GameEvent';
-import { emitGameEvent } from '@/client/utils/emitEvent';
-import MenuItemAction from '@/client/enums/MenuItemAction';
-import CardInner from './CardInner';
 import { openPlunderModal } from '@/client/redux/modalsSlice';
+import IMenuItem, { INewMenuItem } from '@/client/interfaces/IMenuItem';
+import { CARD_TARGET } from '@/shared/enums/CardTarget';
+import { GAME_EVENT } from '@/shared/enums/GameEvent';
+import MenuItemAction from '@/client/enums/MenuItemAction';
+import { CardProps, CardModifierHandlers, CardInteractionHandlers } from './Card.types';
+import CardInner from './CardInner';
 import useHandleCardEvents from '@/client/hooks/useHandleCardEvents';
-import { getMenuItemsForCard, getMenuItemsForCardLegacy } from '@/client/utils/cardMenu.utils';
 import useMenuItemClick from '@/client/hooks/useMenuItemClick';
+import { emitGameEvent } from '@/client/utils/emitEvent';
+import { getMenuItemsForCard, getMenuItemsForCardLegacy } from '@/client/utils/cardMenu.utils';
 
-interface CardProps {
-  card: CardState;
-  cardTarget: CARD_TARGET;
-  index?: number;
-  inPileView?: boolean;
-  zoneIndex?: number;
-  hidden?: boolean;
-}
-
-export default function Card({ card, cardTarget, index, inPileView = false, zoneIndex, hidden = false }: CardProps) {
+export default function Card({ 
+  card, 
+  cardTarget, 
+  index, 
+  inPileView = false, 
+  zoneIndex, 
+  hidden = false 
+}: CardProps) {
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
@@ -45,11 +43,20 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
     handleWisdom
   } = useMenuItemClick(card, cardTarget, zoneIndex, index);
 
-  const newonMenuItemClick = useCallback((items: INewMenuItem[], key: string) => {
-    const menuItemClicked: INewMenuItem | undefined = items?.find((item) => item.key === key || item.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key)));
-    switch (menuItemClicked?.menuAction) {
+  const closePopover = useCallback(() => {
+    setIsPopoverVisible(false);
+  }, []);
+
+  const handleNewMenuClick = useCallback((items: INewMenuItem[], key: string | number) => {
+    const selectedMenuItem: INewMenuItem | undefined = items?.find((item) => 
+      item.key === key || item.children?.find((child) => 
+        child.key === key || child.children?.find((subChild) => subChild.key === key)
+      )
+    );
+    
+    switch (selectedMenuItem?.menuAction) {
       case MenuItemAction.MOVE:
-        handleMove(items, key);
+        handleMove(items, String(key));
         break;
       case MenuItemAction.SHUFFLE:
         handleShuffle();
@@ -60,7 +67,7 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
         closePopover();
         break;
       case MenuItemAction.PLUNDER:
-        dispatch(openPlunderModal())
+        dispatch(openPlunderModal());
         closePopover();
         break;
       case MenuItemAction.CONSCRIPT:
@@ -86,21 +93,29 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
       default:
         break;
     }
-  }, [handleMove, handleShuffle, handleView, handleConscript, handleActivate, handleSet, handleFlip, handleWisdom, dispatch]);
+  }, [handleMove, handleShuffle, handleView, handleConscript, handleActivate, handleSet, handleFlip, handleWisdom, dispatch, closePopover]);
 
-  const legacyonMenuItemClick = useCallback((items: IMenuItem[], key: string | number) => {
-    const menuItemClicked: IMenuItem | undefined = items?.find((item) => item.key === key || item.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key)));
-    switch (menuItemClicked?.menuAction) {
+  const handleLegacyMenuClick = useCallback((items: IMenuItem[], key: string | number) => {
+    const selectedMenuItem: IMenuItem | undefined = items?.find((item) => 
+      item.key === key || item.children?.find((child) => 
+        child.key === key || child.children?.find((subChild) => subChild.key === key)
+      )
+    );
+    
+    switch (selectedMenuItem?.menuAction) {
       case MenuItemAction.MOVE:
-        const child = menuItemClicked?.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key));
+        const child = selectedMenuItem?.children?.find((child) => 
+          child.key === key || child.children?.find((subChild) => subChild.key === key)
+        );
         const subChild = child?.children?.find((subChild) => subChild.key === key);
         let bottom = false;
         let targetIndex = subChild?.title;
+        
         if (subChild?.label.includes("Deck")) {
           targetIndex = undefined;
           if (subChild?.label.includes("(bottom)")) bottom = true;
         }
-        subChild?.label.includes("(bottom)")
+        
         dispatch(moveCard({
           id: card.id,
           target: child?.title,
@@ -108,8 +123,10 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
           targetIndex,
           bottom
         }));
+        
         emitGameEvent({
-          type: GAME_EVENT.moveCard, data: {
+          type: GAME_EVENT.moveCard, 
+          data: {
             id: card.id,
             target: child?.title,
             from: { target: cardTarget, targetIndex: zoneIndex },
@@ -118,44 +135,90 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
           }
         });
         break;
+        
       case MenuItemAction.VIEW:
-        emitGameEvent({ type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: null } })
+        emitGameEvent({ 
+          type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, 
+          data: { cardTarget, limit: null } 
+        });
         dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex }));
         closePopover();
         break;
+        
       case MenuItemAction.VIEW_TOP_X:
-        const viewXChild = menuItemClicked?.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key));
-        emitGameEvent({ type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: viewXChild?.title } })
-        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewXChild?.title, pile: cardPileZone }));
+        const viewXChild = selectedMenuItem?.children?.find((child) => 
+          child.key === key || child.children?.find((subChild) => subChild.key === key)
+        );
+        emitGameEvent({ 
+          type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, 
+          data: { cardTarget, limit: viewXChild?.title } 
+        });
+        dispatch(setPileInView({ 
+          cardTarget, 
+          targetIndex: zoneIndex, 
+          limit: viewXChild?.title, 
+          pile: cardPileZone 
+        }));
         closePopover();
         break;
+        
       case MenuItemAction.VIEW_BOTTOM_X:
-        const viewBottomXChild = menuItemClicked?.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key));
-        emitGameEvent({ type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: viewBottomXChild?.title, bottom: true } })
-        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: viewBottomXChild?.title, bottom: true, pile: cardPileZone }));
+        const viewBottomXChild = selectedMenuItem?.children?.find((child) => 
+          child.key === key || child.children?.find((subChild) => subChild.key === key)
+        );
+        emitGameEvent({ 
+          type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, 
+          data: { cardTarget, limit: viewBottomXChild?.title, bottom: true } 
+        });
+        dispatch(setPileInView({ 
+          cardTarget, 
+          targetIndex: zoneIndex, 
+          limit: viewBottomXChild?.title, 
+          bottom: true, 
+          pile: cardPileZone 
+        }));
         closePopover();
         break;
+        
       case MenuItemAction.SHUFFLE:
-        emitGameEvent({ type: GAME_EVENT.shuffleTargetPile, data: { cardTarget, targetIndex: zoneIndex } });
+        emitGameEvent({ 
+          type: GAME_EVENT.shuffleTargetPile, 
+          data: { cardTarget, targetIndex: zoneIndex } 
+        });
         closePopover();
         break;
+        
       case MenuItemAction.FLIP:
         dispatch(flipCard({ cardTarget, cardIndex: index, zoneIndex }));
-        emitGameEvent(({ type: GAME_EVENT.flipCard, data: { cardTarget, cardIndex: index, zoneIndex } }));
+        emitGameEvent({ 
+          type: GAME_EVENT.flipCard, 
+          data: { cardTarget, cardIndex: index, zoneIndex } 
+        });
         closePopover();
         break;
+        
       case MenuItemAction.PLUNDER:
-        dispatch(openPlunderModal())
+        dispatch(openPlunderModal());
         closePopover();
         break;
+        
       default:
         break;
     }
-  }, [card, cardTarget, dispatch, index, zoneIndex, p1, cardPileZone]);
+  }, [card, cardTarget, dispatch, index, zoneIndex, p1, cardPileZone, closePopover]);
 
-  const newcardMenuItemsFiltered = useMemo(() => getMenuItemsForCard(card, cardTarget), [card, cardTarget]);
+  const handleMenuClick = useCallback((items: INewMenuItem[] | IMenuItem[], key: string | number) => {
+    if (legacyMenu) {
+      return handleLegacyMenuClick(items as IMenuItem[], key);
+    }
+    return handleNewMenuClick(items as INewMenuItem[], key);
+  }, [legacyMenu, handleLegacyMenuClick, handleNewMenuClick]);
 
-  const legacycardMenuItemsFiltered = useMemo(() => getMenuItemsForCardLegacy(inPileView, cardTarget), [inPileView, cardTarget]);
+  const cardMenuItems = useMemo(() => {
+    return legacyMenu 
+      ? getMenuItemsForCardLegacy(inPileView, cardTarget)
+      : getMenuItemsForCard(card, cardTarget);
+  }, [legacyMenu, inPileView, cardTarget, card]);
 
   const faceUp = useMemo(() => {
     if (hidden) return false;
@@ -165,15 +228,9 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
     return card.faceUp === undefined ? true : card.faceUp;
   }, [card, hidden, cardTarget, inPileView]);
 
-  const isP1Selected = useMemo(() => {
-    return p1SelectedCards?.find(c => c.id === card.id) ? true : false;
-  }, [p1SelectedCards, card.id]);
-
-  const isP2Selected = useMemo(() => {
-    return p2SelectedCards?.find(c => c.id === card.id) ? true : false;
-  }, [p2SelectedCards, card.id]);
-
-  const focused = useMemo(() => cardInFocus?.id === card.id, [cardInFocus, card.id]);
+  const isP1Selected = Boolean(p1SelectedCards?.find(c => c.id === card.id));
+  const isP2Selected = Boolean(p2SelectedCards?.find(c => c.id === card.id));
+  const focused = cardInFocus?.id === card.id;
 
   const {
     handleDecreaseCooldown,
@@ -187,13 +244,26 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
     handleCardBlur
   } = useHandleCardEvents(card, cardTarget, hidden, inPileView, index, zoneIndex, faceUp, p1);
 
+  // Group handlers for cleaner props passing
+  const modifierHandlers: CardModifierHandlers = {
+    handleIncreaseCooldown,
+    handleDecreaseCooldown,
+    handleIncreaseAttackModifier,
+    handleDecreaseAttackModifier,
+    handleIncreaseOtherModifier,
+    handleDecreaseOtherModifier,
+  };
+
+  const interactionHandlers: CardInteractionHandlers = {
+    handleCardRightClick,
+    handleCardHover,
+    handleCardBlur,
+  };
+
   const handlePopoverVisibleChange = () => {
     if (hidden) return;
     setIsPopoverVisible(!isPopoverVisible);
-  }
-  const closePopover = () => {
-    setIsPopoverVisible(false);
-  }
+  };
 
   return (
     <CardInner
@@ -202,7 +272,7 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
       p2Selected={isP2Selected}
       faceUp={faceUp}
       cardTarget={cardTarget}
-      cardMenuItems={legacyMenu ? legacycardMenuItemsFiltered : newcardMenuItemsFiltered}
+      cardMenuItems={cardMenuItems}
       isPopoverVisible={isPopoverVisible}
       inPileView={inPileView}
       hidden={hidden}
@@ -210,16 +280,9 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
       index={index}
       zoneIndex={zoneIndex}
       handlePopoverVisibleChange={handlePopoverVisibleChange}
-      onMenuItemClick={legacyMenu ? legacyonMenuItemClick : newonMenuItemClick}
-      handleCardBlur={handleCardBlur}
-      handleCardHover={handleCardHover}
-      handleCardRightClick={handleCardRightClick}
-      handleIncreaseAttackModifier={handleIncreaseAttackModifier}
-      handleDecreaseAttackModifier={handleDecreaseAttackModifier}
-      handleIncreaseOtherModifier={handleIncreaseOtherModifier}
-      handleDecreaseOtherModifier={handleDecreaseOtherModifier}
-      handleIncreaseCooldown={handleIncreaseCooldown}
-      handleDecreaseCooldown={handleDecreaseCooldown}
+      onMenuItemClick={handleMenuClick}
+      {...interactionHandlers}
+      {...modifierHandlers}
     />
   );
 }
