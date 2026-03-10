@@ -4,139 +4,59 @@ import { CardState } from "@/shared/interfaces/CardState";
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { useAppDispatch, useAppSelector } from '@/client/redux/hooks';
 import { moveCard, flipCard } from '@/client/redux/gameStateSlice';
-import { setCardForSelectingZone, setPileInView, setSelectingZone, setWisdoming } from '@/client/redux/clientGameStateSlice';
-import { cardMenuItems, deckMenuItems, newCardMenuItems, newDeckMenuItems, newDiscardMenuItems, newFortifiedMenuItems, newOnFieldMenuItems, newUnifiedMenuItems, newWarriorMenuItems } from '@/client/constants/cardMenu.constants';
+import { setPileInView } from '@/client/redux/clientGameStateSlice';
 import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { emitGameEvent } from '@/client/utils/emitEvent';
 import MenuItemAction from '@/client/enums/MenuItemAction';
 import CardInner from './CardInner';
 import { openPlunderModal } from '@/client/redux/modalsSlice';
 import useHandleCardEvents from '@/client/hooks/useHandleCardEvents';
-import { CARD_TYPE } from '@/shared/enums/CardType';
+import { getMenuItemsForCard, getMenuItemsForCardLegacy } from '@/client/utils/cardMenu.utils';
+import useMenuItemClick from '@/client/hooks/useMenuItemClick';
 
-export default function Card({ card, cardTarget, index, inPileView = false, zoneIndex, hidden = false }: { card: CardState, cardTarget: CARD_TARGET, index?: number, inPileView?: boolean, zoneIndex?: number, hidden?: boolean }) {
-  const [isPopoverVisible, setIsPopoverVisible] = useState(false);
+interface CardProps {
+  card: CardState;
+  cardTarget: CARD_TARGET;
+  index?: number;
+  inPileView?: boolean;
+  zoneIndex?: number;
+  hidden?: boolean;
+}
+
+export default function Card({ card, cardTarget, index, inPileView = false, zoneIndex, hidden = false }: CardProps) {
+  const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
-  const { side, cardInFocus } = clientGameState;
-  const p1 = side === "p1";
-  const { p1SelectedCards, p2SelectedCards } = gameState;
-  const dispatch = useAppDispatch();
   const { legacyMenu } = useAppSelector((state) => state.clientSettings);
+  const [isPopoverVisible, setIsPopoverVisible] = useState(false);
+  const { side, cardInFocus } = clientGameState;
+  const { p1SelectedCards, p2SelectedCards } = gameState;
+  const p1 = side === "p1";
   const cardPileZone = gameState[cardTarget];
 
-  const handlePopoverVisibleChange = () => {
-    if (hidden) return;
-    setIsPopoverVisible(!isPopoverVisible);
-  }
-  const closePopover = () => {
-    setIsPopoverVisible(false);
-  }
-  const newonMenuItemClick = useCallback((items: INewMenuItem[], key: string | number) => {
+  const {
+    handleMove,
+    handleShuffle,
+    handleView,
+    handleConscript,
+    handleActivate,
+    handleSet,
+    handleFlip,
+    handleWisdom
+  } = useMenuItemClick(card, cardTarget, zoneIndex, index);
+
+  const newonMenuItemClick = useCallback((items: INewMenuItem[], key: string) => {
     const menuItemClicked: INewMenuItem | undefined = items?.find((item) => item.key === key || item.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key)));
     switch (menuItemClicked?.menuAction) {
       case MenuItemAction.MOVE:
-        switch (menuItemClicked?.target) {
-          case CARD_TARGET.CONTROLLER_HAND:
-            dispatch(moveCard({
-              id: card.id,
-              target: p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND,
-              from: cardTarget,
-            }));
-            emitGameEvent({
-              type: GAME_EVENT.moveCard, data: {
-                id: card.id,
-                target: p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND,
-                from: { target: cardTarget, targetIndex: zoneIndex },
-              }
-            });
-            break;
-          case CARD_TARGET.CONTROLLER_DISCARD:
-            dispatch(moveCard({
-              id: card.id,
-              target: p1 ? CARD_TARGET.P1_PLAYER_DISCARD : CARD_TARGET.P2_PLAYER_DISCARD,
-              from: cardTarget,
-            }));
-            emitGameEvent({
-              type: GAME_EVENT.moveCard, data: {
-                id: card.id,
-                target: p1 ? CARD_TARGET.P1_PLAYER_DISCARD : CARD_TARGET.P2_PLAYER_DISCARD,
-                from: { target: cardTarget, targetIndex: zoneIndex },
-              }
-            });
-            break;
-          case CARD_TARGET.CONTROLLER_ERADICATION:
-            dispatch(moveCard({
-              id: card.id,
-              target: p1 ? CARD_TARGET.P1_PLAYER_ERADICATION : CARD_TARGET.P2_PLAYER_ERADICATION,
-              from: cardTarget,
-            }));
-            emitGameEvent({
-              type: GAME_EVENT.moveCard, data: {
-                id: card.id,
-                target: p1 ? CARD_TARGET.P1_PLAYER_ERADICATION : CARD_TARGET.P2_PLAYER_ERADICATION,
-                from: { target: cardTarget, targetIndex: zoneIndex },
-              }
-            });
-            break;
-          case CARD_TARGET.CONTROLLER_REVEALED:
-            dispatch(moveCard({
-              id: card.id,
-              target: p1 ? CARD_TARGET.P1_PLAYER_REVEALED : CARD_TARGET.P2_PLAYER_REVEALED,
-              from: cardTarget,
-            }));
-            emitGameEvent({
-              type: GAME_EVENT.moveCard, data: {
-                id: card.id,
-                target: p1 ? CARD_TARGET.P1_PLAYER_REVEALED : CARD_TARGET.P2_PLAYER_REVEALED,
-                from: { target: cardTarget, targetIndex: zoneIndex },
-              }
-            });
-            break;
-          case CARD_TARGET.CONTROLLER_DECK:
-            if (menuItemClicked?.label?.includes("Bottom")) {
-              dispatch(moveCard({
-                id: card.id,
-                target: p1 ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK,
-                from: cardTarget,
-                targetIndex: undefined,
-                bottom: true
-              }));
-              emitGameEvent({
-                type: GAME_EVENT.moveCard, data: {
-                  id: card.id,
-                  target: p1 ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK,
-                  from: { target: cardTarget, targetIndex: zoneIndex },
-                  bottom: true
-                }
-              });
-            } else {
-
-              dispatch(moveCard({
-                id: card.id,
-                target: p1 ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK,
-                from: cardTarget,
-              }));
-              emitGameEvent({
-                type: GAME_EVENT.moveCard, data: {
-                  id: card.id,
-                  target: p1 ? CARD_TARGET.P1_PLAYER_DECK : CARD_TARGET.P2_PLAYER_DECK,
-                  from: { target: cardTarget, targetIndex: zoneIndex },
-                }
-              });
-            }
-            break;
-          default:
-            break;
-        }
+        handleMove(items, key);
         break;
       case MenuItemAction.SHUFFLE:
-        emitGameEvent({ type: GAME_EVENT.shuffleTargetPile, data: { cardTarget, targetIndex: zoneIndex } });
+        handleShuffle();
         closePopover();
         break;
       case MenuItemAction.VIEW:
-        emitGameEvent({ type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: null } })
-        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex }));
+        handleView();
         closePopover();
         break;
       case MenuItemAction.PLUNDER:
@@ -144,53 +64,29 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
         closePopover();
         break;
       case MenuItemAction.CONSCRIPT:
-        dispatch(setSelectingZone(CARD_TYPE.WARRIOR))
-        dispatch(setCardForSelectingZone({
-          id: card.id,
-          cardTarget,
-          type: card.type,
-          name: card.name,
-          zoneIndex
-        }))
+        handleConscript();
         closePopover();
         break;
       case MenuItemAction.ACTIVATE:
-        dispatch(setSelectingZone(CARD_TYPE.UNIFIED))
-        dispatch(setCardForSelectingZone({
-          id: card.id,
-          cardTarget,
-          type: card.type,
-          name: card.name,
-          zoneIndex
-        }))
+        handleActivate();
         closePopover();
         break;
       case MenuItemAction.SET:
-        dispatch(setSelectingZone(CARD_TYPE.FORTIFIED))
-        dispatch(setCardForSelectingZone({
-          id: card.id,
-          cardTarget,
-          type: card.type,
-          name: card.name,
-          zoneIndex
-        }))
+        handleSet();
         closePopover();
         break;
       case MenuItemAction.FLIP:
-        dispatch(flipCard({ cardTarget, cardIndex: index, zoneIndex }));
-        emitGameEvent(({ type: GAME_EVENT.flipCard, data: { cardTarget, cardIndex: index, zoneIndex } }));
+        handleFlip();
         closePopover();
         break;
       case MenuItemAction.WISDOM:
-        dispatch(setWisdoming(true));
-        emitGameEvent({ type: p1 ? GAME_EVENT.setP1Viewing : GAME_EVENT.setP2Viewing, data: { cardTarget, limit: 2 } })
-        dispatch(setPileInView({ cardTarget, targetIndex: zoneIndex, limit: 2, pile: cardPileZone }));
+        handleWisdom();
         closePopover();
         break;
       default:
         break;
     }
-  }, [card, cardTarget, dispatch, zoneIndex, p1, index, cardPileZone]);
+  }, [handleMove, handleShuffle, handleView, handleConscript, handleActivate, handleSet, handleFlip, handleWisdom, dispatch]);
 
   const legacyonMenuItemClick = useCallback((items: IMenuItem[], key: string | number) => {
     const menuItemClicked: IMenuItem | undefined = items?.find((item) => item.key === key || item.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key)));
@@ -257,42 +153,9 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
     }
   }, [card, cardTarget, dispatch, index, zoneIndex, p1, cardPileZone]);
 
-  const newcardMenuItemsFiltered = useMemo(() => {
-    if (cardTarget.includes("Deck")) {
-      return [...newDeckMenuItems]
-    }
-    let filteredMenuItems = [...newCardMenuItems];
-    if (card.type === CARD_TYPE.WARRIOR && cardTarget !== CARD_TARGET.P1_PLAYER_WARRIOR && cardTarget !== CARD_TARGET.P2_PLAYER_WARRIOR) {
-      filteredMenuItems = [...filteredMenuItems, ...newWarriorMenuItems];
-    }
-    if (card.type === CARD_TYPE.UNIFIED && cardTarget !== CARD_TARGET.P1_PLAYER_UNIFIED && cardTarget !== CARD_TARGET.P2_PLAYER_UNIFIED) {
-      filteredMenuItems = [...filteredMenuItems, ...newUnifiedMenuItems];
-    }
-    if (card.type === CARD_TYPE.FORTIFIED && cardTarget !== CARD_TARGET.P1_PLAYER_FORTIFIED && cardTarget !== CARD_TARGET.P2_PLAYER_FORTIFIED) {
-      filteredMenuItems = [...filteredMenuItems, ...newFortifiedMenuItems];
-    }
-    if (
-      cardTarget === CARD_TARGET.P1_PLAYER_WARRIOR ||
-      cardTarget === CARD_TARGET.P1_PLAYER_UNIFIED ||
-      cardTarget === CARD_TARGET.P1_PLAYER_FORTIFIED ||
-      cardTarget === CARD_TARGET.P2_PLAYER_WARRIOR ||
-      cardTarget === CARD_TARGET.P2_PLAYER_UNIFIED ||
-      cardTarget === CARD_TARGET.P2_PLAYER_FORTIFIED
-    ) {
-      filteredMenuItems = [...filteredMenuItems, ...newOnFieldMenuItems];
-    }
-    if (cardTarget === CARD_TARGET.P1_PLAYER_DISCARD || cardTarget === CARD_TARGET.P2_PLAYER_DISCARD) {
-      filteredMenuItems = [...filteredMenuItems, ...newDiscardMenuItems];
-    }
-    return filteredMenuItems;
-  }, [cardTarget, card.type]);
+  const newcardMenuItemsFiltered = useMemo(() => getMenuItemsForCard(card, cardTarget), [card, cardTarget]);
 
-  const legacycardMenuItemsFiltered = useMemo(() => {
-    let filteredMenuItems = [...cardMenuItems];
-    if (inPileView) filteredMenuItems = filteredMenuItems.filter(item => item.menuAction != MenuItemAction.VIEW);
-    if (cardTarget.includes("Deck")) filteredMenuItems = [...filteredMenuItems, ...deckMenuItems];
-    return filteredMenuItems;
-  }, [inPileView, cardTarget]);
+  const legacycardMenuItemsFiltered = useMemo(() => getMenuItemsForCardLegacy(inPileView, cardTarget), [inPileView, cardTarget]);
 
   const faceUp = useMemo(() => {
     if (hidden) return false;
@@ -323,6 +186,14 @@ export default function Card({ card, cardTarget, index, inPileView = false, zone
     handleCardHover,
     handleCardBlur
   } = useHandleCardEvents(card, cardTarget, hidden, inPileView, index, zoneIndex, faceUp, p1);
+
+  const handlePopoverVisibleChange = () => {
+    if (hidden) return;
+    setIsPopoverVisible(!isPopoverVisible);
+  }
+  const closePopover = () => {
+    setIsPopoverVisible(false);
+  }
 
   return (
     <CardInner

@@ -3,12 +3,13 @@ import { useState } from "react";
 import SearchPane from "../decks/[deckId]/components/SearchPane";
 import CardImage from "../components/Card/CardImage";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
+import FullPage from "../components/FullPage";
 
 export const CardGallery = () => {
   const [hoveredCard, setHoveredCard] = useState<CardDocument | null>(null);
 
   return (
-    <>
+    <FullPage showBreadcrumbs={true}>
       <div className="text-center h-[10%]">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
           Card Gallery
@@ -41,6 +42,6 @@ export const CardGallery = () => {
           </div>
         </div>
       </div>
-    </>
+    </FullPage>
   )
 }

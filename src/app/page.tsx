@@ -30,12 +30,12 @@ function Page() {
                     playerName: 'Test Player',
                     sandboxMode: true,
                     // deckId: "68d414053a94febdaeab0678",
-                    deckId: "698a41dd054ab7b3d538f1fd",
+                    deckId: "69af5fd24f5aaff5d62fd836",
                     roomPassword: ""
                   });
                   const { roomName: newRoomName } = res.data;
                   // router.push(`/play?room=${newRoomName}&playerName=Testingroom123&deckId=68d414053a94febdaeab0678`);
-                  router.push(`/play?room=${newRoomName}&playerName=Testingroom123&deckId=698a41dd054ab7b3d538f1fd`);
+                  router.push(`/play?room=${newRoomName}&playerName=Testingroom123&deckId=69af5fd24f5aaff5d62fd836`);
                 } catch {
                   alert(" U R FAIL");
                 }

@@ -164,6 +164,15 @@ export const newDiscardMenuItems: INewMenuItem[] = [
     label: "View",
   },
 ]
+export const newEradicationMenuItems: INewMenuItem[] = [
+  {
+    key: "newEradicationMenuItems_0",
+    title: "view",
+    icon: null,
+    menuAction: MenuItemAction.VIEW,
+    label: "View",
+  },
+]
 
 export const cardMenuItems: IMenuItem[] = [
   {
