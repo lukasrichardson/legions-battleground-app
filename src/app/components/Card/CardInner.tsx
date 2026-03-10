@@ -197,6 +197,8 @@ export default function CardInner({
       trigger={clientSettings.hoverMenu ? ["click", "contextMenu", "hover"] : ["click", "contextMenu"]}
       onOpenChange={handlePopoverVisibleChange}
       open={isPopoverVisible && !isDragging}
+      mouseEnterDelay={0.2}
+      mouseLeaveDelay={0.1}
     >
 
       {drag(

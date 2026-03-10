@@ -8,7 +8,7 @@ const initialState: {
   openHand: boolean;
 } = {
   hoverMenu: true,
-  legacyMenu: true,
+  legacyMenu: false,
   transparentOnBlur: false,
   deckbuild_groupedView: false,
   openHand: false

@@ -31,7 +31,7 @@ export default function Card({
   const { p1SelectedCards, p2SelectedCards } = gameState;
   const p1 = side === "p1";
   const cardPileZone = gameState[cardTarget];
-
+  
   const {
     handleMove,
     handleShuffle,
@@ -228,6 +228,8 @@ export default function Card({
     return card.faceUp === undefined ? true : card.faceUp;
   }, [card, hidden, cardTarget, inPileView]);
 
+  const isOnPlayerSide = (cardTarget.includes("p1") && p1) || (cardTarget.includes("p2") && !p1);
+  const isHidden = hidden || (!isOnPlayerSide && !faceUp);
   const isP1Selected = Boolean(p1SelectedCards?.find(c => c.id === card.id));
   const isP2Selected = Boolean(p2SelectedCards?.find(c => c.id === card.id));
   const focused = cardInFocus?.id === card.id;
@@ -242,7 +244,7 @@ export default function Card({
     handleCardRightClick,
     handleCardHover,
     handleCardBlur
-  } = useHandleCardEvents(card, cardTarget, hidden, inPileView, index, zoneIndex, faceUp, p1);
+  } = useHandleCardEvents(card, cardTarget, isHidden, inPileView, index, zoneIndex, faceUp, p1);
 
   // Group handlers for cleaner props passing
   const modifierHandlers: CardModifierHandlers = {
@@ -261,7 +263,7 @@ export default function Card({
   };
 
   const handlePopoverVisibleChange = () => {
-    if (hidden) return;
+    if (isHidden) return;
     setIsPopoverVisible(!isPopoverVisible);
   };
 
@@ -275,7 +277,7 @@ export default function Card({
       cardMenuItems={cardMenuItems}
       isPopoverVisible={isPopoverVisible}
       inPileView={inPileView}
-      hidden={hidden}
+      hidden={isHidden}
       focused={focused}
       index={index}
       zoneIndex={zoneIndex}
