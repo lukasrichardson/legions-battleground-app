@@ -5,8 +5,8 @@ import { newCardMenuItems, newDeckMenuItems, newDiscardMenuItems, newFortifiedMe
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import MenuItemAction from "../enums/MenuItemAction";
 
-export const getMenuItemsForCard = (card: CardState, cardTarget: CARD_TARGET): IMenuItem[] => {
-    if (cardTarget.includes("Deck")) {
+export const getMenuItemsForCard = (card: CardState, cardTarget: CARD_TARGET, inPileView: boolean): IMenuItem[] => {
+    if (cardTarget.includes("Deck") && !inPileView) {
       return [...newDeckMenuItems]
     }
     let filteredMenuItems = [...newCardMenuItems];

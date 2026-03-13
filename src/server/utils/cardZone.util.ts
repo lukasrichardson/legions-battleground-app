@@ -41,7 +41,7 @@ export function addCardToZone(
       games[roomId][target][targetIndex].push(card);
     }
   } else {
-    if (targetIndex !== undefined) {
+    if (targetIndex !== undefined && targetIndex !== null) {
       // Insert at specific index
       games[roomId][target].splice(targetIndex, 0, card);
       return;

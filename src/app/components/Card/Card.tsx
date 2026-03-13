@@ -217,7 +217,7 @@ export default function Card({
   const cardMenuItems = useMemo(() => {
     return legacyMenu 
       ? getMenuItemsForCardLegacy(inPileView, cardTarget)
-      : getMenuItemsForCard(card, cardTarget);
+      : getMenuItemsForCard(card, cardTarget, inPileView);
   }, [legacyMenu, inPileView, cardTarget, card]);
 
   const faceUp = useMemo(() => {
