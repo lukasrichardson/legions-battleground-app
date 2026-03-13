@@ -4,7 +4,7 @@ import IMenuItem, { INewMenuItem } from '@/client/interfaces/IMenuItem';
 
 export const newDeckMenuItems: INewMenuItem[] = [
   {
-    key: "6",
+    key: "newDeckMenuItems_6",
     title: "reveal",
     icon: null,
     menuAction: MenuItemAction.MOVE,
@@ -12,35 +12,28 @@ export const newDeckMenuItems: INewMenuItem[] = [
     label: "Reveal",
   },
   {
-    key: "5",
+    key: "newDeckMenuItems_5",
     title: "plunder",
     icon: null,
     menuAction: MenuItemAction.PLUNDER,
     label: "Plunder"
   },
   {
-    key: "7",
+    key: "newDeckMenuItems_7",
     title: "wisdom",
     icon: null,
     menuAction: MenuItemAction.WISDOM,
     label: "Wisdom",
   },
   {
-    key: "4",
-    title: "view",
-    icon: null,
-    menuAction: MenuItemAction.VIEW,
-    label: "Search Deck",
-  },
-  {
-    key: "3",
+    key: "newDeckMenuItems_3",
     title: "shuffle",
     icon: null,
     menuAction: MenuItemAction.SHUFFLE,
     label: "Shuffle",
   },
   {
-    key: "2",
+    key: "newDeckMenuItems_2",
     title: "eradicate",
     icon: null,
     menuAction: MenuItemAction.MOVE,
@@ -48,7 +41,7 @@ export const newDeckMenuItems: INewMenuItem[] = [
     label: "Eradicate",
   },
   {
-    key: "1",
+    key: "newDeckMenuItems_1",
     title: "mill",
     icon: null,
     menuAction: MenuItemAction.MOVE,
@@ -56,7 +49,14 @@ export const newDeckMenuItems: INewMenuItem[] = [
     label: "Mill",
   },
   {
-    key: "0",
+    key: "newDeckMenuItems_4",
+    title: "view",
+    icon: null,
+    menuAction: MenuItemAction.VIEW,
+    label: "Search Deck",
+  },
+  {
+    key: "newDeckMenuItems_0",
     title: "draw",
     icon: null,
     menuAction: MenuItemAction.MOVE,

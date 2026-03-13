@@ -247,7 +247,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
       )
     }
     return (
-      <div className="relative max-h-[30vh]">
+      <div className="relative max-h-[25vh]">
         {!wisdoming && <div className="flex gap-4 relative -top-2">
           <span>Filter By: </span>
           {renderTab("All")}

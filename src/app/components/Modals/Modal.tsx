@@ -2,25 +2,24 @@ import { useClickOutside } from "@/client/hooks/useClickOutside";
 import { useRef, useEffect, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 
+interface ModalState {
+  top: number;
+  left: number;
+}
 export default function Modal({
   open,
   closeModal,
   modalHeader,
   modalContent,
-  transparentOnBlur = false
+  transparentOnBlur = false,
 }: {
   open: boolean,
   closeModal: () => void,
   modalHeader: JSX.Element,
   modalContent: JSX.Element,
   transparentOnBlur?: boolean
-
 }) {
-  interface ModalState {
-    top: number;
-    left: number;
-  }
-  const [modalState, setModalState] = useState<ModalState | null>(null);
+  const [modalState, setModalState] = useState<ModalState | null>();
   const [{ }, drop] = useDrop(() => ({
     accept: "modal",
     canDrop: () => true,
@@ -55,6 +54,7 @@ export default function Modal({
     }
 
     return () => {
+      setModalState(null);
       document.body.style.overflow = 'unset';
       document.removeEventListener('keydown', handleEscape);
     };
@@ -68,10 +68,12 @@ export default function Modal({
         {drag(
           <div
             ref={ref}
-            className={["relative max-w-[75%] max-h-[85%] border border-white/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto left-1/2 top-1/2 transform",
+            className={["relative max-w-[75%] max-h-[85%] w-fit border border-white/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto transform top-1/4 left-1/2",
               transparentOnBlur ? "bg-white/25" : ""
             ].join(" ")}
-            style={{ transform: modalState ? `translate(calc(-50% + ${modalState.left}px), calc(-50% + ${modalState.top}px))` : "translate(-50%, -50%)" }}
+            style={{
+              transform: modalState ? `translate(calc(-50% + ${modalState.left}px), calc(-25% + ${modalState.top}px))` : "translate(-50%, -25%)"
+            }}
           >
             {!isDragging && <>
               <div className="border-b border-white/10 px-6 hover:cursor-grab active:cursor-grabbing bg-slate-900">

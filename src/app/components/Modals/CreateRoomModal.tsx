@@ -26,7 +26,7 @@ export default function CreateRoomModal() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const modalsState = useAppSelector((state) => state.modalsState);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { createRoomModalOpen } = modalsState;
   const [roomName, setRoomName] = useState("");
   const [playerName, setPlayerName] = useState("");
@@ -46,7 +46,6 @@ export default function CreateRoomModal() {
     SandboxModeLabelText,
     CreateGameBtnText,
     RoomPasswordLabelText,
-    CreateGameDescription,
   } = ModalConstants;
 
   const handleCreateRoom = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -90,12 +89,15 @@ export default function CreateRoomModal() {
   }
 
   const getDecks = async () => {
-    fetchDecks([],(param: { name: string, _id: string }[]) => { setDecks(param) });
+    fetchDecks([],(param: { name: string, _id: string }[]) => { setDecks(param); setDeckId(param[0]?._id || ""); });
   }
 
   useEffect(() => {
     getDecks();
-  }, [])
+    if (user?.name) {
+      setPlayerName(user.name);
+    }
+  }, [user]);
 
   const onSandboxModeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSandboxMode(e.target.checked);
@@ -129,17 +131,11 @@ export default function CreateRoomModal() {
   }
 
   const renderModalContent = () => (
-    <div className="w-full max-w-2xl mx-auto">
-      {/* Header Section */}
-      <div className="text-center mb-8">
-        <p className="text-gray-300 text-base max-w-md mx-auto leading-relaxed">{CreateGameDescription}</p>
-      </div>
+    <div className="w-full max-w-2xl flex flex-col items-center">
 
-      {/* Form Card */}
       <Card className="bg-white/10 border-white/20 backdrop-blur-sm shadow-2xl">
         <CardContent className="p-6 sm:p-8">
           <form onSubmit={handleCreateRoom} className="space-y-6">
-            {/* Form Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Room Name */}
               <div className="space-y-3">
@@ -200,7 +196,7 @@ export default function CreateRoomModal() {
 
               <div>
                 <label className="block text-sm font-semibold text-white">
-                  P2: {DeckLabelText}
+                  P2 {DeckLabelText} (Optional)
                 </label>
                 <Select value={p2DeckId} onValueChange={handleP2DeckChange}>
                   <SelectTrigger className="h-6 w-32 text-xs bg-white/10 border-white/20 text-white">
@@ -301,7 +297,7 @@ export default function CreateRoomModal() {
         setLoading(false);
       }}
       modalHeader={
-        <div className="flex items-center justify-between w-full p-6 pb-0">
+        <div className="flex items-center justify-between max-w-2xl p-6 pb-0">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

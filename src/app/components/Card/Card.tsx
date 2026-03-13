@@ -246,7 +246,6 @@ export default function Card({
     handleCardBlur
   } = useHandleCardEvents(card, cardTarget, isHidden, inPileView, index, zoneIndex, faceUp, p1);
 
-  // Group handlers for cleaner props passing
   const modifierHandlers: CardModifierHandlers = {
     handleIncreaseCooldown,
     handleDecreaseCooldown,
