@@ -9,11 +9,11 @@
 ## 🏗️ Architecture Overview
 
 **Service-Based Backend**: The API is built on a modular service architecture with dedicated controllers:
-- **GameService**: Game state management and validation (`src/server/services/GameService.ts`)
-- **RoomService**: Room creation and player management (`src/server/services/RoomService.ts`)
-- **CardService**: Card manipulation and effects (`src/server/services/CardService.ts`)
-- **EventHandler**: Centralized Socket.IO event processing (`src/server/services/EventHandler.ts`)
-- **ValidatorService**: Data validation and sanitization (`src/server/services/ValidatorService.ts`)
+- **GameService**: Game state management and validation (`src/server/services/game/GameService.ts`)
+- **RoomService**: Room creation and player management (`src/server/services/game/RoomService.ts`)
+- **CardService**: Card manipulation and effects (`src/server/services/game/CardService.ts`)
+- **EventHandler**: Centralized Socket.IO event processing (`src/server/services/game/EventHandler.ts`)
+- **ValidatorService**: Data validation and sanitization (`src/server/services/game/ValidatorService.ts`)
 - **Controllers**: Dedicated API endpoint handlers in `src/server/controllers/`
   - `decks.controller.ts` - Deck management API endpoints
 

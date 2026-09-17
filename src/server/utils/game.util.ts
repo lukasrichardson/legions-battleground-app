@@ -18,7 +18,7 @@ export const STARTING_HAND_SIZE = 6;
 
 export const fetchToolboxDeckById = async ({ deckId }: { deckId: string }) => {
   try {
-    const response = await axios.get(`https://legionstoolbox.com/index.php/wp-json/lraw/v1/decks?deck=${deckId}`, {
+    const response = await axios.get(`https://api.legionstoolbox.com/index.php/wp-json/lraw/v1/decks?deck=${deckId}`, {
       headers: {
         'User-Agent': 'Legions-Battleground-Server/1.0.0',
         'Accept': '*/*',

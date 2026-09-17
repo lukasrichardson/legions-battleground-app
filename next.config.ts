@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "legionstoolbox.com",
+        hostname: "api.legionstoolbox.com",
       }
     ]
   }

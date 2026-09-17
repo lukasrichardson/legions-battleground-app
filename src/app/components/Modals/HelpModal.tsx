@@ -22,7 +22,7 @@ export default function HelpModal () {
         <div>
           <span>- Click Create New Game to start a new game of Legions Realms At War.</span>
         </div>
-        <span>- You need a <a href="https://legionstoolbox.com/my-decks" target="_blank" className="cursor-pointer" style={{textDecoration: "underline", color: "#37327F"}}>Legions ToolBox</a> Deck Id in order to play</span>
+        <span>- You need a <a href="https://api.legionstoolbox.com/my-decks" target="_blank" className="cursor-pointer" style={{textDecoration: "underline", color: "#37327F"}}>Legions ToolBox</a> Deck Id in order to play</span>
         <div>
           <span>- To Find your Legions Toolbox Deck Id:</span>
         </div>

@@ -110,7 +110,7 @@ export default function Home() {
             </h1>
             <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
               {HomeDescription}{"   "}
-            <span className="text-green-500">Powered By <a className="!underline" href="https://legionstoolbox.com" target="_blank" rel="noopener noreferrer">LegionsToolbox.com</a></span>
+            <span className="text-green-500">Powered By <a className="!underline" href="https://api.legionstoolbox.com" target="_blank" rel="noopener noreferrer">LegionsToolbox.com</a></span>
             </p>
             <AuthButtons />
           </div>
@@ -205,7 +205,7 @@ export default function Home() {
                     <div className="h-full overflow-auto">
                       <Table
                         tableHeaders={["Room Name", "Players", "Sandbox Mode", "Password", "Action"]}
-                        tableData={(Object.values(rooms) as {id: string, players: object, sandboxMode: boolean, password: string}[]).map((room: {id: string, players: object, sandboxMode: boolean, password: string}) => [
+                        tableData={(Object.values(rooms) as {id: string, players: object, sandboxMode: boolean, requiresPassword: boolean}[]).map((room: {id: string, players: object, sandboxMode: boolean, requiresPassword: boolean}) => [
                           <div className="flex items-center gap-2" key={room.id}>
                             <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                             <span className="font-medium text-sm">{room.id}</span>
@@ -222,11 +222,11 @@ export default function Home() {
                             {room.sandboxMode ? "Yes" : "No"}
                           </span>,
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            room.password 
+                            room.requiresPassword
                               ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' 
                               : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
                           }`} key={room.id}>
-                            {room.password ? "Yes" : "No"}
+                            {room.requiresPassword ? "Yes" : "No"}
                           </span>,
                           <Button 
                             onClick={() => handleJoinRoomClick(room.id)}

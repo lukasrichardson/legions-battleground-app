@@ -17,7 +17,7 @@ let cacheMisses = 0;
 let totalRequests = 0;
 const loadMetrics = [];
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
   console.log('[SW] Installing...');
   self.skipWaiting();
 });
@@ -43,8 +43,8 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
   
-  // Only handle card image requests from legionstoolbox.com
-  if (url.hostname === 'legionstoolbox.com' && 
+  // Only handle card image requests from api.legionstoolbox.com
+  if (url.hostname === 'api.legionstoolbox.com' &&
       (url.pathname.includes('.png') || url.pathname.includes('.jpg') || url.pathname.includes('.jpeg'))) {
     
     event.respondWith(handleImageRequest(request));

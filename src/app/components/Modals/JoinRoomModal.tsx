@@ -65,7 +65,8 @@ export default function JoinRoomModal() {
         roomPassword
       });
       const { roomName: newRoomName } = res.data;
-      router.push(`/play?room=${newRoomName}&playerName=${playerName}&deckId=${deckId}${roomPassword ? `&roomPassword=${roomPassword}` : ""}`);
+      if (roomPassword) window.sessionStorage.setItem(`roomPassword:${newRoomName}`, roomPassword);
+      router.push(`/play?room=${newRoomName}&playerName=${playerName}&deckId=${deckId}`);
       dispatch(setJoinRoomModalOpen(null));
       setPlayerName("");
       setRoomPassword("");

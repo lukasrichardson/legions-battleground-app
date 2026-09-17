@@ -30,7 +30,7 @@ The Legions Battleground image system is designed around **card images** served 
 - **Zero Breaking Changes**: Maintains existing visual appearance and behavior
 
 ### Image Sources
-- **Primary**: `https://api.legionstoolbox.com/` - Card images (PNG/JPG)
+- **Primary**: `https://legionstoolbox.com/` - Card images (PNG/JPG)
 - **Local**: `public/back_of_card.jpg` - Fallback card back image
 - **External API**: Legions ToolBox API for card data and image URLs
 
@@ -156,8 +156,8 @@ const MAX_CONCURRENT_REQUESTS = 5;
 
 #### Request Handling
 ```javascript
-// Only caches api.legionstoolbox.com images
-if (url.hostname === 'api.legionstoolbox.com' &&
+// Only caches legionstoolbox.com images
+if (url.hostname === 'legionstoolbox.com' && 
     (url.pathname.includes('.png') || url.pathname.includes('.jpg'))) {
   event.respondWith(handleImageRequest(request));
 }
@@ -279,7 +279,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "api.legionstoolbox.com",
+        hostname: "legionstoolbox.com",
       }
     ]
   }
@@ -288,7 +288,7 @@ const nextConfig: NextConfig = {
 
 #### Key Settings
 - **`unoptimized: true`**: Disables Next.js image optimization to avoid hosting fees
-- **Remote Patterns**: Allows images from api.legionstoolbox.com domain
+- **Remote Patterns**: Allows images from legionstoolbox.com domain
 - **No Size Restrictions**: Allows any image dimensions
 - **No Format Conversion**: Serves original image formats
 

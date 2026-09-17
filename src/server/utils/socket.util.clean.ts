@@ -8,6 +8,10 @@ import { EventHandler } from "../services/game/EventHandler";
 import { ROOM_EVENT } from "@/shared/enums/RoomEvent";
 import ValidatorService from "../services/game/ValidatorService";
 import { GameHistoryService } from "../services/game/GameHistoryService";
+import { verifyRoomPassword } from "./roomPassword.util";
+import { getDatabase } from "./database.util";
+import { ObjectId } from "mongodb";
+import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 
 // Create service instances
 const gameService = new GameService();
@@ -29,7 +33,25 @@ export const handleSocketJoinGame = async (
       return;
     }
 
-    const { roomName, playerName, deckId, p2DeckId } = data;
+    const { roomName, playerName, deckId, p2DeckId, roomPassword = "" } = data;
+
+    const existingRoom = roomService.getRoom(roomName);
+    if (!existingRoom || !verifyRoomPassword(roomPassword, existingRoom.passwordHash)) {
+      socket.emit('error', { message: 'Invalid room password' });
+      return;
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+      const decks = getDatabase().collection<DeckResponse>("decks");
+      const playerDeck = await decks.findOne({ _id: new ObjectId(deckId), userId: socket.user!.id });
+      const secondDeck = p2DeckId
+        ? await decks.findOne({ _id: new ObjectId(p2DeckId), userId: socket.user!.id })
+        : playerDeck;
+      if (!playerDeck || !secondDeck) {
+        socket.emit('error', { message: 'Deck not found or not owned by this user' });
+        return;
+      }
+    }
 
     // Join or create room
     const player = { id: socket.id, name: playerName };
@@ -54,7 +76,7 @@ export const handleSocketJoinGame = async (
 
     // Emit updates
     io.emit("rooms", roomService.getRooms());
-    io.to(roomName).emit("roomEvent", joinResult.room);
+    io.to(roomName).emit("roomEvent", roomService.getPublicRoom(joinResult.room));
     io.to(roomName).emit("gameEvent", { 
       type: GAME_EVENT.startGame, 
       data: games[roomName] 

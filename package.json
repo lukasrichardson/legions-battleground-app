@@ -2,11 +2,14 @@
   "name": "legions-battleground",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon",
     "build": "next build && tsc --project tsconfig.server.json && tsc-alias -p tsconfig.server.json",
     "start": "cross-env NODE_ENV=production node dist/server/server.js",
-    "lint": "next lint"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "typecheck:server": "tsc --project tsconfig.server.json --noEmit"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.16",
@@ -27,7 +30,7 @@
     "lucide-react": "^0.542.0",
     "mongodb": "^6.20.0",
     "mongoose": "^8.18.1",
-    "next": "^15.5.4",
+    "next": "^16.3.5",
     "next-auth": "^4.24.11",
     "node-cron": "^4.2.1",
     "react": "^18.3.1",
@@ -36,7 +39,7 @@
     "react-dom": "^18.3.1",
     "react-grid-layout": "^1.5.0",
     "react-redux": "^9.1.2",
-    "sharp": "^0.33.5",
+    "sharp": "^0.35.4",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.3.1",

@@ -30,7 +30,7 @@ const connect = async () => {
 const main = async () => {
   const dbClient = await connect();
   // const url = "https://legionstoolbox.com/index.php/wp-json/lraw/v1/cards/main";
-  const url = "https://legionstoolbox.com/index.php/wp-json/lraw/v1/cards/get-cards";
+  const url = "https://api.legionstoolbox.com/index.php/wp-json/lraw/v1/cards/get-cards";
   axios.get(url)
     .then(async response => {
       const cards = response.data;

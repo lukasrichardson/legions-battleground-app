@@ -8,9 +8,20 @@ export interface RoomInfo {
   id: string;
   players: { [socketId: string]: PlayerInfo };
   sandboxMode: boolean;
-  password: string;
+  passwordHash?: string;
 }
 
 export interface RoomsCollection {
   [roomId: string]: RoomInfo;
+}
+
+export interface PublicRoomInfo {
+  id: string;
+  players: { [socketId: string]: PlayerInfo };
+  sandboxMode: boolean;
+  requiresPassword: boolean;
+}
+
+export interface PublicRoomsCollection {
+  [roomId: string]: PublicRoomInfo;
 }

@@ -6,7 +6,7 @@ import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { GameEventLog } from "@/shared/interfaces/GameEventLog";
 interface GameRoom {
     id: string;
-    password: string;
+    requiresPassword: boolean;
     players: {[id: string]: {
       id: string;
       name: string;

@@ -183,7 +183,7 @@ export default function PreviewDeckModal() {
                 <p className="text-sm text-gray-300">
                   {HelpBlurb} {" "}
                   <a
-                    href="https://legionstoolbox.com/my-decks"
+                    href="https://api.legionstoolbox.com/my-decks"
                     target="_blank"
                     className="text-blue-400 hover:text-blue-300 underline font-medium transition-colors duration-200"
                   >

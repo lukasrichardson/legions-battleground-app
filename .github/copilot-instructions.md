@@ -175,7 +175,7 @@ src/
 ## Database & External APIs
 - **MongoDB:** Game rooms, player data, and persistent game states with user-specific deck collections (using 'legions_battleground_db' database in production, previously 'test' for development)
 - **Legions ToolBox API:** External deck data integration for importing to personal libraries with enhanced field mapping
-- **Images:** Remote card images from legionstoolbox.com
+- **Images:** Remote card images from api.legionstoolbox.com
 
 ## Development Workflows
 ```bash
@@ -376,7 +376,7 @@ interface GameStateData {
 - **Production API:** `https://lrawbook-service.onrender.com`
 - **Development API:** `http://localhost:3000` (configurable port)
 - **MongoDB:** Atlas cluster with connection string in server environment
-- **External Images:** Configured in `next.config.ts` for legionstoolbox.com
+- **External Images:** Configured in `next.config.ts` for api.legionstoolbox.com
 
 ## Deployment Architecture
 - **Single Process:** Next.js and Express run together via hybrid setup
