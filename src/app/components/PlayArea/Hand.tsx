@@ -55,8 +55,7 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
   const p1Name = Object.values(room?.players || {})?.find(player => player.p1)?.name || "Player 1";
   const p2Name = Object.values(room?.players || {})?.find(player => !player.p1)?.name || "Player 2";
   return (
-    drop(
-      <div className={[
+      <div ref={(node) => { drop(node); }} className={[
         "relative flex justify-center w-full",
         "h-[10%]",
         !playerHand ? "-translate-y-[20%]" : "",
@@ -82,6 +81,5 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
         </span>
         </div>
       </div>
-    )
   )
 }

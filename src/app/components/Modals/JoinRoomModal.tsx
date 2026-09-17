@@ -85,11 +85,13 @@ export default function JoinRoomModal() {
 
   const getDecks = async () => {
       fetchDecks([], (param: {name: string, _id: string}[]) => {setDecks(param)});
-    }
+  }
   
   useEffect(() => {
+    if (joinRoomModalOpen === null || !isAuthenticated) return;
+
     getDecks();
-  }, [])
+  }, [isAuthenticated, joinRoomModalOpen])
 
   const renderAuthRequired = () => (
     <div className="w-full max-w-md mx-auto text-center">

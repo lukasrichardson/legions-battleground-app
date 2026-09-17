@@ -28,19 +28,18 @@ export const handleSocketConnection = (io: IOServer) => {
         secret: process.env.NEXTAUTH_SECRET,
       });
 
-      if (!token?.sub) {
-        return next(new Error("Authentication required"));
+      if (token?.sub) {
+        const customSocket = socket as CustomSocket;
+        customSocket.user = {
+          id: token.sub,
+          email: token.email || undefined,
+          name: token.name || undefined,
+        };
       }
-
-      const customSocket = socket as CustomSocket;
-      customSocket.user = {
-        id: token.sub,
-        email: token.email || undefined,
-        name: token.name || undefined,
-      };
       next();
     } catch {
-      next(new Error("Authentication required"));
+      // Room discovery is public. Protected events verify socket.user themselves.
+      next();
     }
   });
 

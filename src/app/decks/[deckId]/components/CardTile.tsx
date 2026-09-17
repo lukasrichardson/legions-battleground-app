@@ -109,7 +109,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
         onMouseEnter={handleOnMouseEnter}
         onMouseLeave={handleOnMouseLeave}
       >
-        {drag(<div>
+        <div ref={(node) => { drag(node); }}>
           {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck)}
           <div key={card.id.toString() + index}>
             {suspendedCards[card.title] && (
@@ -129,7 +129,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
             )}
             {renderCardTile(card, index, () => null)}
           </div>
-        </div>)}
+        </div>
       </div>
     ) : (!isDragging ?
       <div
@@ -138,7 +138,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
         onMouseEnter={handleOnMouseEnter}
         onMouseLeave={handleOnMouseLeave}
       >
-        {drag(<div>
+        <div ref={(node) => { drag(node); }}>
           {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck)}
           <div onContextMenu={(e) => removeCardFromDeck(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
             {suspendedCards[card.title] && (
@@ -158,7 +158,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
             )}
             {renderCardTile(card, index, () => null)}
           </div>
-        </div>)}
+        </div>
       </div>
       : null
     )
@@ -196,8 +196,8 @@ export const SearchCardTile = ({ card, index, onContextMenu, onMouseEnter }: { c
     }),
   }), [card]);
   return (
-    <div onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
-      {drag(!isDragging ? renderCardTile(card, index, handleOnMouseEnter) : null)}
+    <div ref={(node) => { drag(node); }} onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
+      {!isDragging && renderCardTile(card, index, handleOnMouseEnter)}
     </div>
   )
 }

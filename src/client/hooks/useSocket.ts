@@ -32,11 +32,11 @@ export const useSocket = () => {
   const pathname = usePathname();
 
   const handleGameEvent = useCallback((payload) => {
-    dispatch(setState(payload.data))
+    dispatch(setState(payload.data));
     dispatch(setSequenceState({
       sequences: payload.data.sequences,
       resolving: payload.data.resolving,
-    }))
+    }));
   }, [dispatch]);
 
   const handleRooms = useCallback((payload) => {
@@ -50,11 +50,14 @@ export const useSocket = () => {
           currentRoom.sandboxMode !== nextRoom.sandboxMode ||
           currentRoom.requiresPassword !== nextRoom.requiresPassword;
 
-        if (hasChanged) dispatch(setRoomRedux(nextRoom));
         return hasChanged ? nextRoom : currentRoom;
       });
     }
-  }, [dispatch, roomName]);
+  }, [roomName]);
+
+  useEffect(() => {
+    if (room.id) dispatch(setRoomRedux(room));
+  }, [dispatch, room]);
 
   const handlePhaseEvent = useCallback((payload) => {
     dispatch(setPhaseState(payload.data));

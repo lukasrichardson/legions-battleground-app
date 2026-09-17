@@ -42,10 +42,15 @@ export const handleSocketJoinGame = async (
     }
 
     if (process.env.NODE_ENV === 'production') {
+      if (!socket.user?.id) {
+        socket.emit('error', { message: 'Authentication required' });
+        return;
+      }
+
       const decks = getDatabase().collection<DeckResponse>("decks");
-      const playerDeck = await decks.findOne({ _id: new ObjectId(deckId), userId: socket.user!.id });
+      const playerDeck = await decks.findOne({ _id: new ObjectId(deckId), userId: socket.user.id });
       const secondDeck = p2DeckId
-        ? await decks.findOne({ _id: new ObjectId(p2DeckId), userId: socket.user!.id })
+        ? await decks.findOne({ _id: new ObjectId(p2DeckId), userId: socket.user.id })
         : playerDeck;
       if (!playerDeck || !secondDeck) {
         socket.emit('error', { message: 'Deck not found or not owned by this user' });

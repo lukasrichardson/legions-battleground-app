@@ -171,8 +171,8 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
     }
   }
   return (
-    drop(
       <div
+        ref={(node) => { drop(node); }}
         className={[
           "relative flex items-center justify-center rounded md:rounded-lg border transition-all duration-200",
           "border-gray-300",
@@ -188,7 +188,6 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
       >
         {children}
       </div>
-    )
   )
 
 }

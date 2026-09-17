@@ -1,5 +1,5 @@
 import { useClickOutside } from "@/client/hooks/useClickOutside";
-import { useRef, useEffect, useState } from "react";
+import { useCallback, useRef, useEffect, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 
 interface ModalState {
@@ -37,6 +37,13 @@ export default function Modal({
     }),
   }), []);
   const ref = useRef<HTMLDivElement>(null);
+  const setDropRef = useCallback((node: HTMLDivElement | null) => {
+    drop(node);
+  }, [drop]);
+  const setDragRef = useCallback((node: HTMLDivElement | null) => {
+    ref.current = node;
+    drag(node);
+  }, [drag]);
   useClickOutside(ref, closeModal as () => void);
 
   useEffect(() => {
@@ -63,11 +70,9 @@ export default function Modal({
   if (!open) return null;
 
   return (
-    drop(
-      <div className={"absolute left-0 top-0 w-full h-full z-50 p-4 bg-black/20" + (!isDragging ? " pointer-events-none" : "")}>
-        {drag(
+      <div ref={setDropRef} className={"absolute left-0 top-0 w-full h-full z-50 p-4 bg-black/20" + (!isDragging ? " pointer-events-none" : "")}>
           <div
-            ref={ref}
+            ref={setDragRef}
             className={["relative max-w-[75%] max-h-[85%] w-fit border border-white/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto transform top-1/4 left-1/2",
               transparentOnBlur ? "bg-white/25" : ""
             ].join(" ")}
@@ -87,8 +92,6 @@ export default function Modal({
               </div>
             </>}
           </div>
-        )}
       </div>
-    )
   );
 }

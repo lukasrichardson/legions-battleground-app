@@ -14,12 +14,8 @@ export default function RootLayout({
 }) {
   
   return (
-    <html lang="en">
-      
-        <ClientLayout>
-          {children}
-        </ClientLayout>
-    </html>
-    
+    <ClientLayout>
+      {children}
+    </ClientLayout>
   )
 }

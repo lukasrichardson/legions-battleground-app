@@ -1,6 +1,7 @@
 import Image, { StaticImageData } from "next/image";
 import { useState, useCallback, useRef } from "react";
 import { serviceWorkerMonitor } from "@/client/utils/serviceWorkerMonitor";
+import backOfCard from "PUBLIC/back_of_card.jpg";
 
 interface CardImageProps {
   src: string | StaticImageData;
@@ -16,33 +17,34 @@ export default function CardImage({
   const [imageLoaded, setImageLoaded] = useState(false);
   const loadStartTime = useRef(Date.now());
   const hasTracked = useRef(false);
+  const imageSrc = typeof src === "string" && src.trim() ? src : backOfCard;
 
   const handleLoad = useCallback(() => {
     if (!imageLoaded) {
       setImageLoaded(true);
     }
     // Only track once per component instance
-    if (!hasTracked.current && typeof src === 'string') {
+    if (!hasTracked.current && typeof imageSrc === 'string') {
       hasTracked.current = true;
       setTimeout(() => {
-        const fromCache = serviceWorkerMonitor.detectCacheHit(src);
-        serviceWorkerMonitor.trackImageLoad(src, loadStartTime.current, fromCache);
+        const fromCache = serviceWorkerMonitor.detectCacheHit(imageSrc);
+        serviceWorkerMonitor.trackImageLoad(imageSrc, loadStartTime.current, fromCache);
       }, 10);
     }
-  }, [imageLoaded, src]);
+  }, [imageLoaded, imageSrc]);
 
   const handleError = useCallback(() => {
     if (!imageLoaded) {
       setImageLoaded(true);
     }
-    if (!hasTracked.current && typeof src === 'string') {
+    if (!hasTracked.current && typeof imageSrc === 'string') {
       hasTracked.current = true;
       setTimeout(() => {
-        const fromCache = serviceWorkerMonitor.detectCacheHit(src);
-        serviceWorkerMonitor.trackImageLoad(src, loadStartTime.current, fromCache);
+        const fromCache = serviceWorkerMonitor.detectCacheHit(imageSrc);
+        serviceWorkerMonitor.trackImageLoad(imageSrc, loadStartTime.current, fromCache);
       }, 10);
     }
-  }, [imageLoaded, src]);
+  }, [imageLoaded, imageSrc]);
 
   return (
     <>
@@ -53,7 +55,7 @@ export default function CardImage({
           height: '100%'
         }}
         fill
-        src={src}
+        src={imageSrc}
         alt={alt}
         unoptimized
         onLoad={handleLoad}

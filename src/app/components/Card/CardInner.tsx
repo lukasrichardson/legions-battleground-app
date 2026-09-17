@@ -201,8 +201,8 @@ export default function CardInner({
       mouseLeaveDelay={0.1}
     >
 
-      {drag(
-        <div
+      <div
+          ref={(node) => { drag(node); }}
           className={cardClasses}
           style={cardStyles}
           onMouseEnter={handleCardHover}
@@ -237,7 +237,7 @@ export default function CardInner({
               {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true, isOnPlayersSide)}
               {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false, isOnPlayersSide)}
             </>)}
-        </div>)}
+        </div>
     </Popover>
   )
 }

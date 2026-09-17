@@ -94,11 +94,13 @@ export default function CreateRoomModal() {
   }
 
   useEffect(() => {
+    if (!createRoomModalOpen || !isAuthenticated) return;
+
     getDecks();
     if (user?.name) {
       setPlayerName(user.name);
     }
-  }, [user]);
+  }, [createRoomModalOpen, isAuthenticated, user]);
 
   const onSandboxModeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSandboxMode(e.target.checked);

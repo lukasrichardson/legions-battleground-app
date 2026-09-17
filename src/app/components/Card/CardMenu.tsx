@@ -9,6 +9,14 @@ interface CardMenuProps {
   onMenuItemClick?: (items: IMenuItem[], key: string|number) => void;
 }
 
+const toAntdMenuItems = (items: IMenuItem[]): MenuItemType[] =>
+  items.map(({ children, ...item }) => {
+    delete item.menuAction;
+    return {
+      ...item,
+      ...(children ? { children: toAntdMenuItems(children) } : {}),
+    };
+  }) as MenuItemType[];
 
 const CardMenu: FC<CardMenuProps> = ({items, onMenuItemClick}) => {
   return (
@@ -20,7 +28,7 @@ const CardMenu: FC<CardMenuProps> = ({items, onMenuItemClick}) => {
         }}
         style={{ width: "fit-content" }}
         mode="vertical"
-        items={(items||[]) as MenuItemType[]}
+        items={toAntdMenuItems(items || [])}
       />
   );
 }

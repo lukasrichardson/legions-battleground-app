@@ -39,7 +39,6 @@ const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  debug: true, // Enable debug mode to troubleshoot OAuth issues
 };
 
 const handler = NextAuth(authOptions);
