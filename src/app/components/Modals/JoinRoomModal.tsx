@@ -65,8 +65,7 @@ export default function JoinRoomModal() {
         roomPassword
       });
       const { roomName: newRoomName } = res.data;
-      if (roomPassword) window.sessionStorage.setItem(`roomPassword:${newRoomName}`, roomPassword);
-      router.push(`/play?room=${newRoomName}&playerName=${playerName}&deckId=${deckId}`);
+      router.push(`/play?room=${newRoomName}&playerName=${playerName}&deckId=${deckId}${roomPassword ? `&roomPassword=${roomPassword}` : ""}`);
       dispatch(setJoinRoomModalOpen(null));
       setPlayerName("");
       setRoomPassword("");
@@ -85,13 +84,11 @@ export default function JoinRoomModal() {
 
   const getDecks = async () => {
       fetchDecks([], (param: {name: string, _id: string}[]) => {setDecks(param)});
-  }
+    }
   
   useEffect(() => {
-    if (joinRoomModalOpen === null || !isAuthenticated) return;
-
     getDecks();
-  }, [isAuthenticated, joinRoomModalOpen])
+  }, [])
 
   const renderAuthRequired = () => (
     <div className="w-full max-w-md mx-auto text-center">

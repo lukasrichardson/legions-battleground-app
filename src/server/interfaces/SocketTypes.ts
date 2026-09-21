@@ -8,7 +8,6 @@ export interface JoinGamePayload {
   playerName: string;
   deckId: string;
   p2DeckId?: string; // Optional field for player 2's deck ID
-  roomPassword?: string;
 }
 export interface GameEventPayload {
   type: GAME_EVENT;
@@ -22,11 +21,6 @@ export interface RoomEventPayload {
 
 export interface CustomSocket extends SocketIOSocket {
   room?: string;
-  user?: {
-    id: string;
-    email?: string;
-    name?: string;
-  };
 }
 
 export type IOServer = Server;

@@ -1,16 +1,14 @@
 import { rooms } from './socketHandler';
 import { DeckResponse } from '../../shared/interfaces/DeckResponse';
-import { fetchToolboxDeckById } from '../utils/game.util';
+import { fetchPlayerDeckById, fetchToolboxDeckById } from '../utils/game.util';
 import { ObjectId } from 'mongodb';
 import {Request, Response} from 'express';
-import { requireAuth, requireAuthInProduction, AuthenticatedRequest } from '../middleware/auth';
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { getDatabase } from '../utils/database.util';
 import { ExpressApp } from '../interfaces/ExpressTypes';
 import axios from 'axios';
 import decksController from '../controllers/decks.controller';
 import publishedDecksController from '../controllers/publishedDecks.controller';
-import { hashRoomPassword, verifyRoomPassword } from '../utils/roomPassword.util';
-import { RoomService } from '../services/game/RoomService';
 
 export const routes = (app: ExpressApp) => {
   app.get('/healthz', (req: Request, res: Response) => {
@@ -18,7 +16,7 @@ export const routes = (app: ExpressApp) => {
     res.send('ok');
   });
   
-  app.post("/createRoom", requireAuthInProduction, async (req: AuthenticatedRequest, res: Response) => {
+  app.post("/createRoom", async (req: Request, res: Response) => {
     if (!req.body.roomName) {
       return res.status(400).send("roomName is required");
     }
@@ -28,26 +26,17 @@ export const routes = (app: ExpressApp) => {
     if (rooms[req.body.roomName]) {
       return res.status(400).send("roomName " + req.body.roomName + " already exists");
     }
-    if (typeof req.body.roomPassword !== "string" || req.body.roomPassword.length > 128) {
-      return res.status(400).send("roomPassword must be a string with at most 128 characters");
-    }
     if (rooms[req.body.roomName] && rooms[req.body.roomName].players[req.body.playerName]) {
       return res.status(400).send("playerName " + req.body.playerName + " already exists in room " + req.body.roomName);
     }
   
     try {
-      const deck = await getDatabase().collection<DeckResponse>("decks").findOne({
-        _id: new ObjectId(req.body.deckId),
-        ...(req.user ? { userId: req.user.id } : {}),
-      });
+      const deck = await getDatabase().collection<DeckResponse>("decks").findOne({ _id: new ObjectId(req.body.deckId) });
       if (!deck?.legion || !deck?.cards_in_deck) {
         return res.status(400).send("deckId " + req.body.deckId + " is invalid");
       }
       if (req.body.p2DeckId) {
-        const p2Deck = await getDatabase().collection<DeckResponse>("decks").findOne({
-          _id: new ObjectId(req.body.p2DeckId),
-          ...(req.user ? { userId: req.user.id } : {}),
-        });
+        const p2Deck = await getDatabase().collection<DeckResponse>("decks").findOne({ _id: new ObjectId(req.body.p2DeckId) });
         if (!p2Deck?.legion || !p2Deck?.cards_in_deck) {
           return res.status(400).send("p2DeckId " + req.body.p2DeckId + " is invalid");
         }
@@ -59,15 +48,17 @@ export const routes = (app: ExpressApp) => {
       id: req.body.roomName,
       players: {},
       sandboxMode: req.body.sandboxMode,
-      passwordHash: req.body.roomPassword ? hashRoomPassword(req.body.roomPassword) : undefined,
+      password: req.body.roomPassword,
     };
     return res.send({
       roomName: req.body.roomName,
-      ...new RoomService().getPublicRoom(rooms[req.body.roomName]),
+      players: rooms[req.body.roomName].players,
+      sandboxMode: req.body.sandboxMode,
+      password: req.body.roomPassword,
     });
   });
   
-  app.post("/joinRoom", requireAuthInProduction, async (req: AuthenticatedRequest, res: Response) => {
+  app.post("/joinRoom", async (req: Request, res: Response) => {
     if (!req.body.roomName) {
       return res.status(400).send("roomName is required");
     }
@@ -77,23 +68,17 @@ export const routes = (app: ExpressApp) => {
     if (!rooms[req.body.roomName]) {
       return res.status(400).send("roomName " + req.body.roomName + " does not exist");
     }
-    if (typeof req.body.roomPassword !== "string" || req.body.roomPassword.length > 128) {
-      return res.status(400).send("roomPassword must be a string with at most 128 characters");
-    }
     if (rooms[req.body.roomName] && Object.values(rooms?.[req.body.roomName]?.players)?.find((item: {name: string}) => item.name === req.body.playerName)) {
       return res.status(400).send("playerName " + req.body.playerName + " already exists in room " + req.body.roomName);
     }
   
     // check if password protected
-    if (!verifyRoomPassword(req.body.roomPassword, rooms[req.body.roomName].passwordHash)) {
+    if (rooms[req.body.roomName].password && rooms[req.body.roomName].password !== req.body.roomPassword) {
       return res.status(400).send("password is incorrect");
     }
   
     try {
-      const deck = await getDatabase().collection<DeckResponse>("decks").findOne({
-        _id: new ObjectId(req.body.deckId),
-        ...(req.user ? { userId: req.user.id } : {}),
-      });
+      const deck: DeckResponse = await fetchPlayerDeckById({deckId: req.body.deckId});
       if (!deck?.id || !deck?.legion || !deck?.cards_in_deck) {
         return res.status(400).send("deckId " + req.body.deckId + " is invalid");
       }
@@ -209,11 +194,15 @@ export const routes = (app: ExpressApp) => {
       created_at: new Date(),
       updated_at: new Date(),
     };
-    // let tracker = 0;
+
     for (let i = 0 ; i < newDeck.cards_in_deck.length; i++) {
-      const mongoCard = await db.collection("cards").findOne({ title: newDeck.cards_in_deck[i].name });
+      let mongoCard = await db.collection("cards").findOne({ title: newDeck.cards_in_deck[i].name });
       if (!mongoCard) {
-        return res.status(400).send("Card " + newDeck.cards_in_deck[i].name + " not found in database");
+        mongoCard = await db.collection("cards").findOne({ card_code: newDeck.cards_in_deck[i].code });
+        if (!mongoCard) {
+          console.log("Card not found in database:", newDeck.cards_in_deck[i] );
+        return res.status(400).send("Card " + newDeck.cards_in_deck[i].name + " code" + newDeck.cards_in_deck[i].code + " not found in database");
+        }
       }
       newDeck.cards_in_deck[i] = mongoCard;
       if (i === newDeck.cards_in_deck.length - 1) {

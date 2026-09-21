@@ -19,11 +19,6 @@ import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { preloadSearchResults } from "@/client/utils/imagePreloader";
 import { clearPileInView } from "@/client/redux/clientGameStateSlice";
 
-function SocketBridge() {
-  useSocket();
-  return null;
-}
-
 function Page() {
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
@@ -34,6 +29,7 @@ function Page() {
   const dispatch = useAppDispatch();
   const phaseState = useAppSelector(state => state.phaseState);
   const { currentPhase, rpsWinner, p1RPSChoice, p2RPSChoice } = phaseState;
+  useSocket();
 
   const closePileInView = useCallback(() => {
     dispatch(clearPileInView());
@@ -341,7 +337,6 @@ function Page() {
     <div className="text-white h-full w-full">
       
       <main className="relative flex justify-between items-center h-full w-full">
-        <SocketBridge />
         <Toolbar />
         <DndProvider backend={HTML5Backend}>
           <PlayArea />

@@ -68,8 +68,7 @@ export default function CreateRoomModal() {
         roomPassword,
       });
       const { roomName: newRoomName } = res.data;
-      if (roomPassword) window.sessionStorage.setItem(`roomPassword:${newRoomName}`, roomPassword);
-      router.push(`/play?room=${newRoomName}&playerName=${playerName}&deckId=${deckId}${p2DeckId ? `&p2DeckId=${p2DeckId}` : ""}`);
+      router.push(`/play?room=${newRoomName}&playerName=${playerName}&deckId=${deckId}${roomPassword ? `&roomPassword=${roomPassword}` : ""}${p2DeckId ? `&p2DeckId=${p2DeckId}` : ""}`);
       setRoomName("");
       setPlayerName("");
       setSandboxMode(false);
@@ -94,13 +93,11 @@ export default function CreateRoomModal() {
   }
 
   useEffect(() => {
-    if (!createRoomModalOpen || !isAuthenticated) return;
-
     getDecks();
     if (user?.name) {
       setPlayerName(user.name);
     }
-  }, [createRoomModalOpen, isAuthenticated, user]);
+  }, [user]);
 
   const onSandboxModeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSandboxMode(e.target.checked);

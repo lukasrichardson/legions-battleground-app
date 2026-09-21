@@ -1,16 +1,16 @@
 import { rooms } from '../../network/socketHandler';
-import { PublicRoomInfo, PublicRoomsCollection, RoomInfo } from '@/shared/interfaces/RoomInterface';
+import { RoomsCollection } from '@/shared/interfaces/RoomInterface';
 import IPlayer from './interfaces/IPlayer';
 
 export class RoomService {
 
-  createRoom(roomId: string, options: { sandboxMode?: boolean; passwordHash?: string } = {}) {
+  createRoom(roomId: string, options: { sandboxMode?: boolean; password?: string } = {}) {
     if (!rooms[roomId]) {
       rooms[roomId] = {
         id: roomId,
         players: {},
         sandboxMode: options.sandboxMode ?? true,
-        passwordHash: options.passwordHash
+        password: options.password ?? ""
       };
     }
     return rooms[roomId];
@@ -43,28 +43,17 @@ export class RoomService {
     }
   }
 
-  getPublicRoom(room: RoomInfo): PublicRoomInfo {
-    return {
-      id: room.id,
-      players: room.players,
-      sandboxMode: room.sandboxMode,
-      requiresPassword: Boolean(room.passwordHash),
-    };
-  }
-
-  getRooms(): PublicRoomsCollection {
-    return Object.fromEntries(
-      Object.entries(rooms).map(([roomId, room]) => [roomId, this.getPublicRoom(room)])
-    );
+  getRooms(): RoomsCollection {
+    return rooms;
   }
 
   getRoom(roomId: string) {
     return rooms[roomId] || null;
   }
 
-  switchSide(roomId: string, player: { id: string; p1: boolean }): PublicRoomInfo {
+  switchSide(roomId: string, player: { id: string; p1: boolean }) {
     rooms[roomId].players[player.id].p1 = !rooms[roomId].players[player.id].p1;
-    return this.getPublicRoom(rooms[roomId]);
+    return this.getRoom(roomId);
   }
 
 }

@@ -19,12 +19,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     [smallestScale],
   );
   return (
-    <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900/80 to-slate-900">
-      <div style={styles}>
-        <div className={"flex flex-col justify-center items-center relative h-full w-full overflow-hidden"}>
-          {children}
-        </div>
+    <body style={styles} className="bg-gradient-to-br from-slate-900 via-blue-900/80 to-slate-900">
+      <div className={"flex flex-col justify-center items-center relative h-full w-full overflow-hidden"}>
+      {children}
       </div>
-    </div>
+    </body>
   )
 }

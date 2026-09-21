@@ -1,4 +1,4 @@
-"use client";
+"use-client";
 import { setState } from "../redux/gameStateSlice";
 import { setSide, setRoom as setRoomRedux, setHistoryState } from "../redux/clientGameStateSlice";
 import { useAppDispatch } from "../redux/hooks";
@@ -20,7 +20,7 @@ export enum SOCKET_PAYLOAD_TYPE {
 
 export const useSocket = () => {
   const [rooms, setRooms] = useState({});
-  const [room, setRoom] = useState<{ id: string, players: [], sandboxMode: boolean, requiresPassword: boolean }>({ id: "", players: [], sandboxMode: true, requiresPassword: false });
+  const [room, setRoom] = useState<{ id: string, players: [], sandboxMode: boolean, password: string }>({ id: "", players: [], sandboxMode: true, password: "" });
   const [joinedGame, setJoinedGame] = useState(false);
   const dispatch = useAppDispatch();
   const params = useSearchParams();
@@ -31,37 +31,30 @@ export const useSocket = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleGameEvent = useCallback((payload) => {
-    dispatch(setState(payload.data));
+  const handleGameEvent = (payload) => {
+    dispatch(setState(payload.data))
     dispatch(setSequenceState({
       sequences: payload.data.sequences,
       resolving: payload.data.resolving,
-    }));
-  }, [dispatch]);
-
-  const handleRooms = useCallback((payload) => {
+    }))
+  }
+  const handleRooms = (payload) => {
     setRooms(payload);
     if (roomName && payload?.[roomName]) {
-      setRoom((currentRoom) => {
-        const nextRoom = payload[roomName];
-        const hasChanged =
-          currentRoom.id !== nextRoom.id ||
-          currentRoom.players !== nextRoom.players ||
-          currentRoom.sandboxMode !== nextRoom.sandboxMode ||
-          currentRoom.requiresPassword !== nextRoom.requiresPassword;
-
-        return hasChanged ? nextRoom : currentRoom;
-      });
+      if (
+        room.id !== payload[roomName].id ||
+        room.players !== payload[roomName].players ||
+        room.sandboxMode !== payload[roomName].sandboxMode ||
+        room.password !== payload[roomName].password
+      ) {
+        setRoom(payload[roomName]);
+        setRoomRedux(payload[roomName]);
+      }
     }
-  }, [roomName]);
-
-  useEffect(() => {
-    if (room.id) dispatch(setRoomRedux(room));
-  }, [dispatch, room]);
-
-  const handlePhaseEvent = useCallback((payload) => {
+  }
+  const handlePhaseEvent = (payload) => {
     dispatch(setPhaseState(payload.data));
-  }, [dispatch]);
+  }
 
   const handleRoomEvent = useCallback((payload) => {
     console.log("Received room event:", payload);
@@ -93,15 +86,14 @@ export const useSocket = () => {
       socket.off(SOCKET_PAYLOAD_TYPE.gameHistoryEvent, handleHistoryEvent);
       if (socket.connected) socket.disconnect();
     }
-  }, [handleGameEvent, handleHistoryEvent, handlePhaseEvent, handleRoomEvent, handleRooms]);
+  }, []);
 
   useEffect(() => {
     if (pathname === "/play") {
       if (!roomName || !playerName || !deckId) router.push("/");
       if (!joinedGame) {
         setJoinedGame(true);
-        const roomPassword = window.sessionStorage.getItem(`roomPassword:${roomName}`) ?? undefined;
-        socket.emit("joinGame", { roomName, playerName, deckId, p2DeckId, roomPassword })
+        socket.emit("joinGame", { roomName, playerName, deckId, p2DeckId })
       };
     }
   }, [roomName, playerName, deckId, p2DeckId, pathname, router, joinedGame])

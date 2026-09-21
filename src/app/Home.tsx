@@ -205,7 +205,7 @@ export default function Home() {
                     <div className="h-full overflow-auto">
                       <Table
                         tableHeaders={["Room Name", "Players", "Sandbox Mode", "Password", "Action"]}
-                        tableData={(Object.values(rooms) as {id: string, players: object, sandboxMode: boolean, requiresPassword: boolean}[]).map((room: {id: string, players: object, sandboxMode: boolean, requiresPassword: boolean}) => [
+                        tableData={(Object.values(rooms) as {id: string, players: object, sandboxMode: boolean, password: string}[]).map((room: {id: string, players: object, sandboxMode: boolean, password: string}) => [
                           <div className="flex items-center gap-2" key={room.id}>
                             <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                             <span className="font-medium text-sm">{room.id}</span>
@@ -222,11 +222,11 @@ export default function Home() {
                             {room.sandboxMode ? "Yes" : "No"}
                           </span>,
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            room.requiresPassword
+                            room.password
                               ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' 
                               : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
                           }`} key={room.id}>
-                            {room.requiresPassword ? "Yes" : "No"}
+                            {room.password ? "Yes" : "No"}
                           </span>,
                           <Button 
                             onClick={() => handleJoinRoomClick(room.id)}

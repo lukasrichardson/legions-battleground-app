@@ -4,6 +4,8 @@
   "private": true,
   "license": "MIT",
   "scripts": {
+    "importToolboxCardsProd": "cross-env NODE_ENV=production ts-node --project tsconfig.server.json -r dotenv/config scripts/fetchCards.ts",
+    "importToolboxCardsDev": "cross-env NODE_ENV=development ts-node --project tsconfig.server.json -r dotenv/config scripts/fetchCards.ts",
     "dev": "cross-env NODE_ENV=development nodemon",
     "build": "next build && tsc --project tsconfig.server.json && tsc-alias -p tsconfig.server.json",
     "start": "cross-env NODE_ENV=production node dist/server/server.js",

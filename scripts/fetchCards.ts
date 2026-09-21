@@ -2,7 +2,11 @@ import axios from'axios';
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import { decodeHTMLEntities } from '../src/server/utils/string.utils';
 const uri = process.env.MONGO_URL || "your-mongodb-connection-string-here";
-console.log("url:", uri)
+// console.log("url:", uri)
+const prodDb = "legions_battleground_db";
+const testDb = "test";
+// console.log("NODE_ENV:", process.env.NODE_ENV );
+const db = process.env.NODE_ENV === "production" ? prodDb : testDb;
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -43,8 +47,7 @@ const main = async () => {
       let skipped = 0;
       let inserted = 0;
       for (let i = 0 ; i < cards.length ; i++) {
-        const existingCard = await dbClient.db("legions_battleground_db").collection("cards").findOne({ id: cards[i].id });
-        // const existingCard = await dbClient.db("test").collection("cards").findOne({ id: cards[i].id });
+        const existingCard = await dbClient.db(db).collection("cards").findOne({ id: cards[i].id });
         if (existingCard) {
           skipped++;
           continue;
@@ -96,8 +99,7 @@ const main = async () => {
           permalink: cards[i].permalink,
           attack: cards[i].attack
         }
-        dbClient.db("legions_battleground_db").collection("cards").insertOne(mappedCardToInsert)
-        // dbClient.db("test").collection("cards").insertOne(mappedCardToInsert)
+        dbClient.db(db).collection("cards").insertOne(mappedCardToInsert)
         inserted++;
       }
       console.log(`Finished processing cards. Skipped: ${skipped}, Inserted: ${inserted}`);

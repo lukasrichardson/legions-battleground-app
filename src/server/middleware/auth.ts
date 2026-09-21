@@ -69,18 +69,3 @@ export const optionalAuth = async (
     next();
   }
 };
-
-// Development tools intentionally exercise room setup without an OAuth session.
-// Production endpoints must always use requireAuth directly.
-export const requireAuthInProduction = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  if (process.env.NODE_ENV !== 'production') {
-    next();
-    return;
-  }
-
-  await requireAuth(req, res, next);
-};
