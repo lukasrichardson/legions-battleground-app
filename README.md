@@ -2,13 +2,13 @@
 
 Legions Battleground is a full-stack TypeScript application for playing and practising **Legions: Realms at War** online. It combines a Next.js interface with an Express and Socket.IO server for live multiplayer play, authenticated deck libraries, and a sandbox mode for testing card interactions.
 
-[Live demo](https://legions-battleground.onrender.com) · [Architecture](./docs/architecture.md) · [API reference](./docs/api.md) · [Development guide](./docs/development-guide.md)
+[Live demo](https://legions-battleground.onrender.com) · [Architecture](./docs/architecture.md) · [API reference](./docs/api-reference.md) · [Development guide](./docs/development-guide.md)
 
 ![Legions Battleground game rooms](./public/game-rooms.png)
 
 ## What it does
 
-- Creates and joins password-protected game rooms with live room updates.
+- Creates and joins live game rooms with optional room passwords and live room updates.
 - Runs structured and sandbox game modes, including mulligans, turn phases, dice rolls, action points, health, and card-effect sequences.
 - Synchronizes game actions and chat in real time with Socket.IO.
 - Provides OAuth sign-in through GitHub, Google, and Discord with user-specific deck libraries.
@@ -49,7 +49,7 @@ The frontend and Express server run as one deployable Node.js process. Shared ga
 
 ## Tech stack
 
-- **Frontend:** Next.js 15, React 18, TypeScript, Tailwind CSS, Redux Toolkit, React DnD, Radix UI, and Ant Design.
+- **Frontend:** Next.js 16, React 18, TypeScript, Tailwind CSS, Redux Toolkit, React DnD, Radix UI, and Ant Design.
 - **Backend:** Express 5, Socket.IO, MongoDB, and Node.js.
 - **Authentication:** NextAuth with GitHub, Google, and Discord OAuth providers.
 - **Tooling and deployment:** ESLint, TypeScript, Docker, and Render.
@@ -97,19 +97,21 @@ docker run -p 3000:3000 legions-battleground
 npm run lint
 npm run typecheck
 npm run typecheck:server
+npm test
+npm run test:coverage
 npm run build
 ```
 
-These commands respectively lint the project, check client and server TypeScript, and produce the production bundle. The project does not currently include an automated test suite; the [sandbox testing guide](./docs/sandbox-mode.md) documents its manual game-flow checks.
+These commands lint the project, type-check client and server code, run the automated unit tests, generate a local coverage report, and produce the production bundle. Coverage output is written to `coverage/`; manual game-flow checks remain documented in the [sandbox testing guide](./docs/sandbox-mode.md).
 
 ## Documentation
 
 - [Architecture](./docs/architecture.md) — application boundaries, services, shared state, and deployment model.
 - [Game engine](./docs/game-engine.md) — game modes, state flow, zones, actions, and sequences.
 - [Development guide](./docs/development-guide.md) — conventions for API, service, socket, and database changes.
-- [API reference](./docs/api.md) — REST endpoints and Socket.IO events.
-- [Image loading](./docs/image-loading.md) — caching, preloading, service worker, and performance monitoring.
-- [Sandbox mode](./docs/sandbox-mode.md) — sandbox behavior and manual testing scenarios.
+- [API reference](./docs/api-reference.md) — REST endpoints, ownership, and Socket.IO events.
+- [Image system](./docs/image-system.md) — image sources, caching, preloading, and troubleshooting.
+- [Sandbox mode](./docs/sandbox-mode.md) — behavior and manual game-flow scenarios.
 - [Testing and quality](./docs/testing-and-quality.md) — validation commands and current coverage boundaries.
 - [Security notes](./docs/security.md) — authentication and security review notes.
 

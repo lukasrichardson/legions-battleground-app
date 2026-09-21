@@ -86,6 +86,9 @@ export const useSocket = () => {
       socket.off(SOCKET_PAYLOAD_TYPE.gameHistoryEvent, handleHistoryEvent);
       if (socket.connected) socket.disconnect();
     }
+    // Keep one socket subscription for this hook's lifetime; changing handlers
+    // must not disconnect and reconnect an active game session.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

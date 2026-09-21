@@ -13,7 +13,7 @@
 2. Put reusable data and business logic in `src/server/services/api/`.
 3. Register the controller or route in `src/server/network/routes.ts`.
 4. Apply `requireAuth` or `optionalAuth` from `src/server/middleware/auth.ts` where the route needs session context.
-5. Update [the API reference](./api.md).
+5. Update [the API reference](./api-reference.md).
 
 ## Adding a game action or Socket.IO event
 

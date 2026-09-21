@@ -6,18 +6,19 @@
 npm run lint
 npm run typecheck
 npm run typecheck:server
+npm test
+npm run test:coverage
 npm run build
 ```
 
-- `lint` runs ESLint over maintained source files.
-- `typecheck` checks the Next.js/client TypeScript project without emitting output.
-- `typecheck:server` checks server and shared TypeScript without emitting output.
-- `build` produces the Next.js production build and compiled server output.
+`test` runs Vitest tests in `tests/`. `test:coverage` writes text, HTML, and LCOV coverage reports to `coverage/`; the directory is generated output and must not be committed.
 
-## Current coverage boundary
+## Current coverage scope
 
-The repository does not currently include an automated unit, integration, or end-to-end test suite. Do not represent it as having automated test coverage. Manual sandbox-mode scenarios are maintained in [Sandbox mode](./sandbox-mode.md).
+The initial automated suite covers deterministic utility behavior: card selection, ordinal formatting, HTML entity decoding used by card imports, and socket payload validation. It does not claim full game-engine, database, HTTP, Socket.IO, or browser coverage. Those systems still need integration and end-to-end tests with isolated MongoDB and authenticated browser fixtures.
 
-## Recommended change verification
+## Manual verification
 
-For a UI change, run lint, client typecheck, and a local browser smoke test. For a server or shared-contract change, also run server typecheck and production build. For gameplay behavior, verify normal and sandbox modes, reconnect behavior, and state synchronization between players.
+For gameplay changes, verify normal and sandbox modes, reconnect behavior, and state synchronization between two players. See [Sandbox mode](./sandbox-mode.md) for manual scenarios.
+
+For card imports, use `npm run importToolboxCardsDev` or `npm run importToolboxCardsProd`; both preload `.env` with `dotenv/config` and use `tsconfig.server.json`.
