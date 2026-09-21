@@ -9,23 +9,7 @@ import { Input } from "@/client/ui/input";
 import { Card, CardContent } from "@/client/ui/card";
 import { useAuth } from "@/client/hooks/useAuth";
 import CardImage from "../Card/CardImage";
-
-interface ToolboxCard {
-  qty: number,
-  image: string,
-  type: string,
-  id: string,
-  code: string,
-  thumb: string,
-}
-
-interface ToolboxDeck {
-  id: string;
-  name: string;
-  description: string;
-  cards_in_deck: ToolboxCard[];
-  legion: string;
-}
+import { fetchToolboxDeck, type ToolboxCard, type ToolboxDeck } from "@/client/utils/toolboxDeck";
 
 const ModalConstants = {
   LoadingText: "Loading...",
@@ -59,10 +43,10 @@ export default function PreviewDeckModal() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.get(`/api/toolboxDecks/${deckId}`);
-      if (!res.data.id) throw new Error("Deck not found");
+      const res = await fetchToolboxDeck(deckId.trim());
+      if (!res.id) throw new Error("Deck not found");
       const deckToSet: ToolboxCard[] = [];
-      Object.values(res.data.cards_in_deck as ToolboxCard[]).forEach((card: ToolboxCard) => {
+      Object.values(res.cards_in_deck).forEach((card: ToolboxCard) => {
         for (let i = 0; i < card.qty; i++) {
           deckToSet.push({
             ...card,
@@ -78,7 +62,7 @@ export default function PreviewDeckModal() {
       const guardianToSet = deckToSet.find((card: ToolboxCard) => card.type === "Guardian");
       const realmToSet = deckToSet.find((card: ToolboxCard) => card.type === "Veil / Realm");
       const synergyToSet = deckToSet.find((card: ToolboxCard) => card.type === "Synergy");
-      setDeck({ ...res.data, cards_in_deck: deckToSet });
+      setDeck({ ...res, cards_in_deck: deckToSet });
       setWarriors(warriorsToSet);
       setUnifieds(unifiedsToSet);
       setFortifieds(fortifiedsToSet);

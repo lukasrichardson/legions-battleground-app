@@ -12,7 +12,7 @@ Legions Battleground is a full-stack TypeScript application for playing and prac
 - Runs structured and sandbox game modes, including mulligans, turn phases, dice rolls, action points, health, and card-effect sequences.
 - Synchronizes game actions and chat in real time with Socket.IO.
 - Provides OAuth sign-in through GitHub, Google, and Discord with user-specific deck libraries.
-- Imports decks from [LegionsToolbox.com](https://legionstoolbox.com/) and supports deck browsing, editing, duplication, deletion, and publishing.
+- Imports public decks directly from [LegionsToolbox.com](https://legionstoolbox.com/) in the user's browser, then saves canonical Mongo card records for deck browsing, editing, duplication, deletion, and publishing.
 - Supports drag-and-drop card movement, context menus, modifiers, targeting, cooldowns, and the game zones needed by the ruleset.
 - Includes responsive game and deck-building interfaces with card filtering and hover previews.
 

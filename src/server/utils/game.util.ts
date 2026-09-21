@@ -12,48 +12,8 @@ import { MoveCardActionInterface, moveCard, plunder } from "../events/cardEvents
 import { goNextPhase } from "../events/playerEvents";
 import {ALL_KEYWORDS, KeywordTrigger} from "../cards/Keywords";
 import { Server } from "socket.io";
-import axios from "axios";
 
 export const STARTING_HAND_SIZE = 6;
-
-export const fetchToolboxDeckById = async ({ deckId }: { deckId: string }) => {
-  try {
-    const response = await axios.get(`https://api.legionstoolbox.com/index.php/wp-json/lraw/v1/decks?deck=${deckId}`, {
-      headers: {
-        'User-Agent': 'Legions-Battleground-Server/1.0.0',
-        'Accept': '*/*',
-        'Cache-Control': 'no-cache',
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive"
-      },
-      timeout: 10000 // 10 second timeout
-    });
-
-    // Handle both 200 and 202 status codes
-    if (response.status === 200 || response.status === 202) {
-      if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-        throw new Error(`No deck data returned for deck ID ${deckId}. Response: ${JSON.stringify(response.data)}`);
-      }
-      
-      const deck: DeckResponse = { ...response.data[0].data, id: deckId };
-      return deck;
-    } else {
-      throw new Error(`Unexpected status code: ${response.status} - ${response.statusText}`);
-    }
-  } catch (error) {
-    console.error("Error fetching toolbox deck:", {
-      deckId,
-      error: error.message,
-      response: error.response ? {
-        status: error.response.status,
-        statusText: error.response.statusText,
-        data: error.response.data
-      } : 'No response',
-      environment: process.env.NODE_ENV || 'development'
-    });
-    throw error;
-  }
-}
 
 export const fetchPlayerDeckById = async ({ deckId }: { deckId: string }) => {
   try {

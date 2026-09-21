@@ -1,12 +1,11 @@
 import { rooms } from './socketHandler';
 import { DeckResponse } from '../../shared/interfaces/DeckResponse';
-import { fetchPlayerDeckById, fetchToolboxDeckById } from '../utils/game.util';
+import { fetchPlayerDeckById } from '../utils/game.util';
 import { ObjectId } from 'mongodb';
 import {Request, Response} from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { getDatabase } from '../utils/database.util';
 import { ExpressApp } from '../interfaces/ExpressTypes';
-import axios from 'axios';
 import decksController from '../controllers/decks.controller';
 import publishedDecksController from '../controllers/publishedDecks.controller';
 
@@ -87,22 +86,6 @@ export const routes = (app: ExpressApp) => {
     }
     return res.send({ roomName: req.body.roomName, players: rooms[req.body.roomName].players });
   })
-
-  app.get('/api/toolboxDecks/:deckId', async (req: Request, res: Response) => {
-    const deckId = req.params.deckId;
-    try {
-      const deck: DeckResponse = await fetchToolboxDeckById({deckId});
-      if (!deck?.id || !deck?.legion || !deck?.cards_in_deck) {
-        return res.status(404).send("Deck not found");
-      }
-      return res.send(deck);
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        return res.status(err.response?.status || 500).send(err.response?.data || "Error fetching deck");
-      }
-      return res.status(500).send("Error fetching deck");
-    }
-  });
 
   app.get("/api/cards", async (req: Request, res: Response) => {
     const {legion, pageSize, page, query: search, type, rarity, set} = req.query

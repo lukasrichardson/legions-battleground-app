@@ -16,11 +16,16 @@ This reference is derived from `src/server/network/routes.ts`, the two controlle
 | `GET /healthz` | Public | Returns plain-text `ok`. |
 | `POST /createRoom` | Public | Creates an in-memory room from `roomName`, `playerName`, `deckId`, optional `p2DeckId`, `sandboxMode`, and optional `roomPassword`. |
 | `POST /joinRoom` | Public | Validates a room, player name, deck, and optional room password. |
-| `GET /api/toolboxDecks/:deckId` | Public | Fetches a deck from the Legions Toolbox API. |
 | `GET /api/cards` | Public | Lists cards; supports `query`, `legion`, `type`, `rarity`, `set`, `page`, and `pageSize`. |
 | `GET /api/cards/filterOptions` | Public | Returns card filter values. |
 | `GET, POST /api/banlist` | GET public; POST authenticated | Reads or updates banlist entries. |
 | `/api/decks` and `/api/published_decks` | Controller-defined | Deck-library and published-deck operations. |
+
+## Toolbox deck import
+
+Deck preview requests are deliberately made by the browser directly to Toolbox's public deck endpoint, rather than proxied through this server. This keeps the request associated with the user's IP address and avoids concentrating Toolbox rate limits or bot challenges on the application server.
+
+The browser then sends the selected deck to authenticated `POST /api/importDecks`. The server resolves each card by its Toolbox `code` first (with a title fallback for legacy payloads), replaces it with the canonical Mongo card document, and persists the deck. No Toolbox credentials or user cookies are sent with the browser-side request.
 
 ## Socket.IO
 
