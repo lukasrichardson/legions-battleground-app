@@ -6,6 +6,7 @@
   "scripts": {
     "importToolboxCardsProd": "cross-env NODE_ENV=production ts-node --project tsconfig.server.json -r dotenv/config scripts/fetchCards.ts",
     "importToolboxCardsDev": "cross-env NODE_ENV=development ts-node --project tsconfig.server.json -r dotenv/config scripts/fetchCards.ts",
+    "syncCardImages": "ts-node --project tsconfig.server.json -r dotenv/config scripts/syncCardImagesToR2.ts",
     "dev": "cross-env NODE_ENV=development nodemon",
     "build": "next build && tsc --project tsconfig.server.json && tsc-alias -p tsconfig.server.json",
     "start": "cross-env NODE_ENV=production node dist/server/server.js",
@@ -17,6 +18,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1137.0",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-navigation-menu": "^1.2.14",
     "@radix-ui/react-select": "^2.2.6",

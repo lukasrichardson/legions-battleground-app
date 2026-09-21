@@ -15,6 +15,7 @@ interface ToolboxCard {
   image: string,
   type: string,
   id: string,
+  code: string,
   thumb: string,
 }
 

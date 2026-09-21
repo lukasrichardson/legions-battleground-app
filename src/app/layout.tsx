@@ -5,6 +5,16 @@ import NextAuthSessionProvider from "@/app/providers/SessionProvider";
 import Script from "next/script";
 import grue from "PUBLIC/gru-no-background.png";
 
+const r2PublicBaseUrl = process.env.R2_PUBLIC_BASE_URL || "";
+const serviceWorkerUrl = (() => {
+  try {
+    const imageHost = new URL(r2PublicBaseUrl).hostname;
+    return `/sw.js?imageHost=${encodeURIComponent(imageHost)}`;
+  } catch {
+    return "/sw.js";
+  }
+})();
+
 
 export const metadata: Metadata = {
   title: "Legions Battleground",
@@ -35,8 +45,15 @@ export default function RootLayout({
               dangerouslySetInnerHTML={{
                 __html: `
                   if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register('/sw.js')
+                    navigator.serviceWorker.register(${JSON.stringify(serviceWorkerUrl)})
                       .then(function(registration) {
+                        var worker = registration.active || registration.waiting || registration.installing;
+                        if (worker) {
+                          worker.postMessage({
+                            type: 'CONFIGURE_IMAGE_HOST',
+                            publicBaseUrl: ${JSON.stringify(r2PublicBaseUrl)}
+                          });
+                        }
                         console.log('[App] Service Worker registered:', registration.scope);
                       })
                       .catch(function(error) {

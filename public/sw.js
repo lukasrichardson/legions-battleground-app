@@ -1,7 +1,7 @@
 // Service Worker for Card Image Caching
 // Provides cache-first strategy with intelligent preloading
 
-const CACHE_NAME = 'legions-card-images-v1';
+const CACHE_NAME = 'legions-card-images-v2';
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 const MAX_CONCURRENT_REQUESTS = 20;
 const BATCH_SIZE = 20;
@@ -16,6 +16,33 @@ let cacheHits = 0;
 let cacheMisses = 0;
 let totalRequests = 0;
 const loadMetrics = [];
+
+// The current public development host is available immediately. A custom
+// production host can be supplied as ?imageHost= on the worker URL or by message.
+const imageHosts = new Set(['pub-8e94f6b176a84fbd900c0ef39d4b6e5b.r2.dev']);
+
+function addImageHost(value) {
+  if (!value || typeof value !== 'string') return;
+  try {
+    imageHosts.add(new URL(value).hostname);
+  } catch {
+    // A bare hostname is useful when passed in the service-worker query string.
+    if (/^[a-z0-9.-]+$/i.test(value)) imageHosts.add(value);
+  }
+}
+
+try {
+  addImageHost(new URL(self.location.href).searchParams.get('imageHost'));
+} catch {
+  // Keep the default R2 development host if the worker URL cannot be parsed.
+}
+
+function isCardImageRequest(request, url) {
+  return request.method === 'GET' &&
+    imageHosts.has(url.hostname) &&
+    url.pathname.startsWith('/cards/') &&
+    /\.(avif|jpe?g|png|webp)$/i.test(url.pathname);
+}
 
 self.addEventListener('install', () => {
   console.log('[SW] Installing...');
@@ -43,9 +70,8 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
   
-  // Only handle card image requests from api.legionstoolbox.com
-  if (url.hostname === 'api.legionstoolbox.com' &&
-      (url.pathname.includes('.png') || url.pathname.includes('.jpg') || url.pathname.includes('.jpeg'))) {
+  // Cache only R2 card-image GETs, never unrelated files on the same host.
+  if (isCardImageRequest(request, url)) {
     
     event.respondWith(handleImageRequest(request));
   }
@@ -182,23 +208,20 @@ async function cleanOldCache() {
   }
 }
 
-// Handle preloading requests from main thread
-self.addEventListener('message', async (event) => {
-  if (event.data && event.data.type === 'PRELOAD_IMAGES') {
-    const { imageUrls, priority = 'normal' } = event.data;
-    console.log(`[SW] Preloading ${imageUrls.length} images with ${priority} priority`);
-    
-    await preloadImages(imageUrls, priority);
-  }
-});
-
 // Preload images in batches
 async function preloadImages(urls, priority) {
   const cache = await caches.open(CACHE_NAME);
+  const cardUrls = urls.filter((url) => {
+    try {
+      return isCardImageRequest({ method: 'GET' }, new URL(url));
+    } catch {
+      return false;
+    }
+  });
   
   // Filter out already cached images
   const uncachedUrls = [];
-  for (const url of urls) {
+  for (const url of cardUrls) {
     const cached = await cache.match(url);
     if (!cached) {
       uncachedUrls.push(url);
@@ -289,6 +312,12 @@ function broadcastToClients(message) {
 // Handle analytics requests
 self.addEventListener('message', async (event) => {
   const { data } = event;
+  if (!data) return;
+
+  if (data.type === 'CONFIGURE_IMAGE_HOST') {
+    addImageHost(data.publicBaseUrl || data.host);
+    return;
+  }
   
   if (data.type === 'GET_CACHE_STATS') {
     const cache = await caches.open(CACHE_NAME);
@@ -311,7 +340,7 @@ self.addEventListener('message', async (event) => {
       stats
     });
   } else if (data.type === 'PRELOAD_IMAGES') {
-    const { imageUrls, priority = 'normal' } = data;
+    const { imageUrls = [], priority = 'normal' } = data;
     console.log(`[SW] Preloading ${imageUrls.length} images with ${priority} priority`);
     
     await preloadImages(imageUrls, priority);

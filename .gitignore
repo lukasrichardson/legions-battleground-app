@@ -18,6 +18,7 @@
 /.next/
 /out/
 /dist
+/.card-image-sync
 
 # production
 /build

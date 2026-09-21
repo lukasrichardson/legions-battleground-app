@@ -6,7 +6,7 @@ export default function useBackgroundPreload() {
   useEffect(() => {
       const startBackgroundPreload = async () => {
         try {
-          const res = await fetchCards({ page: 1, pageSize: 200 }); // Fetch first 200 cards for preload - adjust as needed
+          const res = await fetchCards({ page: 1, pageSize: 50 }); // Limit homepage background preloading to 50 cards.
           if (res?.cards?.length) {
             preloadAllCardsBackground(res.cards);
           }

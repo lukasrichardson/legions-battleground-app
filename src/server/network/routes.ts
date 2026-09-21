@@ -196,9 +196,11 @@ export const routes = (app: ExpressApp) => {
     };
 
     for (let i = 0 ; i < newDeck.cards_in_deck.length; i++) {
-      let mongoCard = await db.collection("cards").findOne({ title: newDeck.cards_in_deck[i].name });
+      // Toolbox card codes identify a specific variation; names do not.
+      let mongoCard = await db.collection("cards").findOne({ card_code: newDeck.cards_in_deck[i].code });
       if (!mongoCard) {
-        mongoCard = await db.collection("cards").findOne({ card_code: newDeck.cards_in_deck[i].code });
+        // Keep title matching only for legacy Toolbox payloads missing a code.
+        mongoCard = await db.collection("cards").findOne({ title: newDeck.cards_in_deck[i].name });
         if (!mongoCard) {
           console.log("Card not found in database:", newDeck.cards_in_deck[i] );
         return res.status(400).send("Card " + newDeck.cards_in_deck[i].name + " code" + newDeck.cards_in_deck[i].code + " not found in database");
