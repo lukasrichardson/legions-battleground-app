@@ -16,9 +16,9 @@ This reference is derived from `src/server/network/routes.ts`, the two controlle
 | `GET /healthz` | Public | Returns plain-text `ok`. |
 | `POST /createRoom` | Public | Creates an in-memory room from `roomName`, `playerName`, `deckId`, optional `p2DeckId`, `sandboxMode`, and optional `roomPassword`. |
 | `POST /joinRoom` | Public | Validates a room, player name, deck, and optional room password. |
-| `GET /api/cards` | Public | Lists cards; supports `query`, `legion`, `type`, `rarity`, `set`, `page`, and `pageSize`. |
+| `GET /api/cards` | Public | Lists cards; supports `query`, `legion`, `type`, `rarity`, `set`, `srlStatus`, `page`, and `pageSize`. `srlStatus` accepts active banlist values plus `unrestricted`, which returns cards with no banlist record. |
 | `GET /api/cards/filterOptions` | Public | Returns card filter values. |
-| `GET, POST /api/banlist` | GET public; POST authenticated | Reads or updates banlist entries. |
+| `GET, POST /api/banlist` | GET public; POST authenticated | Reads or updates active banlist entries. POST accepts `suspended`, `restricted`, `limited`, or `unrestricted`; posting `unrestricted` removes the card's entry because it is the implicit default. |
 | `/api/decks` and `/api/published_decks` | Controller-defined | Deck-library and published-deck operations. |
 
 ## Toolbox deck import

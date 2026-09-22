@@ -35,6 +35,7 @@ export default function SearchPane({
   const [type, setType] = useState<string[]>([]);
   const [rarity, setRarity] = useState<string[]>([]);
   const [set, setSet] = useState<string[]>([]);
+  const [srlStatus, setSrlStatus] = useState<string[]>([]);
   const [banlist, setBanlist] = useState<BanlistItem[]>([]);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const horizontalScrollRef = useRef<HTMLDivElement | null>(null);
@@ -69,7 +70,8 @@ export default function SearchPane({
         pageSize,
         type,
         rarity,
-        set
+        set,
+        srlStatus,
       }
       const res: { cards?: CardDocument[]; total?: number } = await fetchCards(fetchCardsObject);
       if (res?.cards) {
@@ -81,7 +83,7 @@ export default function SearchPane({
     }
     getCards();
     getFilterOptions();
-  }, [legion, debouncedQuery, page, pageSize, type, rarity, set, deckLegion]);
+  }, [legion, debouncedQuery, page, pageSize, type, rarity, set, srlStatus, deckLegion]);
 
   const handleLegionSelect = (legionVal: string[]) => {
     resetPage();
@@ -101,6 +103,11 @@ export default function SearchPane({
   const handleSetSelect = (setVal: string[]) => {
     resetPage();
     setSet(setVal);
+  }
+
+  const handleSrlStatusSelect = (statusValues: string[]) => {
+    resetPage();
+    setSrlStatus(statusValues);
   }
 
   const handleSearchChange = (e) => {
@@ -155,7 +162,8 @@ export default function SearchPane({
       pageSize,
       type,
       rarity,
-      set
+      set,
+      srlStatus,
     }).then(res => {
       if (res?.cards) {
         preloadSearchResults(res.cards);
@@ -191,6 +199,7 @@ export default function SearchPane({
     setType([]);
     setRarity([]);
     setSet([]);
+    setSrlStatus([]);
     setPageAndScrollTop(1);
     setQuery("");
     setDebouncedQuery("");
@@ -202,6 +211,7 @@ export default function SearchPane({
       setType([]);
       setRarity([]);
       setSet([]);
+      setSrlStatus([]);
       setCards([]);
       setHoveredCard(null);
       setTotal(0);
@@ -272,10 +282,10 @@ export default function SearchPane({
                 {Object.keys(filterOptionsForDeckLegion).map((key) => (
                   <MultiSelect
                     key={key}
-                    options={filterOptionsForDeckLegion[key].map((option) => ({ value: option, label: option }))}
-                    value={key === 'legion' ? legion : key === 'type' ? type : key === 'rarity' ? rarity : set}
-                    onChange={key === 'legion' ? handleLegionSelect : key === 'type' ? handleTypeSelect : key === 'rarity' ? handleRaritySelect : handleSetSelect}
-                    placeholder={`${key.charAt(0).toUpperCase() + key.slice(1)}`}
+                    options={filterOptionsForDeckLegion[key].map((option) => ({ value: option, label: key === 'srlStatus' ? option.charAt(0).toUpperCase() + option.slice(1) : option }))}
+                    value={key === 'legion' ? legion : key === 'type' ? type : key === 'rarity' ? rarity : key === 'set' ? set : srlStatus}
+                    onChange={key === 'legion' ? handleLegionSelect : key === 'type' ? handleTypeSelect : key === 'rarity' ? handleRaritySelect : key === 'set' ? handleSetSelect : handleSrlStatusSelect}
+                    placeholder={key === 'srlStatus' ? 'S/R/L Status' : `${key.charAt(0).toUpperCase() + key.slice(1)}`}
                     className="cursor-pointer text-xs"
                   />
                 ))}

@@ -5,6 +5,8 @@ import { ObjectId } from 'mongodb';
 import {Request, Response} from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { getDatabase } from '../utils/database.util';
+import { getSrlStatusOptions, getSrlTitleFilter, updateBanlistEntry } from '../services/api/BanlistService';
+import { BanlistStatus } from '../../shared/interfaces/BanlistItem.mongo';
 import { ExpressApp } from '../interfaces/ExpressTypes';
 import decksController from '../controllers/decks.controller';
 import publishedDecksController from '../controllers/publishedDecks.controller';
@@ -78,7 +80,7 @@ export const routes = (app: ExpressApp) => {
   
     try {
       const deck: DeckResponse = await fetchPlayerDeckById({deckId: req.body.deckId});
-      if (!deck?.id || !deck?.legion || !deck?.cards_in_deck) {
+      if (!deck?._id || !deck?.legion || !deck?.cards_in_deck) {
         return res.status(400).send("deckId " + req.body.deckId + " is invalid");
       }
     } catch {
@@ -88,7 +90,7 @@ export const routes = (app: ExpressApp) => {
   })
 
   app.get("/api/cards", async (req: Request, res: Response) => {
-    const {legion, pageSize, page, query: search, type, rarity, set} = req.query
+    const {legion, pageSize, page, query: search, type, rarity, set, srlStatus} = req.query
 
     const db = getDatabase();
     let query: Record<string, unknown> = {};
@@ -113,6 +115,14 @@ export const routes = (app: ExpressApp) => {
     } else if (set && Array.isArray(set)) {
       query = { ...query, "set.names.0": { $in: set } };
     }
+    const requestedSrlStatuses = typeof srlStatus === 'string'
+      ? [srlStatus]
+      : Array.isArray(srlStatus)
+        ? srlStatus.filter((status): status is string => typeof status === 'string')
+        : [];
+    if (requestedSrlStatuses.length) {
+      query = { ...query, $and: [await getSrlTitleFilter(db, requestedSrlStatuses)] };
+    }
     if (search && typeof search === 'string' && search.trim() !== "") {
       query["$or"] = [
         { title: { $regex: search, $options: "i" } },
@@ -134,7 +144,8 @@ export const routes = (app: ExpressApp) => {
     const type = await db.collection("cards").distinct("card_type.names.0", {});
     const rarity = await db.collection("cards").distinct("rarity.names.0", {});
     const set = await db.collection("cards").distinct("set.names.0", {});
-    return res.send({legion, type, rarity, set});
+    const srlStatus = await db.collection("banlist").distinct("status", { status: { $type: "string" } });
+    return res.send({legion, type, rarity, set, srlStatus: getSrlStatusOptions(srlStatus)});
   }
   );
 
@@ -212,13 +223,10 @@ export const routes = (app: ExpressApp) => {
     if (!req.body.status) {
       return res.status(400).send("status is required");
     }
-    const db = getDatabase();
-    const existingItem = await db.collection("banlist").findOne({ name: req.body.name });
-    if (!existingItem) {
-        await db.collection("banlist").insertOne({ name: req.body.name, status: req.body.status });
+    if (!Object.values(BanlistStatus).includes(req.body.status)) {
+      return res.status(400).send("status is invalid");
     }
-    await db.collection("banlist").updateOne({ name: req.body.name }, { $set: { status: req.body.status } });
-    const updatedBanlist = await db.collection("banlist").find({}).toArray();
+    const updatedBanlist = await updateBanlistEntry(getDatabase(), req.body.name, req.body.status);
     return res.send(updatedBanlist);
   }
   );

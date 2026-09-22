@@ -5,10 +5,10 @@ const publishedDecksPath = "/api/published_decks";
 
 //cards
 
-export const fetchCards = async ({legion, query, page, pageSize, type, rarity, set}: {legion?: string[], query?: string, page: number, pageSize: number, type?: string[], rarity?: string[], set?: string[]}): Promise<{cards: [], total: number}> => {
+export const fetchCards = async ({legion, query, page, pageSize, type, rarity, set, srlStatus}: {legion?: string[], query?: string, page: number, pageSize: number, type?: string[], rarity?: string[], set?: string[], srlStatus?: string[]}): Promise<{cards: [], total: number}> => {
   return new Promise((resolve, reject) => {
     let url = window.location.origin + '/api/cards';
-    url = appendQueryParams(url, {legion, page, pageSize, query, type, rarity, set})
+    url = appendQueryParams(url, {legion, page, pageSize, query, type, rarity, set, srlStatus})
     axios.get(url).then(res => resolve({cards: res?.data?.cards, total: res?.data?.total})).catch(err => reject(err));
   })
 }

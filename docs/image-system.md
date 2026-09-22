@@ -4,7 +4,7 @@
 
 Card data comes from `https://api.legionstoolbox.com`; migrated card images are delivered from the public R2 host in `R2_PUBLIC_BASE_URL`. `next.config.ts` permits both hosts during the migration and uses unoptimized images. Card display components live under `src/app/components/Card/`; `CardImage.tsx` is the shared rendering and fallback component.
 
-`R2_PUBLIC_BASE_URL` is the only Cloudflare setting required in the deployed app. R2 upload credentials remain local-only for the migration script.
+`R2_PUBLIC_BASE_URL` is the only Cloudflare setting required in the deployed app. R2 upload credentials remain local-only and are required by the Toolbox card import plus the migration script.
 
 ## Caching and preloading
 
@@ -17,6 +17,8 @@ The homepage background preload is intentionally limited to the first 50 cards. 
 ## Migration
 
 Run `npm run syncCardImages` for a non-writing report, then `npm run syncCardImages -- --apply` to upload missing R2 objects and update `cards.featured_image` plus `decks.cards_in_deck[].featured_image` in the configured Mongo database. The script scans both the current Toolbox catalogue and legacy Toolbox URLs still stored in Mongo, so historical image variants are not missed.
+
+`npm run importToolboxCardsDev` and `npm run importToolboxCardsProd` are R2-first: they upload (or confirm) every image belonging to a new card before inserting any new card documents. New cards therefore store public R2 URLs directly; the sync command remains the repair path for historical card and deck references.
 
 ## Change checklist
 

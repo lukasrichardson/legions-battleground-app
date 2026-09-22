@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { multiSelectCardHelper, selectCardHelper } from "../src/shared/utils";
 import { renderNumberthSuffix } from "../src/server/utils/string.utils";
+import { appendQueryParams } from "../src/client/utils/string.util";
 
 describe("card selection helpers", () => {
   const first = { id: "first" };
@@ -28,5 +29,14 @@ describe("renderNumberthSuffix", () => {
     expect(renderNumberthSuffix(12)).toBe("th");
     expect(renderNumberthSuffix(13)).toBe("th");
     expect(renderNumberthSuffix(21)).toBe("st");
+  });
+});
+
+describe("card-filter query encoding", () => {
+  it("sends every selected S/R/L status to the cards endpoint", () => {
+    const url = appendQueryParams("https://app.example/api/cards", {
+      srlStatus: ["suspended", "limited"],
+    });
+    expect(new URL(url).searchParams.getAll("srlStatus")).toEqual(["suspended", "limited"]);
   });
 });
