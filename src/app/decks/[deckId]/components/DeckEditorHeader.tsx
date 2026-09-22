@@ -87,10 +87,7 @@ export default function DeckEditorHeader({
   const isMobile = useIsMobile();
   return (
     <div className="space-y-1">
-      <div className="text-center">
-        {!isMobile ? <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
-          Deck Editor
-        </h1> : <div className="w-full h-1"></div>}
+      <div className="text-center flex flex-row-reverse justify-end">
         {!isMobile && (<span className="text-sm text-gray-400">Click or Drag to add / remove cards from deck</span>)}
         <div className="flex items-center justify-center gap-1 flex-wrap">
           <Select value={deck?._id?.toString()} onValueChange={handleDeckChange} disabled={loading}>

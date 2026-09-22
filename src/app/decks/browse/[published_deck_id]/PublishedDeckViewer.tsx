@@ -42,8 +42,8 @@ export default function PublishedDeckViewer() {
   }
   return (
     <FullPage showBreadcrumbs={true}>
-      {deck && <div className="pt-10">
-        <div className="w-full flex justify-center items-center gap-x-3 gap-y-1 flex-wrap text-sm">
+      {deck && <div>
+        <div className="w-full flex justify-center items-center gap-x-3 gap-y-1 flex-wrap text-sm sm:text-lg">
           <span className="text-white font-medium">{deck.name}</span>
           <span className="text-white/70">{deck.legion}</span>
           <span className="text-white/50">By {deck.author}</span>

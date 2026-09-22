@@ -265,13 +265,13 @@ export default function SearchPane({
       <CardContent className="p-2 pt-0 h-full flex flex-col overflow-hidden">
         {/* Search and Filters - Compact for mobile */}
         <div className="space-y-1 mb-2">
-          <label htmlFor="search-input" className="text-xs">Search</label>
+          {/* <label htmlFor="search-input" className="text-xs">Search</label> */}
           <Input
             id="search-input"
             value={query}
             onChange={handleSearchChange}
             placeholder="Search cards..."
-            className="bg-white/10 border-white/20 text-white placeholder-gray-400 h-6 text-xs"
+            className="bg-white/10 border-white/20 text-white h-6 text-xs placeholder:text-white/50"
           />
 
           {/* Only show filters on larger screens to save space on mobile */}

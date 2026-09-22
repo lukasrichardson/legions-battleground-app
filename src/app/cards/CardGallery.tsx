@@ -10,12 +10,12 @@ export const CardGallery = () => {
 
   return (
     <FullPage showBreadcrumbs={true}>
-      <div className="text-center h-[10%]">
+      {/* <div className="text-center h-[10%]">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
           Card Gallery
         </h1>
-      </div>
-      <div className="h-[90%] w-[100%] flex">
+      </div> */}
+      <div className="h-full w-full flex">
         <div className="w-full lg:w-[80%]">
           <SearchPane
             setHoveredCard={setHoveredCard}

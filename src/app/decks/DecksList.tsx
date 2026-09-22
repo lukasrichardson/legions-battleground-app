@@ -45,11 +45,6 @@ export const DecksList = () => {
         <CardHeader className="p-4 pb-2">
           <CardTitle className="flex items-center justify-start text-lg">
             <span className="flex items-center gap-2 text-sm">
-              <div className="w-5 h-5 bg-green-500 rounded-lg flex items-center justify-center">
-                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
               Your Decks
             </span>
             <span className="text-sm text-gray-400 mx-2">

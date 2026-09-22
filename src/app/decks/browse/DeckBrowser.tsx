@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FullPage from "@/app/components/FullPage";
 import { MultiSelect } from "@/client/ui/multiselect";
-import useIsMobile from "@/client/hooks/useIsMobile";
 
 export default function DeckBrowser() {
   const router = useRouter();
@@ -28,17 +27,10 @@ export default function DeckBrowser() {
     if (!deckId) return;
     router.push("/decks/browse/" + deckId);
   }
-  const isMobile = useIsMobile();
   return (
     <FullPage showBreadcrumbs={true}>
-      {isMobile && (
-        <div className="w-full h-6"></div>
-      )}
       <div className="text-center mb-2">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
-          Published Decks
-        </h1>
-        <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
+        <p className="text-sm sm:text-lg text-gray-300 max-w-2xl mx-auto">
           Browse and Copy decks published by the community
         </p>
       </div>
@@ -47,11 +39,6 @@ export default function DeckBrowser() {
           <CardHeader className="p-4 pb-2">
             <CardTitle className="flex items-center justify-start text-lg">
               <span className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-green-500 rounded-lg flex items-center justify-center">
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
                 Published Decks
               </span>
               <span className="text-sm text-gray-400 mx-2">
