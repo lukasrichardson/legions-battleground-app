@@ -1,7 +1,17 @@
 "use client";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { Button } from "@/client/ui/button";
-export default function AuthButtons() {
+import { cn } from "@/client/lib/utils";
+
+type AuthButtonsProps = {
+  signInLabel?: string;
+  signInClassName?: string;
+};
+
+export default function AuthButtons({
+  signInLabel = "Sign in",
+  signInClassName,
+}: AuthButtonsProps) {
   const { data: session, status } = useSession();
   const loading = status === "loading";
 
@@ -15,8 +25,8 @@ export default function AuthButtons() {
       </Button>
     </div>
   ) : (
-    <Button className="bg-white/10 text-white" onClick={() => signIn()}>
-      Sign in
+    <Button className={cn("bg-white/10 text-white", signInClassName)} onClick={() => signIn()}>
+      {signInLabel}
     </Button>
   );
 }

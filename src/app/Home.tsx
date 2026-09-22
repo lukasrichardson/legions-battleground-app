@@ -13,6 +13,7 @@ import FullPage from "./components/FullPage";
 import PerformanceDashboard from "./components/Modals/PerformanceDashboard";
 import useBackgroundPreload from "@/client/hooks/useBackgroundPreload";
 import useIsMobile from "@/client/hooks/useIsMobile";
+import { Swords } from "lucide-react";
 
 const HomeConstants = {
   HomeTitle: "Legions Battleground",
@@ -43,7 +44,7 @@ const renderQuickActionCard = ({
         </div>
         {title}
       </CardTitle>
-      <CardDescription className="text-gray-300 text-sm">
+      <CardDescription className="text-left text-gray-300 text-sm">
         {description}
       </CardDescription>
     </CardHeader>
@@ -56,7 +57,7 @@ export default function Home() {
   const router = useRouter();
   const [showPerformanceDashboard, setShowPerformanceDashboard] = useState(false);
 
-  const {data: session} = useSession();
+  const {data: session, status: sessionStatus} = useSession();
 
   const handleCreateGame = () => {
     dispatch(setCreateRoomModalOpen(true));
@@ -112,8 +113,49 @@ export default function Home() {
               {HomeDescription}{"   "}
             <span className="text-green-500">Powered By <a className="!underline" href="https://api.legionstoolbox.com" target="_blank" rel="noopener noreferrer">LegionsToolbox.com</a></span>
             </p>
-            <AuthButtons />
+            {session && <AuthButtons />}
           </div>
+
+          {sessionStatus !== "loading" && !session && (
+            <section className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6 text-center">
+              <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                {renderQuickActionCard({
+                  title: "Card Gallery",
+                  description: "Search & Filter all cards",
+                  icon: <div className="w-6 h-6 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2m0 0V5a2 2 0 00-2-2h-6a2 2 0 00-2 2v2M7 7h10" />
+                    </svg>
+                  </div>,
+                  onClick: handleCardsClick,
+                })}
+                {renderQuickActionCard({
+                  title: BrowseDecksText,
+                  description: "Browse published decklists",
+                  icon: <div className="w-6 h-6 bg-pink-500 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2m0 0V5a2 2 0 00-2-2h-6a2 2 0 00-2 2v2M7 7h10" />
+                    </svg>
+                  </div>,
+                  onClick: handleBrowseDecksClick,
+                })}
+              </div>
+
+              <Card className="w-full max-w-2xl border-white/20 bg-slate-950/30 text-white">
+                <CardContent className="flex flex-col items-center gap-3 p-5 text-center">
+                  <Swords className="h-8 w-8 shrink-0 text-green-300" aria-hidden="true" />
+                  <div>
+                    <h3 className="font-semibold">Continue with your Google, Discord, or GitHub account.</h3>
+                    <p className="mt-1 text-sm text-gray-300">Sign in to create decks, import decks, and create/join games</p>
+                  </div>
+                  <AuthButtons
+                    signInLabel="Enter The Battleground"
+                    signInClassName="bg-green-600 hover:bg-green-500 text-white"
+                  />
+                </CardContent>
+              </Card>
+            </section>
+          )}
 
           {session &&<>
             {/* Quick Actions */}
