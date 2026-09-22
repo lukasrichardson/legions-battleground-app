@@ -37,6 +37,13 @@ npm run syncCardImages -- --apply
 npm run syncCardImages -- --apply --refresh
 ```
 
+For legacy `published_decks.cards_in_deck[].featured_image` references, use the separate Mongo-only migration after the R2 objects exist:
+
+```bash
+npm run syncPublishedDeckImages
+npm run syncPublishedDeckImages -- --apply
+```
+
 Each Toolbox image is stored as `cards/<filename>`, for example:
 
 ```text

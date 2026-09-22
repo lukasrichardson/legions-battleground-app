@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/client-s3";
 
 export const TOOLBOX_IMAGE_HOST = "api.legionstoolbox.com";
+export const TOOLBOX_LEGACY_IMAGE_HOST = "legionstoolbox.com";
 export const TOOLBOX_UPLOADS_PREFIX = "/wp-content/uploads/";
 const IMAGE_CONTENT_TYPE = /^image\/(avif|jpeg|png|webp)$/i;
 
@@ -35,7 +36,10 @@ export function toR2ObjectKey(sourceUrl: string): string | null {
     return null;
   }
 
-  if (url.protocol !== "https:" || url.hostname !== TOOLBOX_IMAGE_HOST) return null;
+  if (
+    url.protocol !== "https:"
+    || ![TOOLBOX_IMAGE_HOST, TOOLBOX_LEGACY_IMAGE_HOST].includes(url.hostname)
+  ) return null;
   if (!url.pathname.startsWith(TOOLBOX_UPLOADS_PREFIX)) return null;
   if (!/\.(avif|jpe?g|png|webp)$/i.test(url.pathname)) return null;
 

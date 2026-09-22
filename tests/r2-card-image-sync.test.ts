@@ -7,6 +7,11 @@ describe("R2 card-image keys", () => {
     expect(toR2ObjectKey(url)).toBe("cards/RVL-128-450x616.png");
   });
 
+  it("maps legacy Toolbox website URLs to the same stable R2 key", () => {
+    expect(toR2ObjectKey("https://legionstoolbox.com/wp-content/uploads/2024/05/Frozen-Adventurer-Glaciana-450x616.png"))
+      .toBe("cards/Frozen-Adventurer-Glaciana-450x616.png");
+  });
+
   it("rejects non-Toolbox URLs and non-image uploads", () => {
     expect(toR2ObjectKey("https://example.com/wp-content/uploads/card.png")).toBeNull();
     expect(toR2ObjectKey("https://api.legionstoolbox.com/wp-content/uploads/card.pdf")).toBeNull();

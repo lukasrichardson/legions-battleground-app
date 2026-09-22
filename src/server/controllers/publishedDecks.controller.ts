@@ -12,7 +12,7 @@ export default function publishedDecksController(app: ExpressApp) {
   }
   );
 
-  app.get("/api/published_decks/filterOptions", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/published_decks/filterOptions", optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
     const filterOptions = await getPublishedDeckFilterOptions();
     return res.send({filterOptions});
   }

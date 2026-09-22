@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { isPersonalDeckPath } from "./shared/utils/routeAccess";
 
 export async function proxy(req: NextRequest) {
 	const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 	const isAuth = !!token;
 
 	const { pathname } = req.nextUrl;
-  const localProtectedPaths = [/^\/decks(\/.*)?$/];
-	const prodProtectedPaths = [/^\/play(\/.*)?$/, /^\/decks(\/.*)?$/];
+  // Community decks are intentionally public. Personal decks and their editor remain private.
+  const localProtectedPaths = [isPersonalDeckPath];
+	const prodProtectedPaths = [/^\/play(\/.*)?$/, isPersonalDeckPath];
 	const protectedPaths = process.env.NODE_ENV === "production" ? prodProtectedPaths : localProtectedPaths;
-	const isProtected = protectedPaths.some((rx) => rx.test(pathname));
+	const isProtected = protectedPaths.some((path) => path instanceof RegExp ? path.test(pathname) : path(pathname));
 
 	if (isProtected && !isAuth) {
 		const signInUrl = new URL("/api/auth/signin", req.url);

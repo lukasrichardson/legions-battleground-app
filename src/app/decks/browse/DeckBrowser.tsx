@@ -22,7 +22,7 @@ export default function DeckBrowser() {
 
   useEffect(() => {
     fetchPublishedDecks(legion, setDecks);
-    fetchPublishedDeckFilterOptions(legion, (data: {legion: string[]}) => setFilterOptions(data));
+    fetchPublishedDeckFilterOptions((data: {legion: string[]}) => setFilterOptions(data));
   }, [legion])
   const handleDeckSelect = (deckId) => () => {
     if (!deckId) return;

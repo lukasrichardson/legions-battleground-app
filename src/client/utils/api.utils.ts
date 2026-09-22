@@ -113,11 +113,11 @@ export const fetchDeckFilterOptions = async (callback: (data: unknown) => void) 
     console.log(err);
   }
 }
-export const fetchPublishedDeckFilterOptions = async (legion: string[] | null, callback: (data: unknown) => void) => {
+export const fetchPublishedDeckFilterOptions = async (callback: (data: unknown) => void) => {
   const URL = window.location.origin + publishedDecksPath + '/filterOptions';
   try {
     const res = await axios.get(URL);
-    callback?.(res?.data);
+    callback?.(res?.data?.filterOptions);
   } catch (err) {
     console.log(err);
   }
