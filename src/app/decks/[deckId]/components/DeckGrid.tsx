@@ -6,6 +6,7 @@ import { CARD_TYPE } from "@/shared/enums/CardType";
 import useClientSettings from "@/client/hooks/useClientSettings";
 import DeckSection from "./DeckSection";
 import useIsMobile from "@/client/hooks/useIsMobile";
+import { useDrop } from "react-dnd";
 
 const renderSectionStructure = (name: string, cards: CardInDeck[], renderSubSection: (cards: CardInDeck[]) => JSX.Element) => (
   cards && cards.length > 0 && (
@@ -28,6 +29,8 @@ export default function DeckGrid({
   handleSortClick,
   saving,
   handleAddCardToDeck,
+  handleRemoveCardFromSideDeck = () => null,
+  handleAddCardToSideDeck = () => null,
   readOnly = false
 }: {
   deck: DeckResponse | null,
@@ -36,6 +39,8 @@ export default function DeckGrid({
   handleSortClick: () => void,
   saving: boolean,
   handleAddCardToDeck: (card: CardDocument) => void,
+  handleRemoveCardFromSideDeck?: (card: CardDocument) => void,
+  handleAddCardToSideDeck?: (card: CardDocument) => void,
   readOnly?: boolean
 }) {
 
@@ -51,18 +56,18 @@ export default function DeckGrid({
 
   const { deckbuild_groupedView, setDeckbuildGroupedView } = useClientSettings();
 
-  const handleDeckCardClick = async (e, card) => {
+  const handleDeckCardClick = (e, card) => {
     e.preventDefault();
     handleRemoveCardFromDeck(card);
   }
 
-  const renderSection = (cards) => (
+  const renderSection = (cards, removeCard = handleDeckCardClick, addCard = handleAddCardToDeck) => (
     <DeckSection
       cards={cards}
-      removeCardFromDeck={handleDeckCardClick}
+      removeCardFromDeck={removeCard}
       setHoveredCard={setHoveredCard}
       useGroupedView={deckbuild_groupedView}
-      addCardToDeck={handleAddCardToDeck}
+      addCardToDeck={addCard}
       readOnly={readOnly}
     />
   )
@@ -71,15 +76,37 @@ export default function DeckGrid({
     setDeckbuildGroupedView(!deckbuild_groupedView);
   }
   const isMobile = useIsMobile();
+  const sideDeck = deck?.side_deck ?? [];
+  const handleSideDeckCardClick = (e, card) => {
+    e.preventDefault();
+    handleRemoveCardFromSideDeck(card);
+  }
+  const [{ isOverSideDeck, canDropSideDeck }, sideDeckDrop] = useDrop(() => ({
+    accept: "cardFromSearch",
+    canDrop: () => !readOnly,
+    drop: (card: CardDocument) => {
+      handleAddCardToSideDeck(card);
+      return { target: "side-deck" };
+    },
+    collect: (monitor) => ({
+      isOverSideDeck: monitor.isOver({ shallow: true }),
+      canDropSideDeck: monitor.canDrop(),
+    }),
+  }), [handleAddCardToSideDeck, readOnly]);
+  const attachSideDeckDropTarget = (node: HTMLDivElement | null) => {
+    sideDeckDrop(node);
+  };
   return (
-    <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
+    <div className="flex h-full min-h-0 flex-col gap-2">
+    <Card className="min-h-0 flex-1 bg-white/10 border-white/20 text-white flex flex-col">
       <CardHeader className="p-2 pb-1">
         <CardTitle className="flex items-center justify-between text-xs">
           <span className="flex items-center gap-1">
             Main: {mainDeck?.length}
             {!isMobile &&(<><span>|  Warriors: {warriors?.length}</span>
             <span>|  Unified: {unifieds?.length}</span>
-            <span>|  Fortified: {fortifieds?.length}</span></>)}
+            <span>|  Fortified: {fortifieds?.length}</span>
+            <span>|  Side: {sideDeck?.length}</span></>)}
           </span>
           <div className="flex items-center gap-2">
             {!readOnly && <Button
@@ -147,5 +174,26 @@ export default function DeckGrid({
         </div>
       </CardContent>
     </Card>
+    <div ref={attachSideDeckDropTarget} className="shrink-0">
+      <Card className={`relative border-white/20 bg-slate-950/35 text-white ${isOverSideDeck ? "border-purple-300 bg-purple-900/40" : ""}`}>
+        {canDropSideDeck && <div className="pointer-events-none absolute inset-0 z-10 rounded-lg border-2 border-dashed border-purple-200" />}
+        <CardHeader className="p-2 pb-1">
+          <CardTitle className="flex items-center justify-between text-xs sm:text-sm">
+            <span>Side Deck <span className="text-purple-200">{sideDeck.length}/15</span></span>
+            <span className="text-[10px] font-normal text-white/60">Deck-building only</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="max-h-40 overflow-y-auto p-2 pt-0">
+          {sideDeck.length ? (
+            <div className="flex flex-wrap">
+              {renderSection(sideDeck, handleSideDeckCardClick, handleAddCardToSideDeck)}
+            </div>
+          ) : (
+            <p className="py-2 text-center text-xs text-white/55">Add up to 15 eligible cards for match preparation.</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+    </div>
   );
 }

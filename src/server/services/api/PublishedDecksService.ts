@@ -2,6 +2,7 @@ import { getDatabase } from "@/server/utils/database.util";
 import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import { ObjectId } from "mongodb";
 import { getDeckById } from "./DecksService";
+import { normalizeDeck } from "@/shared/deckComposition";
 
 export const insertOnePublishedDeck = async (deck: Omit<PublishedDeck, "_id">): Promise<PublishedDeck> => {
   const db = getDatabase();
@@ -14,14 +15,14 @@ export const getPublishedDeckById = async (deckId: string): Promise<PublishedDec
   const db = getDatabase();
   const query = { _id: new ObjectId(deckId) };
   const deck = await db.collection<PublishedDeck>("published_decks").findOne(query);
-  return deck;
+  return deck ? normalizeDeck(deck) : null;
 }
 
 export const getPublishedDeckByName = async (deckName: string): Promise<PublishedDeck | null> => {
   const db = getDatabase();
   const query = { name: deckName };
   const deck = await db.collection<PublishedDeck>("published_decks").findOne(query);
-  return deck;
+  return deck ? normalizeDeck(deck) : null;
 }
 
 export const getPublishedDecks = async (legion): Promise<PublishedDeck[]> => {
@@ -33,7 +34,7 @@ export const getPublishedDecks = async (legion): Promise<PublishedDeck[]> => {
   }
   const db = getDatabase();
   const decks = await db.collection<PublishedDeck>("published_decks").find(query).toArray();
-  return decks;
+  return decks.map(normalizeDeck);
 }
 
 export const getPublishedDeckFilterOptions = async (): Promise<{ legion: string[] }> => {
@@ -53,7 +54,7 @@ export const publishDeck = async (user, deckId: string): Promise<PublishedDeck> 
   }
 
   const newPublishedDeck: PublishedDeck = {
-    ...existingDeck,
+    ...normalizeDeck(existingDeck),
     name: existingDeck.name,
     published_date: new Date(),
     author: user.name || "Unknown Author",

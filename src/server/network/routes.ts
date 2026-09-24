@@ -10,6 +10,7 @@ import { BanlistStatus } from '../../shared/interfaces/BanlistItem.mongo';
 import { ExpressApp } from '../interfaces/ExpressTypes';
 import decksController from '../controllers/decks.controller';
 import publishedDecksController from '../controllers/publishedDecks.controller';
+import { DeckValidationError, validateDeckComposition } from "../services/api/DeckValidationService";
 
 export const routes = (app: ExpressApp) => {
   app.get('/healthz', (req: Request, res: Response) => {
@@ -182,6 +183,7 @@ export const routes = (app: ExpressApp) => {
       id: req.body.id,
       name: req.body.name,
       cards_in_deck: req.body.cards_in_deck,
+      side_deck: [],
       legion,
       subtitle: req.body.subtitle,
       userId: req.user!.id,
@@ -202,6 +204,12 @@ export const routes = (app: ExpressApp) => {
       }
       newDeck.cards_in_deck[i] = mongoCard;
       if (i === newDeck.cards_in_deck.length - 1) {
+        try {
+          await validateDeckComposition(newDeck as DeckResponse);
+        } catch (error) {
+          if (error instanceof DeckValidationError) return res.status(400).send(error.message);
+          throw error;
+        }
         const result = await db.collection("decks").insertOne(newDeck);
         return res.status(200).send({ _id: result.insertedId, ...newDeck });
       }

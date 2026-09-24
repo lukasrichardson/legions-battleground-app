@@ -16,9 +16,9 @@ The homepage background preload is intentionally limited to the first 50 cards. 
 
 ## Migration
 
-Run `npm run syncCardImages` for a non-writing report, then `npm run syncCardImages -- --apply` to upload missing R2 objects and update `cards.featured_image` plus `decks.cards_in_deck[].featured_image` in the configured Mongo database. The script scans both the current Toolbox catalogue and legacy Toolbox URLs still stored in Mongo, so historical image variants are not missed.
+Run `npm run syncCardImages` for a non-writing report, then `npm run syncCardImages -- --apply` to upload missing R2 objects and update `cards.featured_image` plus each embedded card's `featured_image` in `decks.cards_in_deck[]` and `decks.side_deck[]` in the configured Mongo database. A side deck has no image of its own. The script scans both the current Toolbox catalogue and legacy Toolbox URLs still stored in Mongo, so historical image variants are not missed.
 
-Published decks are migrated separately: run `npm run syncPublishedDeckImages` to report legacy Toolbox URLs in `published_decks.cards_in_deck[].featured_image`, then `npm run syncPublishedDeckImages -- --apply` to replace them with their public R2 URLs. It recognizes both `legionstoolbox.com` and `api.legionstoolbox.com`. This command does not upload images; run the card-image sync first so the mapped R2 objects exist. It requires `MONGO_URL`, `MONGO_DB_NAME`, and `R2_PUBLIC_BASE_URL` in both modes.
+Published decks are migrated separately: run `npm run syncPublishedDeckImages` to report legacy Toolbox URLs on embedded cards in `published_decks.cards_in_deck[]` and `published_decks.side_deck[]`, then `npm run syncPublishedDeckImages -- --apply` to replace them with their public R2 URLs. It recognizes both `legionstoolbox.com` and `api.legionstoolbox.com`. This command does not upload images; run the card-image sync first so the mapped R2 objects exist. It requires `MONGO_URL`, `MONGO_DB_NAME`, and `R2_PUBLIC_BASE_URL` in both modes.
 
 `npm run importToolboxCardsDev` and `npm run importToolboxCardsProd` are R2-first: they upload (or confirm) every image belonging to a new card before inserting any new card documents. New cards therefore store public R2 URLs directly; the sync command remains the repair path for historical card and deck references.
 

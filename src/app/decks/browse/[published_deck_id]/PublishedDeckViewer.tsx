@@ -48,7 +48,8 @@ export default function PublishedDeckViewer() {
           <span className="text-white/70">{deck.legion}</span>
           <span className="text-white/50">By {deck.author}</span>
           <span className="text-white/50">Published {new Date(deck.published_date).toLocaleDateString()}</span>
-          <span className="text-white/50">{deck.cards_in_deck.length} cards</span>
+          <span className="text-white/50">{deck.cards_in_deck.length} main cards</span>
+          <span className="text-white/50">{(deck.side_deck ?? []).length}/15 side cards</span>
           <Button
             onClick={handleCopyDeck}
             disabled={status === "loading"}

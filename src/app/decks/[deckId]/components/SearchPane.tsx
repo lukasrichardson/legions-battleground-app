@@ -17,12 +17,16 @@ export default function SearchPane({
   setHoveredCard,
   handleAddCardToDeck,
   deckLegion,
-  gallery = false
+  gallery = false,
+  addTarget = "main",
+  onAddTargetChange,
 }: {
   setHoveredCard: (card: CardDocument | null) => void,
   handleAddCardToDeck: (card: CardDocument) => void,
   deckLegion: string | null,
-  gallery?: boolean
+  gallery?: boolean,
+  addTarget?: "main" | "side",
+  onAddTargetChange?: (target: "main" | "side") => void,
 }) {
   const [legion, setLegion] = useState<string[]>([]);
   const [query, setQuery] = useState("");
@@ -265,6 +269,17 @@ export default function SearchPane({
       <CardContent className="p-2 pt-0 h-full flex flex-col overflow-hidden">
         {/* Search and Filters - Compact for mobile */}
         <div className="space-y-1 mb-2">
+          {onAddTargetChange && (
+            <div className="flex items-center gap-1 text-xs text-white/80">
+              <span className="mr-1">Add to:</span>
+              <Button type="button" size="sm" onClick={() => onAddTargetChange("main")} className={`h-6 px-2 text-xs ${addTarget === "main" ? "bg-blue-600 hover:bg-blue-500" : "bg-white/10 hover:bg-white/20"}`}>
+                Main Deck
+              </Button>
+              <Button type="button" size="sm" onClick={() => onAddTargetChange("side")} className={`h-6 px-2 text-xs ${addTarget === "side" ? "bg-purple-600 hover:bg-purple-500" : "bg-white/10 hover:bg-white/20"}`}>
+                Side Deck
+              </Button>
+            </div>
+          )}
           {/* <label htmlFor="search-input" className="text-xs">Search</label> */}
           <Input
             id="search-input"

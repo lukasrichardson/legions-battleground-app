@@ -3,6 +3,7 @@ import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import { getPublishedDeckById } from "./PublishedDecksService";
 import { ObjectId } from "mongodb";
+import { normalizeDeck } from "@/shared/deckComposition";
 
 export const insertOneDeck = async (deck: Omit<DeckResponse, "_id">): Promise<DeckResponse> => {
   const db = getDatabase();
@@ -22,7 +23,7 @@ export const getDecksForPlayer = async (user, legion): Promise<DeckResponse[]> =
   }
 
   const decks = await db.collection<DeckResponse>("decks").find(query).toArray();
-  return decks.reverse();
+  return decks.reverse().map(normalizeDeck);
 }
 
 export const getFilterOptionsForPlayerDecks = async (user): Promise<string[]> => {
@@ -46,7 +47,7 @@ export const getDeckById = async (user, deckId: string): Promise<DeckResponse | 
       : { id: deckId };
     deck = await db.collection("decks").findOne(query);
   }
-  return deck;
+  return deck ? normalizeDeck(deck) : null;
 }
 
 export const getDeckByName = async (user, deckName: string): Promise<DeckResponse | null> => {
@@ -86,7 +87,7 @@ export const duplicateDeckById = async (user, deckId: string): Promise<DeckRespo
     throw new Error("Deck not found or you don't have permission to duplicate this deck");
   }
   const newDeck: DeckResponse = {
-    ...existingDeck,
+    ...normalizeDeck(existingDeck),
     name: existingDeck.name + " Copy",
     created_at: new Date(),
     updated_at: new Date(),
@@ -117,6 +118,7 @@ export const createNewDeck = async (user, deckData: { name: string; subtitle?: s
     legion: deckData.legion,
     userId: user.id,
     cards_in_deck: [],
+    side_deck: [],
     created_at: new Date(),
     updated_at: new Date(),
   };
@@ -131,7 +133,7 @@ export const copyPublishedDeck = async (user, publishedDeckId: string): Promise<
     throw new Error("Published deck not found");
   }
   const newDeck: PublishedDeck = {
-    ...existingDeck,
+    ...normalizeDeck(existingDeck),
     name: existingDeck.name + " Copy",
     userId: user.id,
     created_at: new Date(),

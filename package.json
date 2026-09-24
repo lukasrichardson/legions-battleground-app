@@ -8,6 +8,8 @@
     "importToolboxCardsDev": "cross-env MONGO_DB_NAME=test ts-node --project tsconfig.server.json -r dotenv/config scripts/fetchCards.ts",
     "syncCardImages": "ts-node --project tsconfig.server.json -r dotenv/config scripts/syncCardImagesToR2.ts",
     "syncPublishedDeckImages": "ts-node --project tsconfig.server.json -r dotenv/config scripts/syncPublishedDeckImagesToR2.ts",
+    "backfillSideDecks:dev": "cross-env MONGO_DB_NAME=test ts-node --project tsconfig.server.json -r dotenv/config scripts/backfillSideDecks.ts",
+    "backfillSideDecks:prod": "cross-env MONGO_DB_NAME=legions_battleground_db ts-node --project tsconfig.server.json -r dotenv/config scripts/backfillSideDecks.ts",
     "dev": "cross-env NODE_ENV=development nodemon",
     "build": "next build && tsc --project tsconfig.server.json && tsc-alias -p tsconfig.server.json",
     "start": "cross-env NODE_ENV=production node dist/server/server.js",

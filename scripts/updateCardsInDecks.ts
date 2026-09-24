@@ -33,7 +33,7 @@ const main = async () => {
 
     for (const deck of decksInMongo) {
       let updated = false;
-      const updatedCards = await Promise.all(deck.cards_in_deck.map(async (card: { id: string; featured_image?: string }) => {
+      const refreshCards = async (cards: { id: string; featured_image?: string }[] = []) => Promise.all(cards.map(async (card) => {
         const cardInDb = await database.collection("cards").findOne({ id: card.id });
         if (cardInDb && cardInDb.featured_image && card.featured_image !== cardInDb.featured_image) {
           updated = true;
@@ -44,11 +44,13 @@ const main = async () => {
         }
         return card;
       }));
+      const updatedCards = await refreshCards(deck.cards_in_deck);
+      const updatedSideDeck = await refreshCards(deck.side_deck);
 
       if (updated) {
         await database.collection("decks").updateOne(
           { _id: deck._id },
-          { $set: { cards_in_deck: updatedCards }, $unset: { image: "" } },
+          { $set: { cards_in_deck: updatedCards, side_deck: updatedSideDeck }, $unset: { image: "" } },
         );
         console.log(`Updated deck ${deck.name} (${deck._id}) with new card images.`);
       }

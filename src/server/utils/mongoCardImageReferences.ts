@@ -19,9 +19,10 @@ export async function getStoredToolboxImageUrls(database: Db): Promise<string[]>
       { $group: { _id: "$featured_image" } },
     ]).toArray(),
     database.collection("decks").aggregate<{ _id: string }>([
-      { $unwind: "$cards_in_deck" },
-      { $match: { "cards_in_deck.featured_image": toolboxUrl } },
-      { $group: { _id: "$cards_in_deck.featured_image" } },
+      { $project: { cards: { $concatArrays: ["$cards_in_deck", { $ifNull: ["$side_deck", []] }] } } },
+      { $unwind: "$cards" },
+      { $match: { "cards.featured_image": toolboxUrl } },
+      { $group: { _id: "$cards.featured_image" } },
     ]).toArray(),
   ]);
   return [...new Set([...cardUrls, ...deckUrls].map(({ _id }) => _id).filter(
@@ -39,10 +40,19 @@ export async function updateCardImageReferences(
     { featured_image: sourceUrl },
     { $set: { featured_image: publicR2Url } },
   );
-  const decks = await database.collection("decks").updateMany(
+  const mainDeckCardReferences = await database.collection("decks").updateMany(
     { "cards_in_deck.featured_image": sourceUrl },
     { $set: { "cards_in_deck.$[card].featured_image": publicR2Url } },
     { arrayFilters: [{ "card.featured_image": sourceUrl }] },
   );
-  return { cards: cards.modifiedCount, decks: decks.modifiedCount };
+  // `side_deck` is an array of embedded cards; this updates each matching card's image URL.
+  const sideDeckCardReferences = await database.collection("decks").updateMany(
+    { "side_deck.featured_image": sourceUrl },
+    { $set: { "side_deck.$[card].featured_image": publicR2Url } },
+    { arrayFilters: [{ "card.featured_image": sourceUrl }] },
+  );
+  return {
+    cards: cards.modifiedCount,
+    decks: mainDeckCardReferences.modifiedCount + sideDeckCardReferences.modifiedCount,
+  };
 }

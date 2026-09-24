@@ -15,11 +15,12 @@ export const fetchCards = async ({legion, query, page, pageSize, type, rarity, s
 
 //decks
 
-export const patchDeckById = async (deckId: string, updatedDeck: unknown, callback: (data: unknown) => void) => {
+export const patchDeckById = async (deckId: string, updatedDeck: unknown, callback: (data: unknown) => void, onError?: (message: string) => void) => {
   try {
     const res = await axios.patch(`/api/decks/`+deckId, updatedDeck);
     callback?.(res?.data);
   } catch (err) {
+    onError?.(axios.isAxiosError(err) ? err.response?.data || "Unable to save deck." : "Unable to save deck.");
     console.log(err);
   }
 }

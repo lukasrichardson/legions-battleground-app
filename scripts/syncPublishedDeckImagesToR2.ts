@@ -62,14 +62,20 @@ async function main() {
     const database = mongoClient.db(required("MONGO_DB_NAME"));
     const publishedDecks = database.collection<Document>("published_decks");
     const decks = await publishedDecks.find(
-      { "cards_in_deck.featured_image": /^https:\/\/(api\.)?legionstoolbox\.com\// },
-      { projection: { _id: 1, cards_in_deck: 1 } },
+      { $or: [
+        { "cards_in_deck.featured_image": /^https:\/\/(api\.)?legionstoolbox\.com\// },
+        { "side_deck.featured_image": /^https:\/\/(api\.)?legionstoolbox\.com\// },
+      ] },
+      { projection: { _id: 1, cards_in_deck: 1, side_deck: 1 } },
     ).toArray();
 
     for (const deck of decks) {
       const deckId = String(deck._id);
       const sourceUrls = new Set<string>();
-      for (const card of Array.isArray(deck.cards_in_deck) ? deck.cards_in_deck : []) {
+      for (const card of [
+        ...(Array.isArray(deck.cards_in_deck) ? deck.cards_in_deck : []),
+        ...(Array.isArray(deck.side_deck) ? deck.side_deck : []),
+      ]) {
         if (!isToolboxUrl(card?.featured_image)) continue;
         const objectKey = toR2ObjectKey(card.featured_image);
         if (!objectKey) {
@@ -92,13 +98,22 @@ async function main() {
     console.log(`${options.apply ? "Syncing" : "Dry run for"} ${report.matchingCards} card images across ${report.matchingDecks} published decks.`);
     if (options.apply && report.updates.length && !report.unsupportedUrls.length) {
       const deckIds = new Map(decks.map((deck) => [String(deck._id), deck._id]));
-      const writes = report.updates.map(({ deckId, sourceUrl, r2Url }) => ({
-        updateOne: {
-          filter: { _id: deckIds.get(deckId) },
-          update: { $set: { "cards_in_deck.$[card].featured_image": r2Url } },
-          arrayFilters: [{ "card.featured_image": sourceUrl }],
+      const writes = report.updates.flatMap(({ deckId, sourceUrl, r2Url }) => [
+        {
+          updateOne: {
+            filter: { _id: deckIds.get(deckId), "cards_in_deck.featured_image": sourceUrl },
+            update: { $set: { "cards_in_deck.$[card].featured_image": r2Url } },
+            arrayFilters: [{ "card.featured_image": sourceUrl }],
+          },
         },
-      }));
+        {
+          updateOne: {
+            filter: { _id: deckIds.get(deckId), "side_deck.featured_image": sourceUrl },
+            update: { $set: { "side_deck.$[card].featured_image": r2Url } },
+            arrayFilters: [{ "card.featured_image": sourceUrl }],
+          },
+        },
+      ]);
       const result = await publishedDecks.bulkWrite(writes, { ordered: false });
       console.log(`Updated ${result.modifiedCount} published-deck document(s).`);
     }
