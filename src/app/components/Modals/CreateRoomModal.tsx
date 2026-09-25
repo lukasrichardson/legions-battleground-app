@@ -14,7 +14,7 @@ import { useAuth } from "@/client/hooks/useAuth";
 const ModalConstants = {
   LoadingText: "Creating your game...",
   RoomNameLabelText: "Room Name",
-  YourNameLabelText: "Your Name",
+  YourNameLabelText: "Battleground username",
   DeckLabelText: "Deck",
   SandboxModeLabelText: "Sandbox Mode",
   CreateGameBtnText: "Create New Game",
@@ -26,7 +26,7 @@ export default function CreateRoomModal() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const modalsState = useAppSelector((state) => state.modalsState);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { createRoomModalOpen } = modalsState;
   const [roomName, setRoomName] = useState("");
   const [playerName, setPlayerName] = useState("");
@@ -37,6 +37,7 @@ export default function CreateRoomModal() {
   const [decks, setDecks] = useState<{ name: string, _id: string }[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const auth = useAuth();
 
   const {
     LoadingText,
@@ -61,14 +62,13 @@ export default function CreateRoomModal() {
     try {
       const res = await axios.post(`${window.location.origin}/createRoom`, {
         roomName,
-        playerName,
         sandboxMode,
         deckId,
         p2DeckId,
         roomPassword,
       });
-      const { roomName: newRoomName } = res.data;
-      router.push(`/play?room=${newRoomName}&playerName=${playerName}&deckId=${deckId}${roomPassword ? `&roomPassword=${roomPassword}` : ""}${p2DeckId ? `&p2DeckId=${p2DeckId}` : ""}`);
+      const { roomName: newRoomName, playerName: alias } = res.data;
+      router.push(`/play?room=${newRoomName}&playerName=${alias}&deckId=${deckId}${roomPassword ? `&roomPassword=${roomPassword}` : ""}${p2DeckId ? `&p2DeckId=${p2DeckId}` : ""}`);
       setRoomName("");
       setPlayerName("");
       setSandboxMode(false);
@@ -88,16 +88,23 @@ export default function CreateRoomModal() {
     }
   }
 
-  const getDecks = async () => {
+  const getDecks = () => {
     fetchDecks([],(param: { name: string, _id: string }[]) => { setDecks(param); setDeckId(param[0]?._id || ""); });
   }
 
   useEffect(() => {
+    if (!createRoomModalOpen) return;
     getDecks();
-    if (user?.name) {
-      setPlayerName(user.name);
-    }
-  }, [user]);
+    const loadAlias = async () => {
+      try {
+        const response = await axios.get("/api/me/alias");
+        setPlayerName(response.data.alias || "");
+      } catch {
+        setPlayerName("");
+      }
+    };
+    if (isAuthenticated) void loadAlias();
+  }, [createRoomModalOpen, isAuthenticated]);
 
   const onSandboxModeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSandboxMode(e.target.checked);
@@ -161,13 +168,11 @@ export default function CreateRoomModal() {
                 </label>
                 <Input
                   type="text"
-                  value={playerName}
-                  onChange={(e) => setPlayerName(e.target.value)}
+                  value={playerName || auth?.user?.name || ""}
+                  readOnly
                   name="playerName"
                   autoComplete="on"
                   className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500/20 h-12 transition-all duration-200"
-                  placeholder="Enter your name"
-                  required
                 />
               </div>
             </div>
@@ -291,7 +296,6 @@ export default function CreateRoomModal() {
       closeModal={() => {
         dispatch(setCreateRoomModalOpen(false));
         setRoomName("");
-        setPlayerName("");
         setSandboxMode(true);
         setDeckId("");
         setLoading(false);

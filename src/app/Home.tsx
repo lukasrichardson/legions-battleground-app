@@ -254,11 +254,14 @@ export default function Home() {
                       <div className="h-full overflow-x-auto overflow-y-auto">
                         <Table
                           className="min-w-[640px]"
-                          tableHeaders={["Room Name", "Players", "Sandbox Mode", "Password", "Action"]}
+                          tableHeaders={["Room Name", "Host", "Players", "Sandbox Mode", "Password", "Action"]}
                           tableData={(Object.values(rooms) as {id: string, players: object, sandboxMode: boolean, password: string}[]).map((room: {id: string, players: object, sandboxMode: boolean, password: string}) => [
                             <div className="flex items-center gap-2" key={room.id}>
                               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                               <span className="font-medium text-sm">{room.id}</span>
+                            </div>,
+                            <div className="flex items-center gap-2" key={room.id}>
+                              <span className="font-medium">{Object.values(room.players)?.[0]?.name || "Player"}</span>
                             </div>,
                             <div className="flex items-center gap-2" key={room.id}>
                               <span className="font-medium">{Object.values(room.players).length}</span>

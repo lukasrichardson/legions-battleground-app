@@ -3,6 +3,7 @@ import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import { ObjectId } from "mongodb";
 import { getDeckById } from "./DecksService";
 import { normalizeDeck } from "@/shared/deckComposition";
+import { getAliasForUser } from "./AliasService";
 
 export const insertOnePublishedDeck = async (deck: Omit<PublishedDeck, "_id">): Promise<PublishedDeck> => {
   const db = getDatabase();
@@ -67,12 +68,13 @@ export const publishDeck = async (user, deckId: string): Promise<PublishedDeck> 
   if (existingPublishedDeck) {
     throw new Error("A Published deck with this name already exists");
   }
+  const alias = await getAliasForUser(user.id);
 
   const newPublishedDeck: PublishedDeck = {
     ...normalizeDeck(existingDeck),
     name: existingDeck.name,
     published_date: new Date(),
-    author: user.name || "Unknown Author",
+    author: alias ?? user.name ?? user.email ?? "Unknown Author",
   };
   delete newPublishedDeck._id;
   const createdDeck = await insertOnePublishedDeck(newPublishedDeck);

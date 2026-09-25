@@ -1,6 +1,5 @@
 import { rooms } from './socketHandler';
 import { DeckResponse } from '../../shared/interfaces/DeckResponse';
-import { fetchPlayerDeckById } from '../utils/game.util';
 import { ObjectId } from 'mongodb';
 import {Request, Response} from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
@@ -12,6 +11,7 @@ import decksController from '../controllers/decks.controller';
 import publishedDecksController from '../controllers/publishedDecks.controller';
 import { DeckValidationError, validateDeckComposition } from "../services/api/DeckValidationService";
 import { parseCardPagination, parseCardSearch } from "../utils/queryValidation.util";
+import { AliasTakenError, AliasValidationError, deleteAliasForUser, getAliasForUser, setAliasForUser } from "../services/api/AliasService";
 
 export const routes = (app: ExpressApp) => {
   app.get('/healthz', (req: Request, res: Response) => {
@@ -19,27 +19,42 @@ export const routes = (app: ExpressApp) => {
     res.send('ok');
   });
   
-  app.post("/createRoom", async (req: Request, res: Response) => {
+  app.get("/api/me/alias", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    return res.send({ alias: await getAliasForUser(req.user!.id) });
+  });
+
+  app.put("/api/me/alias", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      return res.send({ alias: await setAliasForUser(req.user!.id, req.body?.alias) });
+    } catch (error) {
+      if (error instanceof AliasValidationError) return res.status(400).send({ error: error.message });
+      if (error instanceof AliasTakenError) return res.status(409).send({ error: error.message });
+      throw error;
+    }
+  });
+
+  app.delete("/api/me/alias", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    const fallbackPublicName = req.user!.name ?? req.user!.email ?? "Unknown Author";
+    await deleteAliasForUser(req.user!.id, fallbackPublicName);
+    return res.status(204).end();
+  });
+
+  app.post("/createRoom", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     if (!req.body.roomName) {
       return res.status(400).send("roomName is required");
     }
-    if (!req.body.playerName) {
-      return res.status(400).send("playerName is required");
-    }
+    const playerName = await getAliasForUser(req.user!.id) ?? req.user!.name ?? req.user!.email ?? "Player";
     if (rooms[req.body.roomName]) {
       return res.status(400).send("roomName " + req.body.roomName + " already exists");
     }
-    if (rooms[req.body.roomName] && rooms[req.body.roomName].players[req.body.playerName]) {
-      return res.status(400).send("playerName " + req.body.playerName + " already exists in room " + req.body.roomName);
-    }
   
     try {
-      const deck = await getDatabase().collection<DeckResponse>("decks").findOne({ _id: new ObjectId(req.body.deckId) });
+      const deck = await getDatabase().collection<DeckResponse>("decks").findOne({ _id: new ObjectId(req.body.deckId), userId: req.user!.id });
       if (!deck?.legion || !deck?.cards_in_deck) {
         return res.status(400).send("deckId " + req.body.deckId + " is invalid");
       }
       if (req.body.p2DeckId) {
-        const p2Deck = await getDatabase().collection<DeckResponse>("decks").findOne({ _id: new ObjectId(req.body.p2DeckId) });
+        const p2Deck = await getDatabase().collection<DeckResponse>("decks").findOne({ _id: new ObjectId(req.body.p2DeckId), userId: req.user!.id });
         if (!p2Deck?.legion || !p2Deck?.cards_in_deck) {
           return res.status(400).send("p2DeckId " + req.body.p2DeckId + " is invalid");
         }
@@ -55,24 +70,20 @@ export const routes = (app: ExpressApp) => {
     };
     return res.send({
       roomName: req.body.roomName,
+      playerName,
       players: rooms[req.body.roomName].players,
       sandboxMode: req.body.sandboxMode,
       password: req.body.roomPassword,
     });
   });
   
-  app.post("/joinRoom", async (req: Request, res: Response) => {
+  app.post("/joinRoom", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     if (!req.body.roomName) {
       return res.status(400).send("roomName is required");
     }
-    if (!req.body.playerName) {
-      return res.status(400).send("playerName is required");
-    }
+    const playerName = await getAliasForUser(req.user!.id) ?? req.user!.name ?? req.user!.email ?? "Player";
     if (!rooms[req.body.roomName]) {
       return res.status(400).send("roomName " + req.body.roomName + " does not exist");
-    }
-    if (rooms[req.body.roomName] && Object.values(rooms?.[req.body.roomName]?.players)?.find((item: {name: string}) => item.name === req.body.playerName)) {
-      return res.status(400).send("playerName " + req.body.playerName + " already exists in room " + req.body.roomName);
     }
   
     // check if password protected
@@ -81,14 +92,14 @@ export const routes = (app: ExpressApp) => {
     }
   
     try {
-      const deck: DeckResponse = await fetchPlayerDeckById({deckId: req.body.deckId});
+      const deck: DeckResponse = await getDatabase().collection<DeckResponse>("decks").findOne({ _id: new ObjectId(req.body.deckId), userId: req.user!.id });
       if (!deck?._id || !deck?.legion || !deck?.cards_in_deck) {
         return res.status(400).send("deckId " + req.body.deckId + " is invalid");
       }
     } catch {
       return res.status(400).send("deckId " + req.body.deckId + " is invalid");
     }
-    return res.send({ roomName: req.body.roomName, players: rooms[req.body.roomName].players });
+    return res.send({ roomName: req.body.roomName, playerName, players: rooms[req.body.roomName].players });
   })
 
   app.get("/api/cards", async (req: Request, res: Response) => {

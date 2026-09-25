@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser';
 import { routes } from './network/routes';
 import next from 'next';
 import { connectToDatabase, closeDatabaseConnection, getDatabaseName } from './utils/database.util';
+import { ensureAliasIndexes } from './services/api/AliasService';
 
 const uri = process.env.MONGO_URL;
 if (!uri) {
@@ -16,7 +17,8 @@ if (!uri) {
 }
 getDatabaseName();
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-connectToDatabase().then(() => {
+connectToDatabase().then(async () => {
+  await ensureAliasIndexes();
   const port = parseInt(process.env.PORT || '3000', 10)
   const dev = process.env.NODE_ENV !== 'production'
   const nextApp = next({ dev });

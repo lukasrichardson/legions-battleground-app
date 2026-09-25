@@ -15,7 +15,7 @@ import { fetchDecks } from "@/client/utils/api.utils";
 const ModalConstants = {
   LoadingText: "Loading...",
   RoomNameLabelText: "Room Name",
-  YourNameLabelText: "Your Name",
+  YourNameLabelText: "Battleground username",
   DeckLabelText: "Deck",
   SandboxModeLabelText: "Sandbox Mode",
   CreateGameBtnText: "Create Game",
@@ -35,6 +35,7 @@ export default function JoinRoomModal() {
   const [deckId, setDeckId] = useState("");
   const [loading, setLoading] = useState(false);
   const [decks, setDecks] = useState<{name: string, _id: string}[]>([]);
+  const auth = useAuth();
 
   const {
     LoadingText,
@@ -60,12 +61,11 @@ export default function JoinRoomModal() {
     try {
       const res = await axios.post(`${window.location.origin}/joinRoom`, {
         roomName: joinRoomModalOpen,
-        playerName,
         deckId,
         roomPassword
       });
-      const { roomName: newRoomName } = res.data;
-      router.push(`/play?room=${newRoomName}&playerName=${playerName}&deckId=${deckId}${roomPassword ? `&roomPassword=${roomPassword}` : ""}`);
+      const { roomName: newRoomName, playerName: alias } = res.data;
+      router.push(`/play?room=${newRoomName}&playerName=${alias}&deckId=${deckId}${roomPassword ? `&roomPassword=${roomPassword}` : ""}`);
       dispatch(setJoinRoomModalOpen(null));
       setPlayerName("");
       setRoomPassword("");
@@ -82,13 +82,23 @@ export default function JoinRoomModal() {
     }
   }
 
-  const getDecks = async () => {
-      fetchDecks([], (param: {name: string, _id: string}[]) => {setDecks(param)});
-    }
+  const getDecks = () => {
+    fetchDecks([], (param: {name: string, _id: string}[]) => {setDecks(param)});
+  }
   
   useEffect(() => {
+    if (!joinRoomModalOpen) return;
     getDecks();
-  }, [])
+    const loadAlias = async () => {
+      try {
+        const response = await axios.get("/api/me/alias");
+        setPlayerName(response.data.alias || "");
+      } catch {
+        setPlayerName("");
+      }
+    };
+    if (isAuthenticated) void loadAlias();
+  }, [isAuthenticated, joinRoomModalOpen])
 
   const renderAuthRequired = () => (
     <div className="w-full max-w-md mx-auto text-center">
@@ -155,14 +165,12 @@ export default function JoinRoomModal() {
                 </label>
                 <Input
                   type="text"
-                  value={playerName}
-                  onChange={(e) => setPlayerName(e.target.value)}
+                  value={playerName || auth?.user?.name || ""}
+                  disabled={true}
                   name="playerName"
                   autoComplete="on"
                   autoFocus
-                  placeholder="Enter your name"
                   className="w-full bg-white/10 border-white/20 text-white placeholder-gray-400 rounded-xl h-12 px-4 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200"
-                  required
                 />
               </div>
 
@@ -240,7 +248,6 @@ export default function JoinRoomModal() {
       open={joinRoomModalOpen !== null}
       closeModal={() => {
         dispatch(setJoinRoomModalOpen(null));
-        setPlayerName("");
         setRoomPassword("");
         setDeckId("");
         setError("");
