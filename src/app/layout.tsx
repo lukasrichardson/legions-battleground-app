@@ -3,7 +3,6 @@ import "@/app/globals.css";
 import StoreProvider from "@/client/redux/StoreProvider";
 import NextAuthSessionProvider from "@/app/providers/SessionProvider";
 import Script from "next/script";
-import grue from "PUBLIC/gru-no-background.png";
 
 const r2PublicBaseUrl = process.env.R2_PUBLIC_BASE_URL || "";
 const serviceWorkerUrl = (() => {
@@ -20,8 +19,9 @@ export const metadata: Metadata = {
   title: "Legions Battleground",
   description: "A Legions Realms At War TCG simulator",
   icons: {
-    icon: grue.src,
-    apple: grue.src,
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
   },
 };
 

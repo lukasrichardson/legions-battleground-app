@@ -13,7 +13,7 @@ import FullPage from "./components/FullPage";
 import PerformanceDashboard from "./components/Modals/PerformanceDashboard";
 import useBackgroundPreload from "@/client/hooks/useBackgroundPreload";
 import useIsMobile from "@/client/hooks/useIsMobile";
-import { Swords } from "lucide-react";
+import Image from "next/image";
 
 const HomeConstants = {
   HomeTitle: "Legions Battleground",
@@ -38,13 +38,13 @@ const renderQuickActionCard = ({
 }) => (
   <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={onClick}>
     <CardHeader className="p-4">
-      <CardTitle className="flex items-center gap-2 text-lg">
+      <CardTitle className="flex justify-center items-center gap-2 text-lg">
         <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center">
           {icon}
         </div>
         {title}
       </CardTitle>
-      <CardDescription className="text-left text-gray-300 text-sm">
+      <CardDescription className="text-gray-300 text-sm text-center">
         {description}
       </CardDescription>
     </CardHeader>
@@ -103,17 +103,24 @@ export default function Home() {
   const isDev = process.env.NODE_ENV === "development";
   const isMobile = useIsMobile();
   return (
-    <FullPage>
+    <FullPage topRightContent={<AuthButtons />}>
           {/* Header */}
-          <div className="text-center mb-6 mt-3">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
+          <div className="text-center pt-12">
+            <h1 className="hidden xs:block text-lg font-bold text-white">
               {HomeTitle}
             </h1>
-            <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
+            <Image
+              src="/logo.svg"
+              alt=""
+              width={160}
+              height={133}
+              priority
+              className="mx-auto h-auto w-32 sm:w-64 mb-2"
+            />
+            <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto mb-4">
               {HomeDescription}{"   "}
             <span className="text-green-500">Powered By <a className="!underline" href="https://api.legionstoolbox.com" target="_blank" rel="noopener noreferrer">LegionsToolbox.com</a></span>
             </p>
-            {session && <AuthButtons />}
           </div>
 
           {sessionStatus !== "loading" && !session && (
@@ -143,7 +150,6 @@ export default function Home() {
 
               <Card className="w-full max-w-2xl border-white/20 bg-slate-950/30 text-white">
                 <CardContent className="flex flex-col items-center gap-3 p-5 text-center">
-                  <Swords className="h-8 w-8 shrink-0 text-green-300" aria-hidden="true" />
                   <div>
                     <h3 className="font-semibold">Continue with your Google, Discord, or GitHub account.</h3>
                     <p className="mt-1 text-sm text-gray-300">Sign in to create decks, import decks, and create/join games</p>
@@ -219,12 +225,7 @@ export default function Home() {
               <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
                 <CardHeader className="p-4 pb-2">
                   <CardTitle className="flex items-center justify-between text-lg">
-                    <span className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-green-500 rounded-lg flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-                        </svg>
-                      </div>
+                    <span>
                       {RoomsHeaderText}
                     </span>
                     <span className="text-xs text-gray-400">

@@ -7,7 +7,15 @@ const breadcrumbLabels: Record<string, string> = {
   browse: "Published Decks",
 };
 
-export default function FullPage({ children, showBreadcrumbs }: { children: React.ReactNode, showBreadcrumbs?: boolean }) {
+export default function FullPage({
+  children,
+  showBreadcrumbs,
+  topRightContent,
+}: {
+  children: React.ReactNode;
+  showBreadcrumbs?: boolean;
+  topRightContent?: React.ReactNode;
+}) {
   const pathName = usePathname();
   const breadcrumbs = pathName.split("/").filter(Boolean).map((segment, index, arr) => {
     const name = breadcrumbLabels[segment]
@@ -26,7 +34,17 @@ export default function FullPage({ children, showBreadcrumbs }: { children: Reac
           <Breadcrumbs breadcrumbs={[{name: "Home", path: "/"}, ...breadcrumbs]} />
         </div>
       )}
-      <p className="text-white"><a className="fixed right-2 top-2" href="https://buymeacoffee.com/lukasrichardson" target="_blank" rel="noopener noreferrer">Donate☕</a></p>
+      <div className="fixed right-2 top-2 z-20 flex max-w-[calc(100vw-1rem)] flex-wrap items-center justify-end gap-2 text-white sm:right-4 sm:top-4">
+        {topRightContent}
+        <a
+          className="rounded-md px-2 py-1 text-sm transition-colors hover:bg-white/10"
+          href="https://buymeacoffee.com/lukasrichardson"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Donate☕
+        </a>
+      </div>
       <div className="flex min-h-0 flex-1 flex-col overflow-scroll px-4 pb-6 pt-2">
         {children}
       </div>

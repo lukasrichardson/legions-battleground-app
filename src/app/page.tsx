@@ -20,7 +20,7 @@ function Page() {
         <DndProvider backend={HTML5Backend}>
         <main className={"relative flex flex-col justify-center items-center h-screen w-screen"}>
           <Home />
-          {process.env.NODE_ENV === "development" && <div className='dev-tools fixed flex flex-col left-0 top-0 bg-white'>
+          {process.env.NODE_ENV === "development" && <div className='dev-tools fixed flex flex-col left-0 top-1/3 bg-white'>
             <button
               onClick={async () => {
                 //create test game quickly
