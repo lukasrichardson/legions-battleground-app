@@ -6,8 +6,13 @@ import { getPublishedDeckById, getPublishedDeckFilterOptions, getPublishedDecks,
 export default function publishedDecksController(app: ExpressApp) {
 
   app.get("/api/published_decks", optionalAuth, async (req: AuthenticatedRequest, res: Response) => {    
-    const {legion} = req.query;
-    const decks = await getPublishedDecks(legion);
+    const { legion, sort, limit } = req.query;
+    const requestedLimit = typeof limit === "string" ? Number.parseInt(limit, 10) : undefined;
+    const decks = await getPublishedDecks(legion, {
+      sortRecent: sort === "recent",
+      // Keep the public endpoint bounded even if a caller supplies an invalid or very large value.
+      limit: Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 50) : undefined,
+    });
     return res.send(decks);
   }
   );

@@ -25,7 +25,12 @@ export const getPublishedDeckByName = async (deckName: string): Promise<Publishe
   return deck ? normalizeDeck(deck) : null;
 }
 
-export const getPublishedDecks = async (legion): Promise<PublishedDeck[]> => {
+type PublishedDeckListOptions = {
+  sortRecent?: boolean;
+  limit?: number;
+};
+
+export const getPublishedDecks = async (legion, options: PublishedDeckListOptions = {}): Promise<PublishedDeck[]> => {
   const query = {};
   if (legion && typeof legion === 'string' && legion.trim() !== '') {
     query['legion'] = legion;
@@ -33,7 +38,17 @@ export const getPublishedDecks = async (legion): Promise<PublishedDeck[]> => {
     query['legion'] = { $in: legion };
   }
   const db = getDatabase();
-  const decks = await db.collection<PublishedDeck>("published_decks").find(query).toArray();
+  const cursor = db.collection<PublishedDeck>("published_decks").find(query);
+
+  if (options.sortRecent) {
+    cursor.sort({ published_date: -1 });
+  }
+
+  if (options.limit) {
+    cursor.limit(options.limit);
+  }
+
+  const decks = await cursor.toArray();
   return decks.map(normalizeDeck);
 }
 

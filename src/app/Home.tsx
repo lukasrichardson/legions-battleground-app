@@ -14,6 +14,7 @@ import PerformanceDashboard from "./components/Modals/PerformanceDashboard";
 import useBackgroundPreload from "@/client/hooks/useBackgroundPreload";
 import useIsMobile from "@/client/hooks/useIsMobile";
 import Image from "next/image";
+import RecentPublishedDecksPanel from "./components/RecentPublishedDecksPanel";
 
 const HomeConstants = {
   HomeTitle: "Legions Battleground",
@@ -124,7 +125,7 @@ export default function Home() {
           </div>
 
           {sessionStatus !== "loading" && !session && (
-            <section className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6 text-center">
+            <section className="mx-auto flex w-full max-w-4xl flex-col grow overflow-y-hidden items-center gap-6 text-center">
               <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
                 {renderQuickActionCard({
                   title: "Card Gallery",
@@ -160,6 +161,9 @@ export default function Home() {
                   />
                 </CardContent>
               </Card>
+              <div className="grow overflow-y-hidden w-full max-w-2xl">
+                <RecentPublishedDecksPanel />
+              </div>
             </section>
           )}
 
@@ -220,8 +224,10 @@ export default function Home() {
               })}
             </div>
 
-            {/* Game Rooms */}
-            {!isMobile &&(<div className="flex-1 min-h-0">
+            {/* Desktop and tablet community activity. Mobile intentionally keeps its existing layout. */}
+            {!isMobile &&(<div className="grid flex-1 min-h-0 w-full grid-cols-[minmax(0,3fr)_minmax(22rem,2fr)] gap-4 xl:gap-6">
+              {/* Game Rooms */}
+              <div className="min-w-0 min-h-0">
               <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
                 <CardHeader className="p-4 pb-2">
                   <CardTitle className="flex items-center justify-between text-lg">
@@ -233,7 +239,7 @@ export default function Home() {
                     </span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 pt-0 flex-1 overflow-hidden">
+                <CardContent className="p-4 pt-0 flex-1 min-w-0 overflow-hidden">
                   {Object.values(rooms).length === 0 ? (
                     <div className="text-center py-8 h-full flex flex-col items-center justify-center">
                       <div className="w-12 h-12 bg-gray-700/50 rounded-full flex items-center justify-center mb-3">
@@ -245,8 +251,9 @@ export default function Home() {
                       <p className="text-gray-500 text-sm mt-1">Create a new game to get started!</p>
                     </div>
                   ) : (
-                    <div className="h-full overflow-auto">
+                    <div className="h-full overflow-x-auto overflow-y-auto">
                       <Table
+                        className="min-w-[640px]"
                         tableHeaders={["Room Name", "Players", "Sandbox Mode", "Password", "Action"]}
                         tableData={(Object.values(rooms) as {id: string, players: object, sandboxMode: boolean, password: string}[]).map((room: {id: string, players: object, sandboxMode: boolean, password: string}) => [
                           <div className="flex items-center gap-2" key={room.id}>
@@ -285,7 +292,14 @@ export default function Home() {
                   )}
                 </CardContent>
               </Card>
+              </div>
+              <RecentPublishedDecksPanel />
             </div>)}
+            {isMobile && (
+              <div className="grow overflow-y-hidden w-full max-w-2xl mx-auto">
+                <RecentPublishedDecksPanel />
+              </div>
+            )}
             
             {/* Performance Dashboard Button */}
             {isDev &&(<div className="mt-4 flex justify-center">

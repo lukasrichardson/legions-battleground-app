@@ -18,10 +18,10 @@ const renderTableData = (children: ReactElement | string, index: number) => (
   </td>
 )
 
-export default function Table({ tableHeaders, tableData }: { tableHeaders: string[], tableData: (ReactElement | string)[][] }) {
+export default function Table({ tableHeaders, tableData, className }: { tableHeaders: string[], tableData: (ReactElement | string)[][], className?: string }) {
   return (
     <div className="w-full">
-      <table className="w-full">
+      <table className={`w-full ${className || ""}`}>
         <thead className="bg-white/5">
           <tr>
             {tableHeaders.map((header, index) => tableHeader(header, index))}
