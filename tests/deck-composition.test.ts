@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { CardInDeck, DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { getCombinedCardCounts, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, normalizeDeck, SIDE_DECK_MAX_SIZE } from "@/shared/deckComposition";
-import { DeckValidationError, validateDeckCompositionAgainstBanlist } from "@/server/services/api/DeckValidationService";
+import { DeckValidationError, validateDeckComposition } from "@/server/services/api/DeckValidationService";
 
 const card = (title: string, type = CARD_TYPE.WARRIOR, legion = "Angels"): CardInDeck => ({
   _id: title,
@@ -58,10 +58,10 @@ describe("deck composition", () => {
       ...legacyDeck,
       side_deck: Array.from({ length: SIDE_DECK_MAX_SIZE + 1 }, (_, index) => card(`Card ${index}`)),
     };
-    expect(() => validateDeckCompositionAgainstBanlist(oversizedDeck, [])).toThrow(DeckValidationError);
+    expect(() => validateDeckComposition(oversizedDeck)).toThrow(DeckValidationError);
 
     const warlordInSideDeck = { ...legacyDeck, side_deck: [card("Warlord", CARD_TYPE.WARLORD)] };
-    expect(() => validateDeckCompositionAgainstBanlist(warlordInSideDeck, [])).toThrow("cannot be placed in a side deck");
+    expect(() => validateDeckComposition(warlordInSideDeck)).toThrow("cannot be placed in a side deck");
   });
 
   it("accepts a full eligible side deck and rejects cards from another legion", () => {
@@ -69,10 +69,10 @@ describe("deck composition", () => {
       ...legacyDeck,
       side_deck: Array.from({ length: SIDE_DECK_MAX_SIZE }, (_, index) => card(`Card ${index}`)),
     };
-    expect(() => validateDeckCompositionAgainstBanlist(fullSideDeck, [])).not.toThrow();
+    expect(() => validateDeckComposition(fullSideDeck)).not.toThrow();
 
     const foreignLegionCard = { ...legacyDeck, side_deck: [card("Titan Card", CARD_TYPE.WARRIOR, "Titans")] };
-    expect(() => validateDeckCompositionAgainstBanlist(foreignLegionCard, [])).toThrow("is not valid for the Angels legion");
+    expect(() => validateDeckComposition(foreignLegionCard)).toThrow("is not valid for the Angels legion");
   });
 
   it("applies copy limits across both card lists", () => {
@@ -81,6 +81,6 @@ describe("deck composition", () => {
       cards_in_deck: [card("Shared Card"), card("Shared Card"), card("Shared Card")],
       side_deck: [card("Shared Card")],
     };
-    expect(() => validateDeckCompositionAgainstBanlist(deck, [])).toThrow("exceeds its 3-copy limit across the main and side decks");
+    expect(() => validateDeckComposition(deck)).toThrow("exceeds the 3-copy limit across the main and side decks");
   });
 });

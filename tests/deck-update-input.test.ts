@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DeckUpdateInputError, parseDeckUpdateInput } from "@/server/services/api/DeckUpdateInput";
+import { DeckUpdateInputError, parseDeckUpdateInput } from "@/server/services/api/DeckValidationService";
 
 describe("parseDeckUpdateInput", () => {
   it("accepts only editable deck fields", () => {
