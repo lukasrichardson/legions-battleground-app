@@ -38,14 +38,14 @@ const renderQuickActionCard = ({
   onClick: () => void;
 }) => (
   <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={onClick}>
-    <CardHeader className="p-4">
+    <CardHeader className="p-2">
       <CardTitle className="flex justify-center items-center gap-2 text-lg">
         <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center">
           {icon}
         </div>
         {title}
       </CardTitle>
-      <CardDescription className="text-gray-300 text-sm text-center">
+      <CardDescription className="text-gray-300 text-sm text-center hidden sm:block">
         {description}
       </CardDescription>
     </CardHeader>
@@ -169,7 +169,7 @@ export default function Home() {
 
           {session &&<>
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 max-w-6xl mx-auto w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 mb-2 sm:mb-6 max-w-6xl mx-auto w-full">
               {renderQuickActionCard({
                 title: "Decks",
                 description: "Create and edit your decks",
@@ -228,70 +228,70 @@ export default function Home() {
             {!isMobile &&(<div className="grid flex-1 min-h-0 w-full grid-cols-[minmax(0,3fr)_minmax(22rem,2fr)] gap-4 xl:gap-6">
               {/* Game Rooms */}
               <div className="min-w-0 min-h-0">
-              <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
-                <CardHeader className="p-4 pb-2">
-                  <CardTitle className="flex items-center justify-between text-lg">
-                    <span>
-                      {RoomsHeaderText}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {Object.values(rooms).length} active rooms
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 pt-0 flex-1 min-w-0 overflow-hidden">
-                  {Object.values(rooms).length === 0 ? (
-                    <div className="text-center py-8 h-full flex flex-col items-center justify-center">
-                      <div className="w-12 h-12 bg-gray-700/50 rounded-full flex items-center justify-center mb-3">
-                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                        </svg>
+                <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="flex items-center justify-between text-lg">
+                      <span>
+                        {RoomsHeaderText}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {Object.values(rooms).length} active rooms
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0 flex-1 min-w-0 overflow-hidden">
+                    {Object.values(rooms).length === 0 ? (
+                      <div className="text-center py-8 h-full flex flex-col items-center justify-center">
+                        <div className="w-12 h-12 bg-gray-700/50 rounded-full flex items-center justify-center mb-3">
+                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                          </svg>
+                        </div>
+                        <p className="text-gray-400 text-base">No active game rooms</p>
+                        <p className="text-gray-500 text-sm mt-1">Create a new game to get started!</p>
                       </div>
-                      <p className="text-gray-400 text-base">No active game rooms</p>
-                      <p className="text-gray-500 text-sm mt-1">Create a new game to get started!</p>
-                    </div>
-                  ) : (
-                    <div className="h-full overflow-x-auto overflow-y-auto">
-                      <Table
-                        className="min-w-[640px]"
-                        tableHeaders={["Room Name", "Players", "Sandbox Mode", "Password", "Action"]}
-                        tableData={(Object.values(rooms) as {id: string, players: object, sandboxMode: boolean, password: string}[]).map((room: {id: string, players: object, sandboxMode: boolean, password: string}) => [
-                          <div className="flex items-center gap-2" key={room.id}>
-                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                            <span className="font-medium text-sm">{room.id}</span>
-                          </div>,
-                          <div className="flex items-center gap-2" key={room.id}>
-                            <span className="font-medium">{Object.values(room.players).length}</span>
-                            <span className="text-gray-400 text-sm">players</span>
-                          </div>,
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            room.sandboxMode 
-                              ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
-                              : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
-                          }`} key={room.id}>
-                            {room.sandboxMode ? "Yes" : "No"}
-                          </span>,
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            room.password
-                              ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' 
-                              : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
-                          }`} key={room.id}>
-                            {room.password ? "Yes" : "No"}
-                          </span>,
-                          <Button 
-                            onClick={() => handleJoinRoomClick(room.id)}
-                            size="sm"
-                            className="bg-blue-600 hover:bg-blue-700 text-xs"
-                            key={room.id}
-                          >
-                            {JoinBtnText}
-                          </Button>
-                        ]) as (ReactElement | string)[][]}
-                      />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                    ) : (
+                      <div className="h-full overflow-x-auto overflow-y-auto">
+                        <Table
+                          className="min-w-[640px]"
+                          tableHeaders={["Room Name", "Players", "Sandbox Mode", "Password", "Action"]}
+                          tableData={(Object.values(rooms) as {id: string, players: object, sandboxMode: boolean, password: string}[]).map((room: {id: string, players: object, sandboxMode: boolean, password: string}) => [
+                            <div className="flex items-center gap-2" key={room.id}>
+                              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                              <span className="font-medium text-sm">{room.id}</span>
+                            </div>,
+                            <div className="flex items-center gap-2" key={room.id}>
+                              <span className="font-medium">{Object.values(room.players).length}</span>
+                              <span className="text-gray-400 text-sm">players</span>
+                            </div>,
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              room.sandboxMode 
+                                ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
+                                : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+                            }`} key={room.id}>
+                              {room.sandboxMode ? "Yes" : "No"}
+                            </span>,
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              room.password
+                                ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' 
+                                : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+                            }`} key={room.id}>
+                              {room.password ? "Yes" : "No"}
+                            </span>,
+                            <Button 
+                              onClick={() => handleJoinRoomClick(room.id)}
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700 text-xs"
+                              key={room.id}
+                            >
+                              {JoinBtnText}
+                            </Button>
+                          ]) as (ReactElement | string)[][]}
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
               <RecentPublishedDecksPanel />
             </div>)}
