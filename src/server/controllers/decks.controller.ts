@@ -3,6 +3,7 @@ import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { Response } from 'express';
 import { normalizeDeck } from "@/shared/deckComposition";
 import { DeckValidationError, validateDeckComposition } from "../services/api/DeckValidationService";
+import { DeckUpdateInputError, parseDeckUpdateInput } from "../services/api/DeckValidationService";
 import { createNewDeck,
   duplicateDeckById,
   getDeckById,
@@ -55,17 +56,18 @@ export default function decksController(app: ExpressApp) {
     }
 
     try {
-      const candidateDeck = normalizeDeck({ ...existingDeck, ...req.body });
-      const updatesComposition = "cards_in_deck" in req.body || "side_deck" in req.body || "legion" in req.body;
+      const updateInput = parseDeckUpdateInput(req.body);
+      const candidateDeck = normalizeDeck({ ...existingDeck, ...updateInput });
+      const updatesComposition = "cards_in_deck" in updateInput || "side_deck" in updateInput || "legion" in updateInput;
       if (updatesComposition) await validateDeckComposition(candidateDeck);
-      const updatedDeck = await updateDeckById(req.user, deckId, candidateDeck);
+      const updatedDeck = await updateDeckById(req.user, deckId, updateInput);
       if (!updatedDeck) {
         return res.status(404).send("Deck not found or no changes made");
       }
 
       return res.send(updatedDeck);
     } catch (error) {
-      if (error instanceof DeckValidationError) return res.status(400).send(error.message);
+      if (error instanceof DeckValidationError || error instanceof DeckUpdateInputError) return res.status(400).send(error.message);
       throw error;
     }
   }

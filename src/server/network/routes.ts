@@ -11,6 +11,7 @@ import { ExpressApp } from '../interfaces/ExpressTypes';
 import decksController from '../controllers/decks.controller';
 import publishedDecksController from '../controllers/publishedDecks.controller';
 import { DeckValidationError, validateDeckComposition } from "../services/api/DeckValidationService";
+import { parseCardPagination, parseCardSearch } from "../utils/queryValidation.util";
 
 export const routes = (app: ExpressApp) => {
   app.get('/healthz', (req: Request, res: Response) => {
@@ -124,19 +125,21 @@ export const routes = (app: ExpressApp) => {
     if (requestedSrlStatuses.length) {
       query = { ...query, $and: [await getSrlTitleFilter(db, requestedSrlStatuses)] };
     }
-    if (search && typeof search === 'string' && search.trim() !== "") {
+    const literalSearch = parseCardSearch(search);
+    if (literalSearch) {
       query["$or"] = [
-        { title: { $regex: search, $options: "i" } },
-        { "text": { $regex: search, $options: "i" } },
-        { "card_code": { $regex: search, $options: "i" } }
+        { title: { $regex: literalSearch, $options: "i" } },
+        { "text": { $regex: literalSearch, $options: "i" } },
+        { "card_code": { $regex: literalSearch, $options: "i" } }
       ]
     }
 
-    const skipAmount: number = ((Number(page) || 1) - 1) * Number(pageSize || 50);
+    const pagination = parseCardPagination(page, pageSize);
+    const skipAmount = (pagination.page - 1) * pagination.pageSize;
 
-    const cards = await db.collection("cards").find(query).sort({title: 1}).skip(skipAmount).limit(Number(pageSize) || 50).toArray();
+    const cards = await db.collection("cards").find(query).sort({title: 1}).skip(skipAmount).limit(pagination.pageSize).toArray();
 
-    res.send({cards, page: Number(page) || 1, pageSize: Number(pageSize) || 50, total: await db.collection("cards").countDocuments(query)});
+    res.send({cards, page: pagination.page, pageSize: pagination.pageSize, total: await db.collection("cards").countDocuments(query)});
   })
 
   app.get("/api/cards/filterOptions", async (req: Request, res: Response) => {
@@ -176,7 +179,7 @@ export const routes = (app: ExpressApp) => {
     if (req.body.legion[0] === "mythical-beasts") {
       legion = "Mythical Beasts";
     } else {
-      legion = req.body.legion[0].charAt(0).toUpperCase() + req.body.legion[0].slice(1).toLowerCase();
+      legion = req.body.legion.charAt(0).toUpperCase() + req.body.legion.slice(1).toLowerCase();
     }
     
     const newDeck = {
@@ -190,6 +193,8 @@ export const routes = (app: ExpressApp) => {
       created_at: new Date(),
       updated_at: new Date(),
     };
+
+    console.log("Importing deck:", req.body.legion, newDeck.legion);
 
     for (let i = 0 ; i < newDeck.cards_in_deck.length; i++) {
       // Toolbox card codes identify a specific variation; names do not.

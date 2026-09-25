@@ -4,7 +4,7 @@ import vm from "node:vm";
 import { describe, expect, it, vi } from "vitest";
 
 function loadWorker(workerUrl = "https://app.example/sw.js") {
-  const listeners = new Map<string, (event: any) => void>();
+  const listeners = new Map<string, (event: unknown) => void>();
   const freshResponse = new Response("cached-image", {
     headers: { "sw-cache-time": Date.now().toString() },
   });
@@ -20,7 +20,7 @@ function loadWorker(workerUrl = "https://app.example/sw.js") {
     caches: { open: vi.fn().mockResolvedValue(cache), keys: vi.fn().mockResolvedValue([]) },
     self: {
       location: { href: workerUrl },
-      addEventListener: (type: string, listener: (event: any) => void) => listeners.set(type, listener),
+      addEventListener: (type: string, listener: (event: unknown) => void) => listeners.set(type, listener),
       skipWaiting: vi.fn(),
       clients: { claim: vi.fn(), matchAll: vi.fn().mockResolvedValue([]) },
     },

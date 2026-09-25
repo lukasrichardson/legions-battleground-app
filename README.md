@@ -69,7 +69,7 @@ npm install
 cp .env.example .env
 ```
 
-Fill in `MONGO_URL`, `NEXTAUTH_SECRET`, and any OAuth credentials in `.env`, then start the development server:
+Fill in `MONGO_URL`, `MONGO_DB_NAME`, `NEXTAUTH_SECRET`, and any OAuth credentials in `.env`, then start the development server. The database name is explicit in every environment; use `test` locally and a separate name for staging or production.
 
 ```bash
 npm run dev
@@ -88,7 +88,7 @@ Docker is also supported:
 
 ```bash
 docker build -t legions-battleground .
-docker run -p 3000:3000 legions-battleground
+docker run -p 3000:3000 --env-file .env legions-battleground
 ```
 
 ## Quality checks

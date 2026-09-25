@@ -32,12 +32,16 @@ export const connectToDatabase = async (): Promise<MongoClient> => {
   }
 };
 
-const DB_NAME_DEV = "test";
-const DB_NAME_PROD = "legions_battleground_db";
+export const getDatabaseName = (
+  environment: { MONGO_DB_NAME?: string } = { MONGO_DB_NAME: process.env.MONGO_DB_NAME },
+): string => {
+  const databaseName = environment.MONGO_DB_NAME?.trim();
+  if (!databaseName) throw new Error("MONGO_DB_NAME environment variable is required");
+  return databaseName;
+};
 
 export const getDatabase = () => {
-  const dbName = process.env.NODE_ENV === "production" ? DB_NAME_PROD : DB_NAME_DEV;
-  return getMongoClient().db(dbName);
+  return getMongoClient().db(getDatabaseName());
 };
 
 // Graceful shutdown function

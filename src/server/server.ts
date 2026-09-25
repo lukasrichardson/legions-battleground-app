@@ -8,12 +8,13 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import { routes } from './network/routes';
 import next from 'next';
-import { connectToDatabase, closeDatabaseConnection } from './utils/database.util';
+import { connectToDatabase, closeDatabaseConnection, getDatabaseName } from './utils/database.util';
 
 const uri = process.env.MONGO_URL;
 if (!uri) {
   throw new Error("MONGO_URL environment variable is required");
 }
+getDatabaseName();
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 connectToDatabase().then(() => {
   const port = parseInt(process.env.PORT || '3000', 10)

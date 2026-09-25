@@ -49,8 +49,9 @@ export default function DeckBuilder() {
   }, [deck]);
 
   const saveDeck = (nextDeck: DeckResponse, onSaved?: (savedDeck: DeckResponse) => void) => {
+    const { cards_in_deck, side_deck, name } = nextDeck;
     setSaving(true);
-    patchDeckById(nextDeck._id.toString(), nextDeck, (deckRes) => {
+    patchDeckById(nextDeck._id.toString(), {cards_in_deck, side_deck, name}, (deckRes) => {
       const savedDeck = deckRes as DeckResponse;
       setDeck(savedDeck);
       setSaving(false);
