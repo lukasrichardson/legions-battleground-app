@@ -2,6 +2,7 @@ import { cardIdentity, getCombinedCardCounts, getDeckCards, isCardAllowedForDeck
 import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 import { getDatabase } from "@/server/utils/database.util";
 import { CardInDeck, DeckResponse } from "@/shared/interfaces/DeckResponse";
+import { CARD_TYPE } from "@/shared/enums/CardType";
 
 const EDITABLE_FIELDS = new Set(["name", "subtitle", "legion", "cards_in_deck", "side_deck"]);
 const MAX_NAME_LENGTH = 120;
@@ -72,9 +73,13 @@ export function validateBasicDeckComposition(deck: DeckResponse): void {
   }
 
   for (const [identity, count] of getCombinedCardCounts(normalizedDeck)) {
-    if (count > DEFAULT_COPY_LIMIT) {
+    const cardType = deckCards.find((card) => cardIdentity(card) === identity)?.card_type?.names?.[0];
+    if (count > DEFAULT_COPY_LIMIT && cardType !== CARD_TYPE.TOKEN) {
       const cardTitle = deckCards.find((card) => cardIdentity(card) === identity)?.title ?? identity;
       throw new DeckValidationError(`${cardTitle} exceeds the ${DEFAULT_COPY_LIMIT}-copy limit across the main and side decks.`);
+    } else if (count > 5 && cardType === CARD_TYPE.TOKEN) {
+      const cardTitle = deckCards.find((card) => cardIdentity(card) === identity)?.title ?? identity;
+      throw new DeckValidationError(`${cardTitle} exceeds the 5-copy limit for tokens across the main and side decks.`);
     }
   }
 }
