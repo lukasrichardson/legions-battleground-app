@@ -61,23 +61,24 @@ export const getDeckByName = async (user, deckName: string): Promise<DeckRespons
 
 export const updateDeckById = async (user, deckId: string, updateData: Partial<DeckResponse>): Promise<DeckResponse | null> => {
   const db = getDatabase();
-  const updatedDeck = {
+  const updates = {
     ...updateData,
     updated_at: new Date(),
   };
-  delete updatedDeck._id;
-  //
-  const result = await db.collection("decks").updateOne({
+  delete updates._id;
+
+  const updatedDeck = await db.collection<DeckResponse>("decks").findOneAndUpdate({
     _id: new ObjectId(deckId),
-    userId: user.id
+    userId: user.id,
   }, {
-    $set: { ...updatedDeck }
+    $set: updates,
+  }, {
+    returnDocument: "after",
   });
-  if (result.modifiedCount === 0) {
+  if (!updatedDeck) {
     throw new Error("Deck not found or you don't have permission to edit this deck");
   }
-  const newUpdatedDeck = await getDeckById(user, deckId);
-  return newUpdatedDeck;
+  return normalizeDeck(updatedDeck);
 }
 
 export const duplicateDeckById = async (user, deckId: string): Promise<DeckResponse> => {
