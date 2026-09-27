@@ -12,6 +12,7 @@ import { LEGIONS } from "@/client/constants/legions.constants";
 import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
+import LoadingState from "@/app/components/LoadingState";
 
 export default function SearchPane({
   setHoveredCard,
@@ -41,6 +42,7 @@ export default function SearchPane({
   const [set, setSet] = useState<string[]>([]);
   const [srlStatus, setSrlStatus] = useState<string[]>([]);
   const [banlist, setBanlist] = useState<BanlistItem[]>([]);
+  const [loadingCards, setLoadingCards] = useState(true);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const horizontalScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -77,12 +79,19 @@ export default function SearchPane({
         set,
         srlStatus,
       }
-      const res: { cards?: CardDocument[]; total?: number } = await fetchCards(fetchCardsObject);
-      if (res?.cards) {
-        setCards(res.cards);
-      }
-      if (res?.total || res?.total === 0) {
-        setTotal(res.total);
+      setLoadingCards(true);
+      try {
+        const res: { cards?: CardDocument[]; total?: number } = await fetchCards(fetchCardsObject);
+        if (res?.cards) {
+          setCards(res.cards);
+        }
+        if (res?.total || res?.total === 0) {
+          setTotal(res.total);
+        }
+      } catch (error) {
+        console.warn("[SearchPane] Card request failed:", error);
+      } finally {
+        setLoadingCards(false);
       }
     }
     getCards();
@@ -331,7 +340,9 @@ export default function SearchPane({
 
         {/* Cards List - Scrollable with smaller card sizes to match deck */}
         <div ref={scrollRef} onScroll={handleVerticalScroll} className="grow overflow-auto shadow-black shadow-2xl">
-          {cards.length === 0 ? (
+          {loadingCards ? (
+            <LoadingState label="Loading cards…" className="h-full" />
+          ) : cards.length === 0 ? (
             <div className="text-center py-2 h-full flex flex-col items-center justify-center">
               <div className="w-6 h-6 bg-gray-700/50 rounded-full flex items-center justify-center mb-1">
                 <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 
 export interface ToolboxDeckResponse {
-  id?: string;
+  id?: string | number;
   name: string;
   subtitle: string;
   legion: string;
@@ -20,34 +20,17 @@ export interface ToolboxDeckResponse {
     }
   }
 }
-interface NamesSlugsObject {
+interface NamesObject {
   names: string[];
-  slugs: string[];
 }
-export interface CardInDeck {
-
-  _id: string;
-  id?: string;
+export interface HydratedDeckCard {
+  _id: string | ObjectId;
   title: string;
   featured_image: string;
-  content: {
-    paragraphs: string[];
-    lines: string[];
-    html: string;
-  };
-  permalink: string;
-  attack?: number;
   text: string;
   card_code: string;
-  card_release: string;
-  legion: NamesSlugsObject;
-  set: NamesSlugsObject;
-  variant: NamesSlugsObject;
-  rarity: NamesSlugsObject;
-  card_type: NamesSlugsObject;
-  card_subtype: NamesSlugsObject;
-  card_srl: NamesSlugsObject;
-  keywords: NamesSlugsObject;
+  legion: NamesObject;
+  card_type: NamesObject;
 }
 export interface DeckResponse {
   _id: ObjectId;
@@ -56,8 +39,14 @@ export interface DeckResponse {
   subtitle: string;
   legion: string;
   userId?: string;
-  cards_in_deck: CardInDeck[];
-  side_deck?: CardInDeck[];
+  /** Canonical persisted references. The API serializes these as hex strings. */
+  cards_in_deck: DeckCardId[];
+  side_deck?: DeckCardId[];
+  /** Resolved catalogue cards returned for screens and game setup; never persisted in a deck. */
+  cards?: HydratedDeckCard[];
   created_at: Date;
   updated_at: Date;
 }
+
+/** ObjectId in Mongo, serialized hex string at the HTTP boundary. */
+export type DeckCardId = ObjectId | string;

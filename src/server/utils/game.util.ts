@@ -1,7 +1,6 @@
 import { ObjectId } from "mongodb";
 import { DeckResponse } from "../../shared/interfaces/DeckResponse";
 import { CardState } from "../../shared/interfaces/CardState";
-import { getDatabase } from "./database.util";
 import { games } from "../game/game";
 import { generateStartingPlayersCards } from "./generateCards.util";
 import { addGameLog } from "./generateGameLog";
@@ -12,13 +11,13 @@ import { MoveCardActionInterface, moveCard, plunder } from "../events/cardEvents
 import { goNextPhase } from "../events/playerEvents";
 import {ALL_KEYWORDS, KeywordTrigger} from "../cards/Keywords";
 import { Server } from "socket.io";
+import { getHydratedDeck } from "../services/api/DeckHydrationService";
 
 export const STARTING_HAND_SIZE = 6;
 
 export const fetchPlayerDeckById = async ({ deckId }: { deckId: string }) => {
   try {
-    const db = getDatabase();
-    const deck = await db.collection<DeckResponse>("decks").findOne({ _id: new ObjectId(deckId) });
+    const deck = await getHydratedDeck<DeckResponse>("decks", { _id: new ObjectId(deckId) });
     
     if (!deck) {
       throw new Error(`Deck with ID ${deckId} not found in database`);

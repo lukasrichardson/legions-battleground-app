@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { getDeckById } from "./DecksService";
 import { normalizeDeck } from "@/shared/deckComposition";
 import { getAliasForUser } from "./AliasService";
+import { getHydratedDeck, hydrateDecks } from "./DeckHydrationService";
 
 export const insertOnePublishedDeck = async (deck: Omit<PublishedDeck, "_id">): Promise<PublishedDeck> => {
   const db = getDatabase();
@@ -13,9 +14,8 @@ export const insertOnePublishedDeck = async (deck: Omit<PublishedDeck, "_id">): 
 }
 
 export const getPublishedDeckById = async (deckId: string): Promise<PublishedDeck | null> => {
-  const db = getDatabase();
   const query = { _id: new ObjectId(deckId) };
-  const deck = await db.collection<PublishedDeck>("published_decks").findOne(query);
+  const deck = await getHydratedDeck<PublishedDeck>("published_decks", query);
   return deck ? normalizeDeck(deck) : null;
 }
 
@@ -23,7 +23,7 @@ export const getPublishedDeckByName = async (deckName: string): Promise<Publishe
   const db = getDatabase();
   const query = { name: deckName };
   const deck = await db.collection<PublishedDeck>("published_decks").findOne(query);
-  return deck ? normalizeDeck(deck) : null;
+  return deck ? getHydratedDeck<PublishedDeck>("published_decks", { _id: deck._id }) : null;
 }
 
 type PublishedDeckListOptions = {
@@ -50,7 +50,7 @@ export const getPublishedDecks = async (legion, options: PublishedDeckListOption
   }
 
   const decks = await cursor.toArray();
-  return decks.map(normalizeDeck);
+  return (await hydrateDecks(decks)).map(normalizeDeck);
 }
 
 export const getPublishedDeckFilterOptions = async (): Promise<{ legion: string[] }> => {
@@ -77,6 +77,7 @@ export const publishDeck = async (user, deckId: string): Promise<PublishedDeck> 
     author: alias ?? user.name ?? user.email ?? "Unknown Author",
   };
   delete newPublishedDeck._id;
+  delete newPublishedDeck.cards;
   const createdDeck = await insertOnePublishedDeck(newPublishedDeck);
   return createdDeck;
 }

@@ -1,5 +1,6 @@
 import { CardState } from "../../shared/interfaces/CardState";
-import { CardInDeck, DeckResponse } from "../../shared/interfaces/DeckResponse";
+import { DeckResponse, HydratedDeckCard } from "../../shared/interfaces/DeckResponse";
+import { getMainDeckCards } from "../../shared/deckComposition";
 import { CARD_TYPE } from "../../shared/enums/CardType";
 import { shuffle } from "./shuffleDeck.util";
 import { CARD_TARGET } from "../../shared/enums/CardTarget";
@@ -17,7 +18,7 @@ export const generateStartingPlayersCards = (p2DeckFromServer: DeckResponse, p1D
 }
 
 const generateStartingCards = (deckFromServer: DeckResponse, p1: boolean) => {
-  const filteredDeckFromServer = Object.values(deckFromServer?.cards_in_deck || [])
+  const filteredDeckFromServer = getMainDeckCards(deckFromServer);
   //to do
   const veilRealmsFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.VEIL_REALM);
   const warlordsFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.WARLORD);
@@ -148,28 +149,28 @@ const generateStartingCards = (deckFromServer: DeckResponse, p1: boolean) => {
   })
 }
 
-const generateVeilRealm = (cardsFromServer: CardInDeck[]) => {
+const generateVeilRealm = (cardsFromServer: HydratedDeckCard[]) => {
   if (!cardsFromServer.length) return generateCard({ name: "Veil Realm", code: "VEIL_REALM", img: "", type: CARD_TYPE.VEIL_REALM, text: "" }, `${nextId}`);
   const { title: name, card_code: code, featured_image: image, card_type: { names: [type] }, text } = cardsFromServer[0];
   const card = generateCard({ name, code, img: image, type: (type as CARD_TYPE), cooldown: 3, text }, `${nextId}`);
   nextId++;
   return card;
 }
-const generateWarlord = (cardsFromServer: CardInDeck[]) => {
+const generateWarlord = (cardsFromServer: HydratedDeckCard[]) => {
   if (!cardsFromServer.length) return generateCard({ name: "Warlord", code: "WARLORD", img: "", type: CARD_TYPE.WARLORD, text: "" }, `${nextId}`);
   const { title: name, card_code: code, featured_image: image, card_type: { names: [type] }, text } = cardsFromServer[0];
   const card = generateCard({ name, code, img: image, type: (type as CARD_TYPE), cooldown: 0, text }, `${nextId}`);
   nextId++;
   return card;
 }
-const generateSynergy = (cardsFromServer: CardInDeck[]) => {
+const generateSynergy = (cardsFromServer: HydratedDeckCard[]) => {
   if (!cardsFromServer.length) return generateCard({ name: "Synergy", code: "SYNERGY", img: "", type: CARD_TYPE.SYNERGY, text: "" }, `${nextId}`);
   const { title: name, card_code: code, featured_image: image, card_type: { names: [type] }, text } = cardsFromServer[0];
   const card = generateCard({ name, code, img: image, type: (type as CARD_TYPE), cooldown: 0, text }, `${nextId}`);
   nextId++;
   return card;
 }
-const generateGuardian = (cardsFromServer: CardInDeck[]) => {
+const generateGuardian = (cardsFromServer: HydratedDeckCard[]) => {
   if (!cardsFromServer.length) return generateCard({ name: "Guardian", code: "GUARDIAN", img: "", type: CARD_TYPE.GUARDIAN, text: "" }, `${nextId}`);
   const { title: name, card_code: code, featured_image: image, card_type: { names: [type] }, text } = cardsFromServer[0];
   const card = generateCard({ name, code, img: image, type: (type as CARD_TYPE), text }, `${nextId}`);
@@ -177,7 +178,7 @@ const generateGuardian = (cardsFromServer: CardInDeck[]) => {
   return card;
 }
 
-const generateDeck = (warriors: CardInDeck[], unifieds: CardInDeck[], fortifieds: CardInDeck[]) => {
+const generateDeck = (warriors: HydratedDeckCard[], unifieds: HydratedDeckCard[], fortifieds: HydratedDeckCard[]) => {
   const deck: CardState[] = [];
   [...warriors, ...unifieds, ...fortifieds].forEach(card => {
     const { title: name, card_code: code, featured_image: image, card_type: { names: [type] }, text } = card;
@@ -190,7 +191,7 @@ const generateDeck = (warriors: CardInDeck[], unifieds: CardInDeck[], fortifieds
   return shuffle(deck);
 }
 
-const generateDeckAndHand = (warriors: CardInDeck[], unifieds: CardInDeck[], fortifieds: CardInDeck[]): { deck: CardState[], hand: CardState[] } => {
+const generateDeckAndHand = (warriors: HydratedDeckCard[], unifieds: HydratedDeckCard[], fortifieds: HydratedDeckCard[]): { deck: CardState[], hand: CardState[] } => {
   const deck = generateDeck(warriors, unifieds, fortifieds);
   const hand: CardState[] = [];
   for (let i = 0; i < 6; i++) {
@@ -199,7 +200,7 @@ const generateDeckAndHand = (warriors: CardInDeck[], unifieds: CardInDeck[], for
   return { deck, hand };
 }
 
-const generateTokens = (tokensFromServer: CardInDeck[]) => {
+const generateTokens = (tokensFromServer: HydratedDeckCard[]) => {
   const tokens: CardState[] = [];
   tokensFromServer.forEach(token => {
     const { title: name, card_code: code, featured_image: image, card_type: { names: [type] }, text } = token;

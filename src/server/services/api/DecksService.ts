@@ -4,6 +4,7 @@ import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import { getPublishedDeckById } from "./PublishedDecksService";
 import { ObjectId } from "mongodb";
 import { normalizeDeck } from "@/shared/deckComposition";
+import { getHydratedDeck, hydrateDecks } from "./DeckHydrationService";
 
 export const insertOneDeck = async (deck: Omit<DeckResponse, "_id">): Promise<DeckResponse> => {
   const db = getDatabase();
@@ -23,7 +24,7 @@ export const getDecksForPlayer = async (user, legion): Promise<DeckResponse[]> =
   }
 
   const decks = await db.collection<DeckResponse>("decks").find(query).toArray();
-  return decks.reverse().map(normalizeDeck);
+  return (await hydrateDecks(decks.reverse())).map(normalizeDeck);
 }
 
 export const getFilterOptionsForPlayerDecks = async (user): Promise<string[]> => {
@@ -34,19 +35,17 @@ export const getFilterOptionsForPlayerDecks = async (user): Promise<string[]> =>
 }
 
 export const getDeckById = async (user, deckId: string): Promise<DeckResponse | null> => {
-  const db = getDatabase();
-  let deck;
+  let query;
   if (deckId.length > 6) {
-    const query = user?.id
+    query = user?.id
       ? { _id: new ObjectId(deckId), userId: user.id }
       : { _id: new ObjectId(deckId) };
-    deck = await db.collection("decks").findOne(query);
   } else {
-    const query = user?.id
+    query = user?.id
       ? { id: deckId, userId: user.id }
       : { id: deckId };
-    deck = await db.collection("decks").findOne(query);
   }
+  const deck = await getHydratedDeck<DeckResponse>("decks", query);
   return deck ? normalizeDeck(deck) : null;
 }
 
@@ -56,7 +55,7 @@ export const getDeckByName = async (user, deckName: string): Promise<DeckRespons
     ? { name: deckName, userId: user.id }
     : { name: deckName };
   const deck = await db.collection<DeckResponse>("decks").findOne(query);
-  return deck;
+  return deck ? getHydratedDeck<DeckResponse>("decks", { _id: deck._id }) : null;
 }
 
 export const updateDeckById = async (user, deckId: string, updateData: Partial<DeckResponse>): Promise<DeckResponse | null> => {
@@ -78,7 +77,7 @@ export const updateDeckById = async (user, deckId: string, updateData: Partial<D
   if (!updatedDeck) {
     throw new Error("Deck not found or you don't have permission to edit this deck");
   }
-  return normalizeDeck(updatedDeck);
+  return getHydratedDeck<DeckResponse>("decks", { _id: updatedDeck._id, userId: user.id });
 }
 
 export const duplicateDeckById = async (user, deckId: string): Promise<DeckResponse> => {
@@ -94,6 +93,7 @@ export const duplicateDeckById = async (user, deckId: string): Promise<DeckRespo
     updated_at: new Date(),
   };
   delete newDeck._id;
+  delete newDeck.cards;
   // Insert the deck into MongoDB
   const result = await db.collection("decks").insertOne(newDeck);
   const duplicateDeck = await getDeckById(user, result.insertedId.toString());
@@ -141,6 +141,7 @@ export const copyPublishedDeck = async (user, publishedDeckId: string): Promise<
     updated_at: new Date(),
   };
   delete newDeck._id;
+  delete newDeck.cards;
   delete newDeck.published_date;
   delete newDeck.author;
 

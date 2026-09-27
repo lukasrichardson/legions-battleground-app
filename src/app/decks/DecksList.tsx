@@ -6,19 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import axios from "axios";
 import { MultiSelect } from "@/client/ui/multiselect";
+import { getMainDeckCards } from "@/shared/deckComposition";
+import LoadingState from "../components/LoadingState";
 
 export const DecksList = () => {
   const router = useRouter();
   const [decks, setDecks] = useState([]);
   const [legion, setLegion] = useState<string[]>([]);
   const [filterOptions, setFilterOptions] = useState<{ legion: string[] }>({ legion: [] });
+  const [loading, setLoading] = useState(true);
 
   const handleLegionSelect = (legionVal: string[]) => {
     setLegion(legionVal);
   }
 
   useEffect(() => {
-    fetchDecks(legion, (data: []) => setDecks(data));
+    setLoading(true);
+    void fetchDecks(legion, (data: []) => setDecks(data)).finally(() => setLoading(false));
     fetchDeckFilterOptions((data: {legion: string[]}) => setFilterOptions(data));
   }, [legion])
   
@@ -63,7 +67,9 @@ export const DecksList = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-0 flex-1 overflow-hidden">
-          {decks.length === 0 ? (
+          {loading ? (
+            <LoadingState label="Loading your decks…" className="h-full" />
+          ) : decks.length === 0 ? (
             <div className="text-center py-8 h-full flex flex-col items-center justify-center">
               <div className="w-12 h-12 bg-gray-700/50 rounded-full flex items-center justify-center mb-3">
                 <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,7 +83,8 @@ export const DecksList = () => {
             <div className="h-full overflow-auto">
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
                 {decks.map(deck => {
-                  const warlordOrNull = deck.cards_in_deck.find(card => card.card_type.names[0] === CARD_TYPE.WARLORD); 
+                  const deckCards = getMainDeckCards(deck);
+                  const warlordOrNull = deckCards.find(card => card.card_type.names[0] === CARD_TYPE.WARLORD);
                   return(
                   <div 
                     key={deck._id || deck.id} 
@@ -92,14 +99,14 @@ export const DecksList = () => {
                     </div>
                     <div className="bg-white/5 border border-white/10 rounded-lg p-1 hover:bg-white/10 transition-colors">
                       <div className="flex justify-center mb-1">
-                        {renderCardTile(warlordOrNull || deck.cards_in_deck?.[0], 0, () => null)}
+                        {renderCardTile(warlordOrNull || deckCards[0], 0, () => null)}
                       </div>
                       <div className="text-center">
                         <p className="text-sm font-medium text-white truncate">
                           {deck.name}
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {deck.cards_in_deck?.filter(card => ![CARD_TYPE.WARLORD, CARD_TYPE.VEIL_REALM, CARD_TYPE.SYNERGY, CARD_TYPE.GUARDIAN, CARD_TYPE.TOKEN].includes(card.card_type.names[0]))?.length || 0} cards · Side {deck.side_deck?.length || 0}/15
+                          {deckCards.filter(card => ![CARD_TYPE.WARLORD, CARD_TYPE.VEIL_REALM, CARD_TYPE.SYNERGY, CARD_TYPE.GUARDIAN, CARD_TYPE.TOKEN].includes(card.card_type.names[0] as CARD_TYPE))?.length || 0} cards · Side {deck.side_deck?.length || 0}/15
                         </p>
                       </div>
                     </div>

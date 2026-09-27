@@ -1,8 +1,10 @@
-import { cardIdentity, getCombinedCardCounts, getDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, normalizeDeck, SIDE_DECK_MAX_SIZE } from "@/shared/deckComposition";
+import { cardIdentity, getCombinedCardCounts, getDeckCards, getSideDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, normalizeDeck, SIDE_DECK_MAX_SIZE } from "@/shared/deckComposition";
 import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 import { getDatabase } from "@/server/utils/database.util";
-import { CardInDeck, DeckResponse } from "@/shared/interfaces/DeckResponse";
+import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { CARD_TYPE } from "@/shared/enums/CardType";
+import { ObjectId } from "mongodb";
+import { hydrateDeck } from "./DeckHydrationService";
 
 const EDITABLE_FIELDS = new Set(["name", "subtitle", "legion", "cards_in_deck", "side_deck"]);
 const MAX_NAME_LENGTH = 120;
@@ -66,7 +68,7 @@ export function validateBasicDeckComposition(deck: DeckResponse): void {
     }
   }
 
-  for (const card of normalizedDeck.side_deck) {
+  for (const card of getSideDeckCards(normalizedDeck)) {
     if (!isSideDeckCardTypeAllowed(card)) {
       throw new DeckValidationError(`${card.title} cannot be placed in a side deck.`);
     }
@@ -94,6 +96,17 @@ export async function validateDeckLegality(deck: DeckResponse): Promise<void> {
   validateDeckCompositionAgainstBanlist(deck, banlist);
 }
 
+/** Loads authoritative cards before applying deck rules. */
+export async function validateDeckCompositionByIds(deck: DeckResponse): Promise<void> {
+  let hydrated: DeckResponse;
+  try {
+    hydrated = await hydrateDeck(deck);
+  } catch (error) {
+    throw new DeckValidationError(error instanceof Error ? error.message : "Deck references unavailable cards.");
+  }
+  validateDeckComposition(hydrated);
+}
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
@@ -111,11 +124,14 @@ const optionalText = (value: unknown, field: string, maxLength: number): string 
   return value;
 };
 
-const cardList = (value: unknown, field: string): CardInDeck[] => {
-  if (!Array.isArray(value) || !value.every(isRecord)) {
-    throw new DeckUpdateInputError(`${field} must be an array of cards.`);
+const cardList = (value: unknown, field: string): ObjectId[] => {
+  if (!Array.isArray(value) || !value.every((item) => typeof item === "string")) {
+    throw new DeckUpdateInputError(`${field} must be an array of card IDs.`);
   }
-  return value as unknown as CardInDeck[];
+  if (!value.every(ObjectId.isValid)) {
+    throw new DeckUpdateInputError(`${field} contains an invalid card ID.`);
+  }
+  return value.map((id) => new ObjectId(id));
 };
 
 /** Validates the public PATCH contract and removes all server-managed fields. */

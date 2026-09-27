@@ -2,7 +2,7 @@ import { ExpressApp } from "../interfaces/ExpressTypes";
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { Response } from 'express';
 import { normalizeDeck } from "@/shared/deckComposition";
-import { DeckValidationError, validateDeckComposition } from "../services/api/DeckValidationService";
+import { DeckValidationError, validateDeckCompositionByIds } from "../services/api/DeckValidationService";
 import { DeckUpdateInputError, parseDeckUpdateInput } from "../services/api/DeckValidationService";
 import { createNewDeck,
   duplicateDeckById,
@@ -59,7 +59,7 @@ export default function decksController(app: ExpressApp) {
       const updateInput = parseDeckUpdateInput(req.body);
       const candidateDeck = normalizeDeck({ ...existingDeck, ...updateInput });
       const updatesComposition = "cards_in_deck" in updateInput || "side_deck" in updateInput || "legion" in updateInput;
-      if (updatesComposition) await validateDeckComposition(candidateDeck);
+      if (updatesComposition) await validateDeckCompositionByIds(candidateDeck);
       const updatedDeck = await updateDeckById(req.user, deckId, updateInput);
       if (!updatedDeck) {
         return res.status(404).send("Deck not found or no changes made");

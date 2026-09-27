@@ -1,14 +1,16 @@
 import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import { Button } from "@/client/ui/button";
-import { CardInDeck, DeckResponse } from "@/shared/interfaces/DeckResponse";
+import { DeckResponse, HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import useClientSettings from "@/client/hooks/useClientSettings";
 import DeckSection from "./DeckSection";
 import useIsMobile from "@/client/hooks/useIsMobile";
 import { useDrop } from "react-dnd";
+import { getMainDeckCards, getSideDeckCards } from "@/shared/deckComposition";
+import LoadingState from "@/app/components/LoadingState";
 
-const renderSectionStructure = (name: string, cards: CardInDeck[], renderSubSection: (cards: CardInDeck[]) => JSX.Element) => (
+const renderSectionStructure = (name: string, cards: HydratedDeckCard[], renderSubSection: (cards: HydratedDeckCard[]) => JSX.Element) => (
   cards && cards.length > 0 && (
     <div>
       <span className="text-xs font-semibold text-white">
@@ -34,25 +36,26 @@ export default function DeckGrid({
   readOnly = false
 }: {
   deck: DeckResponse | null,
-  handleRemoveCardFromDeck: (card: CardDocument) => void,
-  setHoveredCard: (card: CardDocument | null) => void,
+  handleRemoveCardFromDeck: (card: HydratedDeckCard) => void,
+  setHoveredCard: (card: HydratedDeckCard | null) => void,
   handleSortClick: () => void,
   saving: boolean,
-  handleAddCardToDeck: (card: CardDocument) => void,
-  handleRemoveCardFromSideDeck?: (card: CardDocument) => void,
-  handleAddCardToSideDeck?: (card: CardDocument) => void,
+  handleAddCardToDeck: (card: HydratedDeckCard) => void,
+  handleRemoveCardFromSideDeck?: (card: HydratedDeckCard) => void,
+  handleAddCardToSideDeck?: (card: HydratedDeckCard) => void,
   readOnly?: boolean
 }) {
 
-  const mainDeck = deck?.cards_in_deck.filter(item => [CARD_TYPE.WARRIOR.toString(), CARD_TYPE.UNIFIED.toString(), CARD_TYPE.FORTIFIED.toString()].includes(item?.card_type?.names?.[0]));
-  const warriors = deck?.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.WARRIOR);
-  const unifieds = deck?.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.UNIFIED);
-  const fortifieds = deck?.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.FORTIFIED);
-  const warlords = deck?.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.WARLORD);
-  const veilRealms = deck?.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.VEIL_REALM);
-  const synergies = deck?.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.SYNERGY);
-  const guardians = deck?.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.GUARDIAN);
-  const tokens = deck?.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.TOKEN);
+  const deckCards = deck ? getMainDeckCards(deck) : [];
+  const mainDeck = deckCards.filter(item => [CARD_TYPE.WARRIOR.toString(), CARD_TYPE.UNIFIED.toString(), CARD_TYPE.FORTIFIED.toString()].includes(item?.card_type?.names?.[0]));
+  const warriors = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.WARRIOR);
+  const unifieds = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.UNIFIED);
+  const fortifieds = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.FORTIFIED);
+  const warlords = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.WARLORD);
+  const veilRealms = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.VEIL_REALM);
+  const synergies = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.SYNERGY);
+  const guardians = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.GUARDIAN);
+  const tokens = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.TOKEN);
 
   const { deckbuild_groupedView, setDeckbuildGroupedView } = useClientSettings();
 
@@ -76,7 +79,7 @@ export default function DeckGrid({
     setDeckbuildGroupedView(!deckbuild_groupedView);
   }
   const isMobile = useIsMobile();
-  const sideDeck = deck?.side_deck ?? [];
+  const sideDeck = deck ? getSideDeckCards(deck) : [];
   const handleSideDeckCardClick = (e, card) => {
     e.preventDefault();
     handleRemoveCardFromSideDeck(card);
@@ -128,14 +131,7 @@ export default function DeckGrid({
       <CardContent className="p-2 pt-0 flex-1 overflow-hidden">
         <div className="h-full overflow-auto">
           {!deck ? (
-            <div className="text-center py-8">
-              <div className="w-8 h-8 bg-gray-700/50 rounded-full flex items-center justify-center mb-2">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </div>
-              <p className="text-gray-400 text-sm">Loading deck...</p>
-            </div>
+            <LoadingState label="Loading deck…" className="h-full" />
           ) : deckbuild_groupedView ? (
             <div className="space-y-2">
               <div className="flex">

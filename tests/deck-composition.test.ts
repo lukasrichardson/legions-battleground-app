@@ -1,30 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { CARD_TYPE } from "@/shared/enums/CardType";
-import { CardInDeck, DeckResponse } from "@/shared/interfaces/DeckResponse";
+import { DeckResponse, HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { getCombinedCardCounts, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, normalizeDeck, SIDE_DECK_MAX_SIZE } from "@/shared/deckComposition";
 import { DeckValidationError, validateDeckComposition } from "@/server/services/api/DeckValidationService";
 
-const card = (title: string, type = CARD_TYPE.WARRIOR, legion = "Angels"): CardInDeck => ({
+const card = (title: string, type = CARD_TYPE.WARRIOR, legion = "Angels"): HydratedDeckCard => ({
   _id: title,
-  id: title,
   title,
   featured_image: "",
-  content: { paragraphs: [], lines: [], html: "" },
-  permalink: "",
   text: "",
   card_code: title,
-  card_release: "",
-  legion: { names: [legion], slugs: [] },
-  set: { names: [], slugs: [] },
-  variant: { names: [], slugs: [] },
-  rarity: { names: [], slugs: [] },
-  card_type: { names: [type], slugs: [] },
-  card_subtype: { names: [], slugs: [] },
-  card_srl: { names: [], slugs: [] },
-  keywords: { names: [], slugs: [] },
+  legion: { names: [legion] },
+  card_type: { names: [type] },
 });
 
-const legacyDeck = { _id: {} as DeckResponse["_id"], name: "Legacy", subtitle: "", legion: "Angels", cards_in_deck: [], created_at: new Date(), updated_at: new Date() } as DeckResponse;
+const deckWith = (main: HydratedDeckCard[] = [], side: HydratedDeckCard[] = []): DeckResponse => ({
+  _id: {} as DeckResponse["_id"],
+  name: "Legacy",
+  subtitle: "",
+  legion: "Angels",
+  cards_in_deck: main.map((item) => item._id),
+  side_deck: side.map((item) => item._id),
+  cards: [...new Map([...main, ...side].map((item) => [item._id, item])).values()],
+  created_at: new Date(),
+  updated_at: new Date(),
+});
+
+const legacyDeck = { ...deckWith(), side_deck: undefined } as DeckResponse;
 
 describe("deck composition", () => {
   it("treats legacy decks as having an empty side deck", () => {
@@ -32,7 +34,7 @@ describe("deck composition", () => {
   });
 
   it("counts matching cards across the main and side decks", () => {
-    const deck = { ...legacyDeck, cards_in_deck: [card("Same Card")], side_deck: [card("Same Card")] };
+    const deck = deckWith([card("Same Card")], [card("Same Card")]);
     expect(getCombinedCardCounts(deck).get("same card")).toBe(2);
   });
 
@@ -54,33 +56,26 @@ describe("deck composition", () => {
   });
 
   it("enforces the side-deck size and eligible card-type rules on the server", () => {
-    const oversizedDeck = {
-      ...legacyDeck,
-      side_deck: Array.from({ length: SIDE_DECK_MAX_SIZE + 1 }, (_, index) => card(`Card ${index}`)),
-    };
+    const oversizedDeck = deckWith([], Array.from({ length: SIDE_DECK_MAX_SIZE + 1 }, (_, index) => card(`Card ${index}`)));
     expect(() => validateDeckComposition(oversizedDeck)).toThrow(DeckValidationError);
 
-    const warlordInSideDeck = { ...legacyDeck, side_deck: [card("Warlord", CARD_TYPE.WARLORD)] };
+    const warlordInSideDeck = deckWith([], [card("Warlord", CARD_TYPE.WARLORD)]);
     expect(() => validateDeckComposition(warlordInSideDeck)).toThrow("cannot be placed in a side deck");
   });
 
   it("accepts a full eligible side deck and rejects cards from another legion", () => {
-    const fullSideDeck = {
-      ...legacyDeck,
-      side_deck: Array.from({ length: SIDE_DECK_MAX_SIZE }, (_, index) => card(`Card ${index}`)),
-    };
+    const fullSideDeck = deckWith([], Array.from({ length: SIDE_DECK_MAX_SIZE }, (_, index) => card(`Card ${index}`)));
     expect(() => validateDeckComposition(fullSideDeck)).not.toThrow();
 
-    const foreignLegionCard = { ...legacyDeck, side_deck: [card("Titan Card", CARD_TYPE.WARRIOR, "Titans")] };
+    const foreignLegionCard = deckWith([], [card("Titan Card", CARD_TYPE.WARRIOR, "Titans")]);
     expect(() => validateDeckComposition(foreignLegionCard)).toThrow("is not valid for the Angels legion");
   });
 
   it("applies copy limits across both card lists", () => {
-    const deck = {
-      ...legacyDeck,
-      cards_in_deck: [card("Shared Card"), card("Shared Card"), card("Shared Card")],
-      side_deck: [card("Shared Card")],
-    };
+    const deck = deckWith(
+      [card("Shared Card"), card("Shared Card"), card("Shared Card")],
+      [card("Shared Card")],
+    );
     expect(() => validateDeckComposition(deck)).toThrow("exceeds the 3-copy limit across the main and side decks");
   });
 });

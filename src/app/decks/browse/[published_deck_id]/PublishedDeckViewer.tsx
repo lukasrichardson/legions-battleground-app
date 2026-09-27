@@ -6,8 +6,7 @@ import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import { fetchPublishedDeckById, copyPublishedDeck } from "@/client/utils/api.utils";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import Preview from "../../[deckId]/Preview";
-import { CardDocument } from "@/shared/interfaces/Card.mongo";
-import { DeckResponse } from "@/shared/interfaces/DeckResponse";
+import { DeckResponse, HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { signIn, useSession } from "next-auth/react";
 import { Button } from "@/client/ui/button";
 
@@ -16,7 +15,7 @@ export default function PublishedDeckViewer() {
   const pathname = usePathname();
   const params = useParams<{ published_deck_id: string }>()
   const { data: session, status } = useSession();
-  const [hoveredCard, setHoveredCard] = useState<CardDocument | null>(null);
+  const [hoveredCard, setHoveredCard] = useState<HydratedDeckCard | null>(null);
   const [deck, setDeck] = useState<PublishedDeck | null>(null); // TODO: Fix type - should be properly typed but DeckResponse interface doesn't match actual usage
 
   useEffect(() => {

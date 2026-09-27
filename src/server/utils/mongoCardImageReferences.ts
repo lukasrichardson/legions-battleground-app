@@ -7,25 +7,16 @@ export type ReferenceUpdateCounts = {
 };
 
 /**
- * The catalogue changes over time, so existing cards/decks are also a migration
- * source. This catches historical full-size and thumbnail URLs no longer exposed
- * by the current Toolbox response.
+ * The catalogue changes over time, so current card records are also a migration
+ * source. Decks contain only card ObjectId references and never own image URLs.
  */
 export async function getStoredToolboxImageUrls(database: Db): Promise<string[]> {
   const toolboxUrl = /^https:\/\/api\.legionstoolbox\.com\//;
-  const [cardUrls, deckUrls] = await Promise.all([
-    database.collection("cards").aggregate<{ _id: string }>([
-      { $match: { featured_image: toolboxUrl } },
-      { $group: { _id: "$featured_image" } },
-    ]).toArray(),
-    database.collection("decks").aggregate<{ _id: string }>([
-      { $project: { cards: { $concatArrays: ["$cards_in_deck", { $ifNull: ["$side_deck", []] }] } } },
-      { $unwind: "$cards" },
-      { $match: { "cards.featured_image": toolboxUrl } },
-      { $group: { _id: "$cards.featured_image" } },
-    ]).toArray(),
-  ]);
-  return [...new Set([...cardUrls, ...deckUrls].map(({ _id }) => _id).filter(
+  const cardUrls = await database.collection("cards").aggregate<{ _id: string }>([
+    { $match: { featured_image: toolboxUrl } },
+    { $group: { _id: "$featured_image" } },
+  ]).toArray();
+  return [...new Set(cardUrls.map(({ _id }) => _id).filter(
     (value): value is string => typeof value === "string" && Boolean(toR2ObjectKey(value)),
   ))];
 }
@@ -40,19 +31,8 @@ export async function updateCardImageReferences(
     { featured_image: sourceUrl },
     { $set: { featured_image: publicR2Url } },
   );
-  const mainDeckCardReferences = await database.collection("decks").updateMany(
-    { "cards_in_deck.featured_image": sourceUrl },
-    { $set: { "cards_in_deck.$[card].featured_image": publicR2Url } },
-    { arrayFilters: [{ "card.featured_image": sourceUrl }] },
-  );
-  // `side_deck` is an array of embedded cards; this updates each matching card's image URL.
-  const sideDeckCardReferences = await database.collection("decks").updateMany(
-    { "side_deck.featured_image": sourceUrl },
-    { $set: { "side_deck.$[card].featured_image": publicR2Url } },
-    { arrayFilters: [{ "card.featured_image": sourceUrl }] },
-  );
   return {
     cards: cards.modifiedCount,
-    decks: mainDeckCardReferences.modifiedCount + sideDeckCardReferences.modifiedCount,
+    decks: 0,
   };
 }

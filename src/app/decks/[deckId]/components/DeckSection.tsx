@@ -1,18 +1,18 @@
-import { CardDocument } from "@/shared/interfaces/Card.mongo";
+import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { DeckCardTile } from "./CardTile";
 import { useEffect, useState } from "react";
 import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
 import { fetchBanlist } from "@/client/utils/api.utils";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
 
-export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck, readOnly = false }: { cards: CardDocument[], removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, setHoveredCard: (card: CardDocument) => void, useGroupedView: boolean, addCardToDeck: (card: CardDocument) => void, readOnly?: boolean }) {
+export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck, readOnly = false }: { cards: HydratedDeckCard[], removeCardFromDeck: (e: React.MouseEvent, card: HydratedDeckCard) => void, setHoveredCard: (card: HydratedDeckCard) => void, useGroupedView: boolean, addCardToDeck: (card: HydratedDeckCard) => void, readOnly?: boolean }) {
   const [banlist, setBanlist] = useState<BanlistItem[]>([]);
   useEffect(() => {
     fetchBanlist((data: BanlistItem[]) => setBanlist(data));
   }, []);
 
   // Group cards by name to apply grouping styling
-  const groupedCards = cards.reduce((groups: Record<string, CardDocument[]>, card) => {
+  const groupedCards = cards.reduce((groups: Record<string, HydratedDeckCard[]>, card) => {
     const name = decodeHTMLEntities(card.title);
     if (!groups[name]) {
       groups[name] = [];
@@ -29,7 +29,7 @@ export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard,
           {cardGroup.map((card, index) => {
             const countInDeck = cardGroup.length;
             return (
-              <DeckCardTile key={card.id.toString() + index} readOnly={readOnly} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped banlist={banlist} countInDeck={countInDeck} />
+              <DeckCardTile key={card._id.toString() + index} readOnly={readOnly} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped banlist={banlist} countInDeck={countInDeck} />
             )
           })}
         </div>
@@ -40,7 +40,7 @@ export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard,
       {cards.map((card, index) => {
         const countInDeck = groupedCards[decodeHTMLEntities(card.title)]?.length || 1;
         return (
-          <DeckCardTile readOnly={readOnly} key={card.id.toString() + index} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped={false} banlist={banlist} countInDeck={countInDeck} />
+          <DeckCardTile readOnly={readOnly} key={card._id.toString() + index} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped={false} banlist={banlist} countInDeck={countInDeck} />
         )
       })}
     </>

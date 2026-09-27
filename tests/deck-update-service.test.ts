@@ -14,7 +14,8 @@ import { updateDeckById } from "@/server/services/api/DecksService";
 
 describe("updateDeckById", () => {
   const findOneAndUpdate = vi.fn();
-  const collection = { findOneAndUpdate };
+  const aggregate = vi.fn();
+  const collection = { findOneAndUpdate, aggregate };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -35,15 +36,17 @@ describe("updateDeckById", () => {
       updated_at: new Date("2026-01-01"),
     };
     findOneAndUpdate.mockResolvedValue(deck);
+    aggregate.mockReturnValue({ toArray: vi.fn().mockResolvedValue([{ ...deck, side_deck: [], cards: [] }]) });
 
     await expect(updateDeckById({ id: "user-1" }, deck._id.toString(), { name: deck.name }))
-      .resolves.toEqual({ ...deck, side_deck: [] });
+      .resolves.toEqual({ ...deck, side_deck: [], cards: [] });
 
     expect(findOneAndUpdate).toHaveBeenCalledWith(
       { _id: deck._id, userId: "user-1" },
       { $set: { name: deck.name, updated_at: expect.any(Date) } },
       { returnDocument: "after" },
     );
+    expect(aggregate).toHaveBeenCalled();
   });
 
   it("rejects when the deck is absent or not owned by the user", async () => {

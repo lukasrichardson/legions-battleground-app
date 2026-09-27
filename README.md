@@ -71,6 +71,22 @@ cp .env.example .env
 
 Fill in `MONGO_URL`, `MONGO_DB_NAME`, `NEXTAUTH_SECRET`, and any OAuth credentials in `.env`, then start the development server. The database name is explicit in every environment; use `test` locally and a separate name for staging or production.
 
+## Deck card-reference migration
+
+Decks and published decks store card ObjectIds. To convert legacy embedded-card documents, run the dry run first; it refuses to write if any card cannot be resolved unambiguously.
+
+```powershell
+npm run migrateDeckCards:dev
+npm run migrateDeckCards:dev -- --apply
+```
+
+Production uses the same guarded flow during a maintenance window:
+
+```powershell
+npm run migrateDeckCards:prod
+npm run migrateDeckCards:prod -- --apply
+```
+
 ```bash
 npm run dev
 ```

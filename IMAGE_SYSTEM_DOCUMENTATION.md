@@ -37,13 +37,6 @@ npm run syncCardImages -- --apply
 npm run syncCardImages -- --apply --refresh
 ```
 
-For legacy `published_decks.cards_in_deck[].featured_image` references, use the separate Mongo-only migration after the R2 objects exist:
-
-```bash
-npm run syncPublishedDeckImages
-npm run syncPublishedDeckImages -- --apply
-```
-
 Each Toolbox image is stored as `cards/<filename>`, for example:
 
 ```text
@@ -52,7 +45,7 @@ https://api.legionstoolbox.com/wp-content/uploads/2023/07/RVL-128-450x616.png
 https://<r2-public-host>/cards/RVL-128-450x616.png
 ```
 
-The script combines current catalogue URLs with historical Toolbox URLs found in `cards.featured_image` and `decks.cards_in_deck[].featured_image`. It refuses same-filename collisions and updates Mongo only after its R2 object is confirmed present.
+The script combines current catalogue URLs with historical Toolbox URLs found in `cards.featured_image`. It refuses same-filename collisions and updates Mongo only after its R2 object is confirmed present. Decks reference cards by ObjectId and do not store image URLs.
 
 ## Browser cache
 

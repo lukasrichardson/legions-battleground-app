@@ -8,16 +8,17 @@ import SearchPane from "./components/SearchPane";
 import DeckEditorHeader from "./components/DeckEditorHeader";
 import { fetchDeckById, patchDeckById } from "@/client/utils/api.utils";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
+import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { preloadDeckImages } from "@/client/utils/imagePreloader";
 import FullPage from "@/app/components/FullPage";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { useDrop } from "react-dnd";
 import useIsMobile from "@/client/hooks/useIsMobile";
-import { getDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, SIDE_DECK_MAX_SIZE } from "@/shared/deckComposition";
+import { getDeckCards, getMainDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, SIDE_DECK_MAX_SIZE } from "@/shared/deckComposition";
 
 export default function DeckBuilder() {
   const params = useParams<{ deckId: string }>()
-  const [hoveredCard, setHoveredCard] = useState<CardDocument | null>(null);
+  const [hoveredCard, setHoveredCard] = useState<HydratedDeckCard | null>(null);
   const [deck, setDeck] = useState<DeckResponse | null>(null); // TODO: Fix type - should be properly typed but DeckResponse interface doesn't match actual usage
   const [saving, setSaving] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -64,13 +65,13 @@ export default function DeckBuilder() {
   };
 
   const removeLastCardById = (cards, cardId) => {
-    const cardIndex = cards.findLastIndex((item) => item.id === cardId);
+    const cardIndex = cards.findLastIndex((item) => item.toString() === cardId.toString());
     return cardIndex < 0 ? cards : cards.filter((_, index) => index !== cardIndex);
   };
 
   const handleRemoveCardFromDeck = (card) => {
     if (!deck) return;
-    const cardsInDeck = removeLastCardById(deck.cards_in_deck, card.id);
+    const cardsInDeck = removeLastCardById(deck.cards_in_deck, card._id);
     if (cardsInDeck.length === deck.cards_in_deck.length) return;
 
     saveDeck({ ...deck, cards_in_deck: cardsInDeck });
@@ -78,12 +79,12 @@ export default function DeckBuilder() {
 
   const handleAddCardToDeck = (card) => {
     if (!deck || !card) return;
-    saveDeck({ ...deck, cards_in_deck: [...deck.cards_in_deck, card] });
+    saveDeck({ ...deck, cards_in_deck: [...deck.cards_in_deck, card._id] });
   };
 
   const handleRemoveCardFromSideDeck = (card) => {
     const sideDeck = deck?.side_deck ?? [];
-    const nextSideDeck = removeLastCardById(sideDeck, card.id);
+    const nextSideDeck = removeLastCardById(sideDeck, card._id);
     if (nextSideDeck.length === sideDeck.length || !deck) return;
 
     saveDeck({ ...deck, side_deck: nextSideDeck });
@@ -105,30 +106,32 @@ export default function DeckBuilder() {
       return;
     }
 
-    saveDeck({ ...deck, side_deck: [...sideDeck, card] });
+    saveDeck({ ...deck, side_deck: [...sideDeck, card._id] });
   };
 
   const handleSortClick = () => {
     if (!deck) return;
+    const cards = getMainDeckCards(deck);
     const counts = {};
-    deck.cards_in_deck.forEach(card => {
-      counts[card.id] = (counts[card.id] || 0) + 1;
+    cards.forEach(card => {
+      const cardId = card._id.toString();
+      counts[cardId] = (counts[cardId] || 0) + 1;
     });
-    const warriors = deck.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.WARRIOR);
-    const unifieds = deck.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.UNIFIED);
-    const fortifieds = deck.cards_in_deck.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.FORTIFIED);
-    const restOfDeck = deck.cards_in_deck.filter(item => ![CARD_TYPE.WARRIOR.toString(), CARD_TYPE.UNIFIED.toString(), CARD_TYPE.FORTIFIED.toString()].includes(item?.card_type?.names?.[0]));
+    const warriors = cards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.WARRIOR);
+    const unifieds = cards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.UNIFIED);
+    const fortifieds = cards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.FORTIFIED);
+    const restOfDeck = cards.filter(item => ![CARD_TYPE.WARRIOR.toString(), CARD_TYPE.UNIFIED.toString(), CARD_TYPE.FORTIFIED.toString()].includes(item?.card_type?.names?.[0]));
     const sortedDeck = {
       ...deck,
       cards_in_deck: [...warriors.sort((a, b) => {
-        return counts[b.id] - counts[a.id];
+        return counts[b._id.toString()] - counts[a._id.toString()];
       }), ...unifieds.sort((a, b) => {
-        return counts[b.id] - counts[a.id];
+        return counts[b._id.toString()] - counts[a._id.toString()];
       }), ...fortifieds.sort((a, b) => {
-        return counts[b.id] - counts[a.id];
+        return counts[b._id.toString()] - counts[a._id.toString()];
       }), ...restOfDeck.sort((a, b) => {
-        return counts[b.id] - counts[a.id];
-      })]
+        return counts[b._id.toString()] - counts[a._id.toString()];
+      })].map(card => card._id)
 
     };
     saveDeck(sortedDeck);

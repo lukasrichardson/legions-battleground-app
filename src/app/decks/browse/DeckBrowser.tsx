@@ -8,19 +8,23 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FullPage from "@/app/components/FullPage";
 import { MultiSelect } from "@/client/ui/multiselect";
+import { getMainDeckCards } from "@/shared/deckComposition";
+import LoadingState from "../../components/LoadingState";
 
 export default function DeckBrowser() {
   const router = useRouter();
   const [decks, setDecks] = useState([]);
   const [legion, setLegion] = useState<string[]>([]);
   const [filterOptions, setFilterOptions] = useState<{ legion: string[] }>({ legion: [] });
+  const [loading, setLoading] = useState(true);
 
   const handleLegionSelect = (legionVal: string[]) => {
     setLegion(legionVal);
   }
 
   useEffect(() => {
-    fetchPublishedDecks(legion, setDecks);
+    setLoading(true);
+    void fetchPublishedDecks(legion, setDecks).finally(() => setLoading(false));
     fetchPublishedDeckFilterOptions((data: {legion: string[]}) => setFilterOptions(data));
   }, [legion])
   const handleDeckSelect = (deckId) => () => {
@@ -54,7 +58,9 @@ export default function DeckBrowser() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0 flex-1 overflow-hidden">
-            {decks.length === 0 ? (
+            {loading ? (
+              <LoadingState label="Loading published decks…" className="h-full" />
+            ) : decks.length === 0 ? (
               <div className="text-center py-8 h-full flex flex-col items-center justify-center">
                 <div className="w-12 h-12 bg-gray-700/50 rounded-full flex items-center justify-center mb-3">
                   <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,7 +74,8 @@ export default function DeckBrowser() {
               <div className="h-full overflow-auto">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                   {decks.map(deck => {
-                    const warlordOrNull = deck.cards_in_deck.find(card => card.card_type.names[0] === CARD_TYPE.WARLORD);
+                    const deckCards = getMainDeckCards(deck);
+                    const warlordOrNull = deckCards.find(card => card.card_type.names[0] === CARD_TYPE.WARLORD);
                     return (
                       <div
                         key={deck._id || deck.id}
@@ -80,13 +87,13 @@ export default function DeckBrowser() {
                             <p className="text-sm font-medium text-white truncate">
                               {deck.name}
                               <span className="text-xs text-gray-400 mt-1">
-                              {" - " + (deck.cards_in_deck?.filter(card => ![CARD_TYPE.WARLORD, CARD_TYPE.VEIL_REALM, CARD_TYPE.SYNERGY, CARD_TYPE.GUARDIAN, CARD_TYPE.TOKEN].includes(card.card_type.names[0]))?.length || 0) + " cards"}
+                              {" - " + (deckCards.filter(card => ![CARD_TYPE.WARLORD, CARD_TYPE.VEIL_REALM, CARD_TYPE.SYNERGY, CARD_TYPE.GUARDIAN, CARD_TYPE.TOKEN].includes(card.card_type.names[0] as CARD_TYPE))?.length || 0) + " cards"}
                               {" · Side " + (deck.side_deck?.length || 0) + "/15"}
                               </span>
                             </p>
                           </div>
                           <div className="flex justify-center mb-2">
-                            {renderCardTile(warlordOrNull || deck.cards_in_deck?.[0], 0, () => null)}
+                            {renderCardTile(warlordOrNull || deckCards[0], 0, () => null)}
                           </div>
                           <div className="text-center">
                             <p className="text-sm font-medium text-white truncate">

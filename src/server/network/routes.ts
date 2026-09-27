@@ -9,7 +9,7 @@ import { BanlistStatus } from '../../shared/interfaces/BanlistItem.mongo';
 import { ExpressApp } from '../interfaces/ExpressTypes';
 import decksController from '../controllers/decks.controller';
 import publishedDecksController from '../controllers/publishedDecks.controller';
-import { DeckValidationError, validateDeckComposition } from "../services/api/DeckValidationService";
+import { DeckValidationError, validateDeckCompositionByIds } from "../services/api/DeckValidationService";
 import { parseCardPagination, parseCardSearch } from "../utils/queryValidation.util";
 import { AliasTakenError, AliasValidationError, deleteAliasForUser, getAliasForUser, setAliasForUser } from "../services/api/AliasService";
 
@@ -196,7 +196,7 @@ export const routes = (app: ExpressApp) => {
     const newDeck = {
       id: req.body.id,
       name: req.body.name,
-      cards_in_deck: req.body.cards_in_deck,
+      cards_in_deck: [] as ObjectId[],
       side_deck: [],
       legion,
       subtitle: req.body.subtitle,
@@ -207,21 +207,21 @@ export const routes = (app: ExpressApp) => {
 
     console.log("Importing deck:", req.body.legion, newDeck.legion);
 
-    for (let i = 0 ; i < newDeck.cards_in_deck.length; i++) {
+    for (let i = 0 ; i < req.body.cards_in_deck.length; i++) {
       // Toolbox card codes identify a specific variation; names do not.
-      let mongoCard = await db.collection("cards").findOne({ card_code: newDeck.cards_in_deck[i].code });
+      let mongoCard = await db.collection("cards").findOne({ card_code: req.body.cards_in_deck[i].code });
       if (!mongoCard) {
         // Keep title matching only for legacy Toolbox payloads missing a code.
-        mongoCard = await db.collection("cards").findOne({ title: newDeck.cards_in_deck[i].name });
+        mongoCard = await db.collection("cards").findOne({ title: req.body.cards_in_deck[i].name });
         if (!mongoCard) {
-          console.log("Card not found in database:", newDeck.cards_in_deck[i] );
-        return res.status(400).send("Card " + newDeck.cards_in_deck[i].name + " code" + newDeck.cards_in_deck[i].code + " not found in database");
+          console.log("Card not found in database:", req.body.cards_in_deck[i] );
+        return res.status(400).send("Card " + req.body.cards_in_deck[i].name + " code" + req.body.cards_in_deck[i].code + " not found in database");
         }
       }
-      newDeck.cards_in_deck[i] = mongoCard;
-      if (i === newDeck.cards_in_deck.length - 1) {
+      newDeck.cards_in_deck.push(mongoCard._id);
+      if (i === req.body.cards_in_deck.length - 1) {
         try {
-          await validateDeckComposition(newDeck as DeckResponse);
+          await validateDeckCompositionByIds(newDeck as DeckResponse);
         } catch (error) {
           if (error instanceof DeckValidationError) return res.status(400).send(error.message);
           throw error;

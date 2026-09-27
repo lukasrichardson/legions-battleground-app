@@ -1,6 +1,7 @@
 import CardImage from "@/app/components/Card/CardImage";
 import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 import { CardDocument } from "@/shared/interfaces/Card.mongo";
+import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { useEffect, useMemo, useState } from "react";
 import { useDrag } from "react-dnd";
 
@@ -25,9 +26,11 @@ export const PLACEHOLDER =
     <rect width='100%' height='100%' fill='url(#g)'/>
   </svg>`);
 
-export const renderCardTile = (card: { id: string | number; title: string; featured_image: string }, index: number, onMouseEnter: (card: { id: string | number; title: string; featured_image: string }) => void) => {
+type DeckTileCard = Pick<HydratedDeckCard, "_id" | "title" | "featured_image">;
+
+export const renderCardTile = (card: DeckTileCard, index: number, onMouseEnter: (card: DeckTileCard) => void) => {
   return (<div
-    key={card?.id.toString() + index}
+    key={card?._id.toString() + index}
     onMouseEnter={() => onMouseEnter(card)}
     onClick={() => onMouseEnter(card)}
     className="overflow-hidden rounded-sm text-left shadow-sm transition hover:shadow-md h-full w-full cursor-pointer"
@@ -42,7 +45,7 @@ export const renderCardTile = (card: { id: string | number; title: string; featu
   </div>)
 }
 
-export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped, readOnly = false, banlist, countInDeck }: { card: CardDocument, index: number, removeCardFromDeck: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void, addCardToDeck: (card: CardDocument) => void, grouped: boolean, readOnly?: boolean, banlist: BanlistItem[], countInDeck: number }) => {
+export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped, readOnly = false, banlist, countInDeck }: { card: HydratedDeckCard, index: number, removeCardFromDeck: (e: React.MouseEvent, card: HydratedDeckCard) => void, onMouseEnter: (card: HydratedDeckCard) => void, addCardToDeck: (card: HydratedDeckCard) => void, grouped: boolean, readOnly?: boolean, banlist: BanlistItem[], countInDeck: number }) => {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const handleOnMouseEnter = () => {
     const timeoutId = setTimeout(() => {
@@ -111,7 +114,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
       >
         <div ref={(node) => { drag(node); }}>
           {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck)}
-          <div key={card.id.toString() + index}>
+          <div key={card._id.toString() + index}>
             {suspendedCards[card.title] && (
               <div className="absolute top-1 right-2 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
                 0
@@ -140,7 +143,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
       >
         <div ref={(node) => { drag(node); }}>
           {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck)}
-          <div onContextMenu={(e) => removeCardFromDeck(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
+          <div onContextMenu={(e) => removeCardFromDeck(e, card)} key={card._id.toString() + index} onMouseLeave={handleOnMouseLeave}>
             {suspendedCards[card.title] && (
               <div className="absolute top-1 right-1 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
                 0
