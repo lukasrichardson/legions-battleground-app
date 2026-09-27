@@ -147,7 +147,7 @@ export const postBanlistUpdate = async (banlistData: BanlistItem, callback: (dat
 
 export const fetchRecentPublishedDecks = async (): Promise<PublishedDeck[]> => {
   const res = await axios.get(publishedDecksPath, {
-    params: { sort: "recent", limit: 5 },
+    params: { sort: "recent", limit: 10 },
   });
   return res.data as PublishedDeck[];
 }

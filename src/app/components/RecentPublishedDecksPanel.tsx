@@ -120,7 +120,7 @@ export default function RecentPublishedDecksPanel() {
 
         {status === "ready" && decks.length > 0 && (
           <ul className="divide-y divide-white/10" aria-label="Five most recently published decks">
-            {decks.slice(0, 5).map((deck) => {
+            {decks.slice(0, 10).map((deck) => {
               const warlord = getDeckWarlord(deck);
               const coverImage = getDeckCoverImage(deck);
               const deckId = deck._id?.toString() || deck.id;
