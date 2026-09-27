@@ -1,8 +1,10 @@
 # Legions Battleground
 
+## 🎮 [Play Legions Battleground](https://legions-battleground.ca)
+
 Legions Battleground is a full-stack TypeScript application for playing and practising **Legions: Realms at War** online. It combines a Next.js interface with an Express and Socket.IO server for live multiplayer play, authenticated deck libraries, and a sandbox mode for testing card interactions.
 
-[Live demo](https://legions-battleground.onrender.com) · [Architecture](./docs/architecture.md) · [API reference](./docs/api-reference.md) · [Development guide](./docs/development-guide.md)
+[Architecture](./docs/architecture.md) · [API reference](./docs/api-reference.md) · [Development guide](./docs/development-guide.md)
 
 ![Legions Battleground game rooms](./public/game-rooms.png)
 
