@@ -2,6 +2,8 @@ import axios from "axios";
 import { appendQueryParams } from "./string.util";
 import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
 import PublishedDeck from "@/shared/interfaces/PublishedDeck";
+import { DeckResponse } from "@/shared/interfaces/DeckResponse";
+import { DeckPatchOperation } from "@/shared/interfaces/DeckPatch";
 const publishedDecksPath = "/api/published_decks";
 
 //cards
@@ -16,14 +18,11 @@ export const fetchCards = async ({legion, query, page, pageSize, type, rarity, s
 
 //decks
 
-export const patchDeckById = async (deckId: string, updatedDeck: unknown, callback: (data: unknown) => void, onError?: (message: string) => void) => {
-  try {
-    const res = await axios.patch(`/api/decks/`+deckId, updatedDeck);
-    callback?.(res?.data);
-  } catch (err) {
-    onError?.(axios.isAxiosError(err) ? err.response?.data || "Unable to save deck." : "Unable to save deck.");
-    console.log(err);
-  }
+export const patchDeckById = async (deckId: string, operations: DeckPatchOperation[]): Promise<DeckResponse> => {
+  const res = await axios.patch<DeckResponse>(`/api/decks/${deckId}`, operations, {
+    headers: { "Content-Type": "application/json-patch+json" },
+  });
+  return res.data;
 }
 
 export const fetchDecks = async (legion: string[] | null, callback: (data: unknown) => void) => {
@@ -75,13 +74,9 @@ export const copyPublishedDeck = async (publishedDeckId: string, callback: (data
   }
 }
 
-export const fetchDeckById = async (deckId: string, callback: (data: unknown) => void) => {
-  try {
-    const res = await axios.get(`/api/decks/`+deckId);
-    callback?.(res?.data);
-  } catch (err) {
-    console.log(err);
-  }
+export const fetchDeckById = async (deckId: string): Promise<DeckResponse> => {
+  const res = await axios.get<DeckResponse>(`/api/decks/${deckId}`);
+  return res.data;
 }
 
 export const createDeck = async (deckData: {name: string, legion: string}, callback: (data: unknown) => void) => {

@@ -4,6 +4,7 @@ import { Response } from 'express';
 import { normalizeDeck } from "@/shared/deckComposition";
 import { DeckValidationError, validateDeckCompositionByIds } from "../services/api/DeckValidationService";
 import { DeckUpdateInputError, parseDeckUpdateInput } from "../services/api/DeckValidationService";
+import { applyDeckJsonPatch, DeckPatchInputError, EditableDeckSnapshot } from "../services/api/DeckPatchService";
 import { createNewDeck,
   duplicateDeckById,
   getDeckById,
@@ -56,7 +57,16 @@ export default function decksController(app: ExpressApp) {
     }
 
     try {
-      const updateInput = parseDeckUpdateInput(req.body);
+      const patchSnapshot: EditableDeckSnapshot = {
+        name: existingDeck.name,
+        subtitle: existingDeck.subtitle,
+        legion: existingDeck.legion,
+        cards_in_deck: existingDeck.cards_in_deck.map((id) => id.toString()),
+        side_deck: (existingDeck.side_deck ?? []).map((id) => id.toString()),
+      };
+      const updateInput = req.is("application/json-patch+json")
+        ? parseDeckUpdateInput(applyDeckJsonPatch(patchSnapshot, req.body))
+        : parseDeckUpdateInput(req.body);
       const candidateDeck = normalizeDeck({ ...existingDeck, ...updateInput });
       const updatesComposition = "cards_in_deck" in updateInput || "side_deck" in updateInput || "legion" in updateInput;
       if (updatesComposition) await validateDeckCompositionByIds(candidateDeck);
@@ -67,7 +77,7 @@ export default function decksController(app: ExpressApp) {
 
       return res.send(updatedDeck);
     } catch (error) {
-      if (error instanceof DeckValidationError || error instanceof DeckUpdateInputError) return res.status(400).send(error.message);
+      if (error instanceof DeckValidationError || error instanceof DeckUpdateInputError || error instanceof DeckPatchInputError) return res.status(400).send(error.message);
       throw error;
     }
   }

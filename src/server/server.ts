@@ -28,7 +28,7 @@ connectToDatabase().then(async () => {
     const app = express();
     app.use(cors());
     app.use(cookieParser());
-    app.use(bodyParser.json({ limit: "10mb" }));
+    app.use(bodyParser.json({ limit: "10mb", type: ["application/json", "application/json-patch+json"] }));
   
     const httpServer = createServer(app);
     const io = new Server(httpServer, {
