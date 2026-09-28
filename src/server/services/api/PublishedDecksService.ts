@@ -5,6 +5,8 @@ import { getDeckById } from "./DecksService";
 import { normalizeDeck } from "@/shared/deckComposition";
 import { getAliasForUser } from "./AliasService";
 import { getHydratedDeck, hydrateDecks } from "./DeckHydrationService";
+import { getDeckListSummaries } from "./DeckListSummaryService";
+import { PublishedDeckListItem, PublishedDeckListResponse } from "@/shared/interfaces/DeckListItem";
 
 export const insertOnePublishedDeck = async (deck: Omit<PublishedDeck, "_id">): Promise<PublishedDeck> => {
   const db = getDatabase();
@@ -52,6 +54,32 @@ export const getPublishedDecks = async (legion, options: PublishedDeckListOption
   const decks = await cursor.toArray();
   return (await hydrateDecks(decks)).map(normalizeDeck);
 }
+
+export const getPublishedDeckListSummaries = async (
+  legion: string | string[] | undefined,
+  options: { page: number; limit: number },
+): Promise<PublishedDeckListResponse> => {
+  const query: Record<string, unknown> = {};
+  if (legion && typeof legion === "string" && legion.trim() !== "") {
+    query.legion = legion;
+  } else if (Array.isArray(legion)) {
+    query.legion = { $in: legion };
+  }
+  const db = getDatabase();
+  const total = await db.collection("published_decks").countDocuments(query);
+  const decks = await getDeckListSummaries("published_decks", query, {
+    sort: { published_date: -1, _id: -1 },
+    skip: (options.page - 1) * options.limit,
+    limit: options.limit,
+  }) as PublishedDeckListItem[];
+  return {
+    decks,
+    page: options.page,
+    limit: options.limit,
+    total,
+    hasMore: options.page * options.limit < total,
+  };
+};
 
 export const getPublishedDeckFilterOptions = async (): Promise<{ legion: string[] }> => {
   const db = getDatabase();

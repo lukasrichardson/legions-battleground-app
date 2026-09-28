@@ -1,9 +1,9 @@
 import axios from "axios";
 import { appendQueryParams } from "./string.util";
 import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
-import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { DeckPatchOperation } from "@/shared/interfaces/DeckPatch";
+import { DeckListItem, PublishedDeckListItem, PublishedDeckListResponse } from "@/shared/interfaces/DeckListItem";
 const publishedDecksPath = "/api/published_decks";
 
 //cards
@@ -35,6 +35,19 @@ export const fetchDecks = async (legion: string[] | null, callback: (data: unkno
   }
 }
 
+export const fetchDeckListSummaries = async (legion: string[] | null): Promise<DeckListItem[]> => {
+  const res = await axios.get<DeckListItem[]>("/api/decks", {
+    params: { legion, view: "summary" },
+    paramsSerializer: { indexes: null },
+  });
+  return res.data;
+}
+
+export const fetchDeckPickerOptions = async (): Promise<Array<{ _id: string; name: string; legion: string }>> => {
+  const decks = await fetchDeckListSummaries([]);
+  return decks.map((deck) => ({ _id: deck._id.toString(), name: deck.name, legion: deck.legion }));
+}
+
 export const fetchPublishedDecks = async (legion: string[] | null, callback: (data: unknown) => void) => {
   const url = appendQueryParams(window.location.origin + publishedDecksPath, { legion });
   try {
@@ -43,6 +56,18 @@ export const fetchPublishedDecks = async (legion: string[] | null, callback: (da
   } catch (err) {
     console.log(err);
   }
+}
+
+export const fetchPublishedDeckListSummaries = async (
+  legion: string[] | null,
+  page = 1,
+  limit = 24,
+): Promise<PublishedDeckListResponse> => {
+  const res = await axios.get<PublishedDeckListResponse>(publishedDecksPath, {
+    params: { legion, view: "summary", page, limit },
+    paramsSerializer: { indexes: null },
+  });
+  return res.data;
 }
 
 export const fetchPublishedDeckById = async (deckId: string, callback: (data: unknown) => void) => {
@@ -140,9 +165,9 @@ export const postBanlistUpdate = async (banlistData: BanlistItem, callback: (dat
   }
 }
 
-export const fetchRecentPublishedDecks = async (): Promise<PublishedDeck[]> => {
+export const fetchRecentPublishedDecks = async (): Promise<PublishedDeckListItem[]> => {
   const res = await axios.get(publishedDecksPath, {
-    params: { sort: "recent", limit: 10 },
+    params: { view: "summary", page: 1, limit: 10 },
   });
-  return res.data as PublishedDeck[];
+  return (res.data as PublishedDeckListResponse).decks;
 }

@@ -5,6 +5,8 @@ import { getPublishedDeckById } from "./PublishedDecksService";
 import { ObjectId } from "mongodb";
 import { normalizeDeck } from "@/shared/deckComposition";
 import { getHydratedDeck, hydrateDecks } from "./DeckHydrationService";
+import { getDeckListSummaries } from "./DeckListSummaryService";
+import { DeckListItem } from "@/shared/interfaces/DeckListItem";
 
 export const insertOneDeck = async (deck: Omit<DeckResponse, "_id">): Promise<DeckResponse> => {
   const db = getDatabase();
@@ -26,6 +28,17 @@ export const getDecksForPlayer = async (user, legion): Promise<DeckResponse[]> =
   const decks = await db.collection<DeckResponse>("decks").find(query).toArray();
   return (await hydrateDecks(decks.reverse())).map(normalizeDeck);
 }
+
+/** Compact data for grids and pickers; use getDeckById for a full hydrated deck. */
+export const getDeckListSummariesForPlayer = async (user, legion): Promise<DeckListItem[]> => {
+  const query: Record<string, unknown> = { userId: user?.id };
+  if (legion && typeof legion === 'string' && legion.trim() !== '') {
+    query.legion = legion;
+  } else if (legion && Array.isArray(legion)) {
+    query.legion = { $in: legion };
+  }
+  return getDeckListSummaries("decks", query) as Promise<DeckListItem[]>;
+};
 
 export const getFilterOptionsForPlayerDecks = async (user): Promise<string[]> => {
   const db = getDatabase();

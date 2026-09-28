@@ -3,24 +3,13 @@ import { Button } from "@/client/ui/button";
 import { legionColours } from "@/client/constants/colours.constants";
 import { LEGIONS } from "@/client/constants/legions.constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
-import { CARD_TYPE } from "@/shared/enums/CardType";
-import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getMainDeckCards } from "@/shared/deckComposition";
 import LoadingState from "./LoadingState";
+import { PublishedDeckListItem } from "@/shared/interfaces/DeckListItem";
 
-const getDeckWarlord = (deck: PublishedDeck) => (
-  getMainDeckCards(deck).find(
-    (card) => card.card_type?.names?.[0] === CARD_TYPE.WARLORD,
-  )
-);
-
-const getDeckCoverImage = (deck: PublishedDeck): string | null => {
-  const warlord = getDeckWarlord(deck);
-  return warlord?.featured_image ?? getMainDeckCards(deck)[0]?.featured_image ?? null;
-};
+const getDeckCoverImage = (deck: PublishedDeckListItem): string | null => deck.coverCard?.featured_image ?? null;
 
 const getLegionLabelStyle = (legion: string) => {
   const legionName = Object.values(LEGIONS).find(
@@ -35,7 +24,7 @@ const getLegionLabelStyle = (legion: string) => {
   };
 };
 
-const formatPublishedDate = (publishedDate: Date) => (
+const formatPublishedDate = (publishedDate: Date | string) => (
   new Date(publishedDate).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
@@ -70,7 +59,7 @@ function EmptyState() {
 
 export default function RecentPublishedDecksPanel() {
   const router = useRouter();
-  const [decks, setDecks] = useState<PublishedDeck[]>([]);
+  const [decks, setDecks] = useState<PublishedDeckListItem[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 
   useEffect(() => {
@@ -121,9 +110,8 @@ export default function RecentPublishedDecksPanel() {
         {status === "ready" && decks.length > 0 && (
           <ul className="divide-y divide-white/10" aria-label="Five most recently published decks">
             {decks.slice(0, 10).map((deck) => {
-              const warlord = getDeckWarlord(deck);
               const coverImage = getDeckCoverImage(deck);
-              const deckId = deck._id?.toString() || deck.id;
+              const deckId = deck._id.toString();
 
               return (
                 <li key={deckId}>
@@ -159,9 +147,9 @@ export default function RecentPublishedDecksPanel() {
                         >
                           {deck.legion}
                         </span>
-                        {warlord?.title && (
+                        {deck.coverCard?.title && (
                           <span className="truncate text-xs text-gray-300">
-                            {formatWarlordName(warlord.title)}
+                            {formatWarlordName(deck.coverCard.title)}
                           </span>
                         )}
                       </span>

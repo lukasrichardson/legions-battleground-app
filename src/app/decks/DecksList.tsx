@@ -1,17 +1,16 @@
-import { fetchDeckFilterOptions, fetchDecks } from "@/client/utils/api.utils";
+import { fetchDeckFilterOptions, fetchDeckListSummaries } from "@/client/utils/api.utils";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { renderCardTile } from "./[deckId]/components/CardTile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
-import { CARD_TYPE } from "@/shared/enums/CardType";
 import axios from "axios";
 import { MultiSelect } from "@/client/ui/multiselect";
-import { getMainDeckCards } from "@/shared/deckComposition";
 import LoadingState from "../components/LoadingState";
+import { DeckListItem } from "@/shared/interfaces/DeckListItem";
 
 export const DecksList = () => {
   const router = useRouter();
-  const [decks, setDecks] = useState([]);
+  const [decks, setDecks] = useState<DeckListItem[]>([]);
   const [legion, setLegion] = useState<string[]>([]);
   const [filterOptions, setFilterOptions] = useState<{ legion: string[] }>({ legion: [] });
   const [loading, setLoading] = useState(true);
@@ -22,9 +21,12 @@ export const DecksList = () => {
 
   useEffect(() => {
     setLoading(true);
-    void fetchDecks(legion, (data: []) => setDecks(data)).finally(() => setLoading(false));
-    fetchDeckFilterOptions((data: {legion: string[]}) => setFilterOptions(data));
+    void fetchDeckListSummaries(legion).then(setDecks).finally(() => setLoading(false));
   }, [legion])
+
+  useEffect(() => {
+    fetchDeckFilterOptions((data: {legion: string[]}) => setFilterOptions(data));
+  }, []);
   
   const handleDeckSelect = (deckId) => () => {
     if (!deckId) return;
@@ -34,7 +36,7 @@ export const DecksList = () => {
   const handleDeleteDeckClick = (deckId) => (e) => {
     e.stopPropagation();
     axios.delete(`/api/decks/${deckId}`).then(() => {
-      fetchDecks(legion, (data: []) => setDecks(data));
+      return fetchDeckListSummaries(legion).then(setDecks);
     }).catch((err) => {
       console.error("Error deleting deck:", err);
     });
@@ -83,30 +85,30 @@ export const DecksList = () => {
             <div className="h-full overflow-auto">
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
                 {decks.map(deck => {
-                  const deckCards = getMainDeckCards(deck);
-                  const warlordOrNull = deckCards.find(card => card.card_type.names[0] === CARD_TYPE.WARLORD);
                   return(
                   <div 
-                    key={deck._id || deck.id} 
+                    key={deck._id.toString()}
                     className="cursor-pointer group relative" 
-                    onClick={handleDeckSelect(deck._id || deck.id)}
+                    onClick={handleDeckSelect(deck._id.toString())}
                   >
                     <div
                       className="text-white bg-amber-900 w-full h-0 absolute bottom-0 overflow-hidden group-hover:h-6 text-center"
-                      onClick={handleDeleteDeckClick(deck._id || deck.id)}
+                      onClick={handleDeleteDeckClick(deck._id.toString())}
                     >
                       DELETE
                     </div>
                     <div className="bg-white/5 border border-white/10 rounded-lg p-1 hover:bg-white/10 transition-colors">
                       <div className="flex justify-center mb-1">
-                        {renderCardTile(warlordOrNull || deckCards[0], 0, () => null)}
+                        {deck.coverCard ? renderCardTile(deck.coverCard, 0, () => null) : (
+                          <div className="flex aspect-[3/4] w-full items-center justify-center rounded-lg bg-slate-700/60 text-gray-400">♜</div>
+                        )}
                       </div>
                       <div className="text-center">
                         <p className="text-sm font-medium text-white truncate">
                           {deck.name}
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {deckCards.filter(card => ![CARD_TYPE.WARLORD, CARD_TYPE.VEIL_REALM, CARD_TYPE.SYNERGY, CARD_TYPE.GUARDIAN, CARD_TYPE.TOKEN].includes(card.card_type.names[0] as CARD_TYPE))?.length || 0} cards · Side {deck.side_deck?.length || 0}/15
+                          {deck.mainDeckSize} cards · Side {deck.sideDeckSize}/15
                         </p>
                       </div>
                     </div>

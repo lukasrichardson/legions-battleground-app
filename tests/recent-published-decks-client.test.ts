@@ -9,11 +9,11 @@ vi.mock("axios", () => ({
 describe("fetchRecentPublishedDecks", () => {
   it("requests the ten newest published decks", async () => {
     const decks = [{ name: "Newest deck" }];
-    vi.mocked(axios.get).mockResolvedValue({ data: decks });
+    vi.mocked(axios.get).mockResolvedValue({ data: { decks } });
 
     await expect(fetchRecentPublishedDecks()).resolves.toEqual(decks);
     expect(axios.get).toHaveBeenCalledWith("/api/published_decks", {
-      params: { sort: "recent", limit: 10 },
+      params: { view: "summary", page: 1, limit: 10 },
     });
   });
 });

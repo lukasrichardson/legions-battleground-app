@@ -1,13 +1,18 @@
 import { ExpressApp } from "../interfaces/ExpressTypes";
 import { AuthenticatedRequest, optionalAuth, requireAuth } from "../middleware/auth";
 import { Response } from 'express';
-import { getPublishedDeckById, getPublishedDeckFilterOptions, getPublishedDecks, publishDeck } from "../services/api/PublishedDecksService";
+import { getPublishedDeckById, getPublishedDeckFilterOptions, getPublishedDeckListSummaries, getPublishedDecks, publishDeck } from "../services/api/PublishedDecksService";
+import { parsePublishedDeckSummaryPagination } from "../services/api/DeckListSummaryService";
 
 export default function publishedDecksController(app: ExpressApp) {
 
   app.get("/api/published_decks", optionalAuth, async (req: AuthenticatedRequest, res: Response) => {    
     const { legion, sort, limit } = req.query;
     const requestedLimit = typeof limit === "string" ? Number.parseInt(limit, 10) : undefined;
+    if (req.query.view === "summary") {
+      const pagination = parsePublishedDeckSummaryPagination(req.query.page, req.query.limit);
+      return res.send(await getPublishedDeckListSummaries(legion as string | string[] | undefined, pagination));
+    }
     const decks = await getPublishedDecks(legion, {
       sortRecent: sort === "recent",
       // Keep the public endpoint bounded even if a caller supplies an invalid or very large value.

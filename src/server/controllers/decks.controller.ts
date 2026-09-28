@@ -9,6 +9,7 @@ import { createNewDeck,
   duplicateDeckById,
   getDeckById,
   getDecksForPlayer,
+  getDeckListSummariesForPlayer,
   getFilterOptionsForPlayerDecks,
   updateDeckById,
   copyPublishedDeck,
@@ -20,7 +21,9 @@ export default function decksController(app: ExpressApp) {
   app.get("/api/decks", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
 
     const { legion } = req.query;
-    const decks = await getDecksForPlayer(req.user, legion as string | string[] | undefined);
+    const decks = req.query.view === "summary"
+      ? await getDeckListSummariesForPlayer(req.user, legion as string | string[] | undefined)
+      : await getDecksForPlayer(req.user, legion as string | string[] | undefined);
 
     return res.send(decks);
   }

@@ -21,6 +21,14 @@ This reference is derived from `src/server/network/routes.ts`, the two controlle
 | `GET, POST /api/banlist` | GET public; POST authenticated | Reads or updates active banlist entries. POST accepts `suspended`, `restricted`, `limited`, or `unrestricted`; posting `unrestricted` removes the card's entry because it is the implicit default. |
 | `/api/decks` and `/api/published_decks` | Controller-defined | Deck-library and published-deck operations. |
 
+### Personal deck JSON Patch
+
+`PATCH /api/decks/:deckId` accepts the existing JSON object update format and a deck-editor JSON Patch profile. JSON Patch clients send `Content-Type: application/json-patch+json` and an operation array. The server permits only `add` to the end of `cards_in_deck` or `side_deck`, `remove` by a card-list index, and `replace` for `name`, `subtitle`, `legion`, or a complete card list (used for sorting). All other paths and operations are rejected. The patched result uses the same ownership and deck-composition validation as an object update, and the response remains the hydrated deck document.
+
+### Deck-list summaries
+
+Deck grids and pickers request `view=summary` to avoid loading every card in every deck. `GET /api/decks?view=summary` returns each owned deck's ID, name, legion, main- and side-deck sizes, and one compact cover-card record. `GET /api/published_decks?view=summary&page=1&limit=24` returns the same public fields plus author and publication date in `{ decks, page, limit, total, hasMore }`. Published summaries sort newest first, default to 24 entries, and limit a request to 48 entries. Full deck-list responses remain available when `view=summary` is omitted.
+
 ## Toolbox deck import
 
 Deck preview requests are deliberately made by the browser directly to Toolbox's public deck endpoint, rather than proxied through this server. This keeps the request associated with the user's IP address and avoids concentrating Toolbox rate limits or bot challenges on the application server.

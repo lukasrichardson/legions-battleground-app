@@ -8,7 +8,7 @@ import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
 import { Card, CardContent } from "@/client/ui/card";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
-import { fetchDecks } from "@/client/utils/api.utils";
+import { fetchDeckPickerOptions } from "@/client/utils/api.utils";
 import { useAuth } from "@/client/hooks/useAuth";
 
 const ModalConstants = {
@@ -88,8 +88,10 @@ export default function CreateRoomModal() {
     }
   }
 
-  const getDecks = () => {
-    fetchDecks([],(param: { name: string, _id: string }[]) => { setDecks(param); setDeckId(param[0]?._id || ""); });
+  const getDecks = async () => {
+    const options = await fetchDeckPickerOptions();
+    setDecks(options);
+    setDeckId(options[0]?._id || "");
   }
 
   useEffect(() => {

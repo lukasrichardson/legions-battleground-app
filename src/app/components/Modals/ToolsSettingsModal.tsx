@@ -7,7 +7,7 @@ import AppIcon, { AppIconName } from "../AppIcon";
 import { Tooltip } from "antd";
 import { useEffect, useState } from "react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
-import { fetchDecks } from "@/client/utils/api.utils";
+import { fetchDeckPickerOptions } from "@/client/utils/api.utils";
 import { Button } from "@/client/ui/button";
 
 const ModalConstants = {
@@ -82,7 +82,7 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
   } = ModalConstants;
 
   const getDecks = async () => {
-    fetchDecks([], (param: { name: string, _id: string }[]) => { setDecks(param) });
+    setDecks(await fetchDeckPickerOptions());
   };
 
   useEffect(() => {

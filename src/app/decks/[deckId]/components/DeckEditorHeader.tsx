@@ -1,6 +1,6 @@
 import useIsMobile from "@/client/hooks/useIsMobile";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
-import { createPublishedDeck, fetchDecks } from "@/client/utils/api.utils";
+import { createPublishedDeck, fetchDeckPickerOptions } from "@/client/utils/api.utils";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import axios from "axios";
@@ -32,7 +32,7 @@ export default function DeckEditorHeader({
   onNameKeyPress,
   deckListRefreshTrigger
 }: DeckEditorHeaderProps) {
-  const [decks, setDecks] = useState([]);
+  const [decks, setDecks] = useState<Array<{ _id: string; name: string; legion: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -42,10 +42,8 @@ export default function DeckEditorHeader({
       try {
         setLoading(true);
         setError(null);
-        fetchDecks([],(param) => {
-          setDecks((param as unknown[]) || []);
-          setLoading(false);
-        });
+        setDecks(await fetchDeckPickerOptions());
+        setLoading(false);
       } catch (err) {
         setError('Failed to load decks');
         setLoading(false);

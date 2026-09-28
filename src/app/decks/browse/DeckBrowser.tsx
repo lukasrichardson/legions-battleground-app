@@ -2,31 +2,60 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import { renderCardTile } from "../[deckId]/components/CardTile";
-import { CARD_TYPE } from "@/shared/enums/CardType";
-import { fetchPublishedDeckFilterOptions, fetchPublishedDecks } from "@/client/utils/api.utils";
+import { fetchPublishedDeckFilterOptions, fetchPublishedDeckListSummaries } from "@/client/utils/api.utils";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FullPage from "@/app/components/FullPage";
 import { MultiSelect } from "@/client/ui/multiselect";
-import { getMainDeckCards } from "@/shared/deckComposition";
 import LoadingState from "../../components/LoadingState";
+import { PublishedDeckListItem } from "@/shared/interfaces/DeckListItem";
 
 export default function DeckBrowser() {
   const router = useRouter();
-  const [decks, setDecks] = useState([]);
+  const [decks, setDecks] = useState<PublishedDeckListItem[]>([]);
   const [legion, setLegion] = useState<string[]>([]);
   const [filterOptions, setFilterOptions] = useState<{ legion: string[] }>({ legion: [] });
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
 
   const handleLegionSelect = (legionVal: string[]) => {
     setLegion(legionVal);
   }
 
   useEffect(() => {
+    let active = true;
     setLoading(true);
-    void fetchPublishedDecks(legion, setDecks).finally(() => setLoading(false));
-    fetchPublishedDeckFilterOptions((data: {legion: string[]}) => setFilterOptions(data));
+    setPage(1);
+    void fetchPublishedDeckListSummaries(legion, 1).then((response) => {
+      if (!active) return;
+      setDecks(response.decks);
+      setTotal(response.total);
+      setHasMore(response.hasMore);
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
   }, [legion])
+
+  useEffect(() => {
+    fetchPublishedDeckFilterOptions((data: {legion: string[]}) => setFilterOptions(data));
+  }, [])
+
+  const loadMore = async () => {
+    const nextPage = page + 1;
+    setLoadingMore(true);
+    try {
+      const response = await fetchPublishedDeckListSummaries(legion, nextPage);
+      setDecks((current) => [...current, ...response.decks]);
+      setPage(response.page);
+      setHasMore(response.hasMore);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
   const handleDeckSelect = (deckId) => () => {
     if (!deckId) return;
     router.push("/decks/browse/" + deckId);
@@ -46,7 +75,7 @@ export default function DeckBrowser() {
                 Published Decks
               </span>
               <span className="text-sm text-gray-400 mx-2">
-                {decks.length} decks
+                {total} decks
               </span>
               <MultiSelect
                 options={filterOptions?.legion?.map((option) => ({ value: option, label: option[0].toUpperCase() + option.slice(1) })) || []}
@@ -74,26 +103,26 @@ export default function DeckBrowser() {
               <div className="h-full overflow-auto">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                   {decks.map(deck => {
-                    const deckCards = getMainDeckCards(deck);
-                    const warlordOrNull = deckCards.find(card => card.card_type.names[0] === CARD_TYPE.WARLORD);
                     return (
                       <div
-                        key={deck._id || deck.id}
+                        key={deck._id.toString()}
                         className="cursor-pointer group relative"
-                        onClick={handleDeckSelect(deck._id || deck.id)}
+                        onClick={handleDeckSelect(deck._id.toString())}
                       >
                         <div className="bg-white/5 border border-white/10 rounded-lg p-3 hover:bg-white/10 transition-colors">
                           <div className="text-center">
                             <p className="text-sm font-medium text-white truncate">
                               {deck.name}
                               <span className="text-xs text-gray-400 mt-1">
-                              {" - " + (deckCards.filter(card => ![CARD_TYPE.WARLORD, CARD_TYPE.VEIL_REALM, CARD_TYPE.SYNERGY, CARD_TYPE.GUARDIAN, CARD_TYPE.TOKEN].includes(card.card_type.names[0] as CARD_TYPE))?.length || 0) + " cards"}
-                              {" · Side " + (deck.side_deck?.length || 0) + "/15"}
+                              {" - " + deck.mainDeckSize + " cards"}
+                              {" · Side " + deck.sideDeckSize + "/15"}
                               </span>
                             </p>
                           </div>
                           <div className="flex justify-center mb-2">
-                            {renderCardTile(warlordOrNull || deckCards[0], 0, () => null)}
+                            {deck.coverCard ? renderCardTile(deck.coverCard, 0, () => null) : (
+                              <div className="flex aspect-[3/4] w-full items-center justify-center rounded-lg bg-slate-700/60 text-gray-400">♜</div>
+                            )}
                           </div>
                           <div className="text-center">
                             <p className="text-sm font-medium text-white truncate">
@@ -108,6 +137,18 @@ export default function DeckBrowser() {
                     )
                   })}
                 </div>
+                {hasMore && (
+                  <div className="flex justify-center py-4">
+                    <button
+                      type="button"
+                      onClick={loadMore}
+                      disabled={loadingMore}
+                      className="rounded border border-white/30 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20 disabled:opacity-50"
+                    >
+                      {loadingMore ? "Loading…" : "Load more"}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

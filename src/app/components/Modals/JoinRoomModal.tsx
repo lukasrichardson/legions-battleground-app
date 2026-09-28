@@ -10,7 +10,7 @@ import { Input } from "@/client/ui/input";
 import { useAuth } from "@/client/hooks/useAuth";
 import { signIn } from "next-auth/react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/client/ui/select";
-import { fetchDecks } from "@/client/utils/api.utils";
+import { fetchDeckPickerOptions } from "@/client/utils/api.utils";
 
 const ModalConstants = {
   LoadingText: "Loading...",
@@ -82,8 +82,8 @@ export default function JoinRoomModal() {
     }
   }
 
-  const getDecks = () => {
-    fetchDecks([], (param: {name: string, _id: string}[]) => {setDecks(param)});
+  const getDecks = async () => {
+    setDecks(await fetchDeckPickerOptions());
   }
   
   useEffect(() => {
