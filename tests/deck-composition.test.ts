@@ -21,6 +21,10 @@ const deckWith = (main: HydratedDeckCard[] = [], side: HydratedDeckCard[] = []):
   legion: "Angels",
   cards_in_deck: main.map((item) => item._id),
   side_deck: side.map((item) => item._id),
+  warlords: [],
+  synergies: [],
+  veilRealms: [],
+  guardians: [],
   cards: [...new Map([...main, ...side].map((item) => [item._id, item])).values()],
   created_at: new Date(),
   updated_at: new Date(),
@@ -36,6 +40,15 @@ describe("deck composition", () => {
   it("counts matching cards across the main and side decks", () => {
     const deck = deckWith([card("Same Card")], [card("Same Card")]);
     expect(getCombinedCardCounts(deck).get("same card")).toBe(2);
+  });
+
+  it("includes dedicated special arrays in main-deck copy-limit checks without imposing a new cap", () => {
+    const deck = {
+      ...deckWith(),
+      warlords: ["First", "Second"],
+      cards: [card("First", CARD_TYPE.WARLORD), card("Second", CARD_TYPE.WARLORD)],
+    };
+    expect(() => validateDeckComposition(deck)).not.toThrow();
   });
 
   it("allows only eligible card types in a side deck", () => {

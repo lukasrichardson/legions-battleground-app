@@ -1,7 +1,7 @@
 import { ExpressApp } from "../interfaces/ExpressTypes";
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { Response } from 'express';
-import { normalizeDeck } from "@/shared/deckComposition";
+import { normalizeDeck, SPECIAL_MAIN_DECK_FIELDS } from "@/shared/deckComposition";
 import { DeckValidationError, validateDeckCompositionByIds } from "../services/api/DeckValidationService";
 import { DeckUpdateInputError, parseDeckUpdateInput } from "../services/api/DeckValidationService";
 import { applyDeckJsonPatch, DeckPatchInputError, EditableDeckSnapshot } from "../services/api/DeckPatchService";
@@ -66,12 +66,17 @@ export default function decksController(app: ExpressApp) {
         legion: existingDeck.legion,
         cards_in_deck: existingDeck.cards_in_deck.map((id) => id.toString()),
         side_deck: (existingDeck.side_deck ?? []).map((id) => id.toString()),
+        warlords: existingDeck.warlords.map((id) => id.toString()),
+        synergies: existingDeck.synergies.map((id) => id.toString()),
+        veilRealms: existingDeck.veilRealms.map((id) => id.toString()),
+        guardians: existingDeck.guardians.map((id) => id.toString()),
       };
       const updateInput = req.is("application/json-patch+json")
         ? parseDeckUpdateInput(applyDeckJsonPatch(patchSnapshot, req.body))
         : parseDeckUpdateInput(req.body);
       const candidateDeck = normalizeDeck({ ...existingDeck, ...updateInput });
-      const updatesComposition = "cards_in_deck" in updateInput || "side_deck" in updateInput || "legion" in updateInput;
+      const updatesComposition = "cards_in_deck" in updateInput || "side_deck" in updateInput || "legion" in updateInput
+        || SPECIAL_MAIN_DECK_FIELDS.some((field) => field in updateInput);
       if (updatesComposition) await validateDeckCompositionByIds(candidateDeck);
       const updatedDeck = await updateDeckById(req.user, deckId, updateInput);
       if (!updatedDeck) {

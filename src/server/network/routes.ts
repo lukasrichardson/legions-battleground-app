@@ -12,6 +12,7 @@ import publishedDecksController from '../controllers/publishedDecks.controller';
 import { DeckValidationError, validateDeckCompositionByIds } from "../services/api/DeckValidationService";
 import { parseCardPagination, parseCardSearch } from "../utils/queryValidation.util";
 import { AliasTakenError, AliasValidationError, deleteAliasForUser, getAliasForUser, setAliasForUser } from "../services/api/AliasService";
+import { specialMainDeckFieldForCardType } from "@/shared/deckComposition";
 
 export const routes = (app: ExpressApp) => {
   app.get('/healthz', (req: Request, res: Response) => {
@@ -198,6 +199,10 @@ export const routes = (app: ExpressApp) => {
       name: req.body.name,
       cards_in_deck: [] as ObjectId[],
       side_deck: [],
+      warlords: [] as ObjectId[],
+      synergies: [] as ObjectId[],
+      veilRealms: [] as ObjectId[],
+      guardians: [] as ObjectId[],
       legion,
       subtitle: req.body.subtitle,
       userId: req.user!.id,
@@ -218,7 +223,9 @@ export const routes = (app: ExpressApp) => {
         return res.status(400).send("Card " + req.body.cards_in_deck[i].name + " code" + req.body.cards_in_deck[i].code + " not found in database");
         }
       }
-      newDeck.cards_in_deck.push(mongoCard._id);
+      const specialField = specialMainDeckFieldForCardType(mongoCard.card_type?.names?.[0]);
+      if (specialField) newDeck[specialField].push(mongoCard._id);
+      else newDeck.cards_in_deck.push(mongoCard._id);
       if (i === req.body.cards_in_deck.length - 1) {
         try {
           await validateDeckCompositionByIds(newDeck as DeckResponse);

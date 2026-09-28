@@ -34,6 +34,10 @@ const deck = (id: ObjectId): DeckResponse => ({
   legion: "Angels",
   cards_in_deck: [id],
   side_deck: [],
+  warlords: [],
+  synergies: [],
+  veilRealms: [],
+  guardians: [],
   created_at: new Date(),
   updated_at: new Date(),
 });
@@ -79,6 +83,15 @@ describe("DeckHydrationService", () => {
       { _id: { $in: [id] } },
       { projection: DECK_CARD_PROJECTION },
     );
+  });
+
+  it("hydrates IDs stored in special main-deck arrays", async () => {
+    const id = new ObjectId();
+    find.mockReturnValue({ toArray: vi.fn().mockResolvedValue([card(id)]) });
+
+    await hydrateDeck({ ...deck(new ObjectId()), cards_in_deck: [], warlords: [id] });
+
+    expect(find).toHaveBeenCalledWith({ _id: { $in: [id] } }, { projection: DECK_CARD_PROJECTION });
   });
 
   it("maps detail lookup cards to the hydrated deck-card fields", async () => {

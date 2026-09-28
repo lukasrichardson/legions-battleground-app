@@ -9,6 +9,7 @@ import Preview from "../../[deckId]/Preview";
 import { DeckResponse, HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { signIn, useSession } from "next-auth/react";
 import { Button } from "@/client/ui/button";
+import { getMainDeckCards } from "@/shared/deckComposition";
 
 export default function PublishedDeckViewer() {
   const router = useRouter();
@@ -47,7 +48,7 @@ export default function PublishedDeckViewer() {
           <span className="text-white/70">{deck.legion}</span>
           <span className="text-white/50">By {deck.author}</span>
           <span className="text-white/50">Published {new Date(deck.published_date).toLocaleDateString()}</span>
-          <span className="text-white/50">{deck.cards_in_deck.length} main cards</span>
+          <span className="text-white/50">{getMainDeckCards(deck).length} main cards</span>
           <span className="text-white/50">{(deck.side_deck ?? []).length}/15 side cards</span>
           <Button
             onClick={handleCopyDeck}

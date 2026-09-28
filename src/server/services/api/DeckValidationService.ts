@@ -1,4 +1,4 @@
-import { cardIdentity, getCombinedCardCounts, getDeckCards, getSideDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, normalizeDeck, SIDE_DECK_MAX_SIZE } from "@/shared/deckComposition";
+import { cardIdentity, getCombinedCardCounts, getDeckCards, getSideDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, normalizeDeck, SIDE_DECK_MAX_SIZE, SPECIAL_MAIN_DECK_FIELDS } from "@/shared/deckComposition";
 import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 import { getDatabase } from "@/server/utils/database.util";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
@@ -6,7 +6,7 @@ import { CARD_TYPE } from "@/shared/enums/CardType";
 import { ObjectId } from "mongodb";
 import { hydrateDeck } from "./DeckHydrationService";
 
-const EDITABLE_FIELDS = new Set(["name", "subtitle", "legion", "cards_in_deck", "side_deck"]);
+const EDITABLE_FIELDS = new Set(["name", "subtitle", "legion", "cards_in_deck", "side_deck", ...SPECIAL_MAIN_DECK_FIELDS]);
 const MAX_NAME_LENGTH = 120;
 const MAX_SUBTITLE_LENGTH = 500;
 const MAX_LEGION_LENGTH = 100;
@@ -18,7 +18,7 @@ export class DeckValidationError extends Error {
   }
 }
 
-export type DeckUpdateInput = Partial<Pick<DeckResponse, "name" | "subtitle" | "legion" | "cards_in_deck" | "side_deck">>;
+export type DeckUpdateInput = Partial<Pick<DeckResponse, "name" | "subtitle" | "legion" | "cards_in_deck" | "side_deck" | typeof SPECIAL_MAIN_DECK_FIELDS[number]>>;
 
 export class DeckUpdateInputError extends Error {
   constructor(message: string) {
@@ -50,7 +50,9 @@ function validateDeckCompositionAgainstBanlist(deck: DeckResponse, banlist: Banl
 }
 
 export function validateBasicDeckComposition(deck: DeckResponse): void {
-  if (!Array.isArray(deck.cards_in_deck) || (deck.side_deck !== undefined && !Array.isArray(deck.side_deck))) {
+  if (!Array.isArray(deck.cards_in_deck)
+    || (deck.side_deck !== undefined && !Array.isArray(deck.side_deck))
+    || SPECIAL_MAIN_DECK_FIELDS.some((field) => deck[field] !== undefined && !Array.isArray(deck[field]))) {
     throw new DeckValidationError("Deck card lists must be arrays.");
   }
   const normalizedDeck = normalizeDeck(deck);
@@ -149,5 +151,8 @@ export const parseDeckUpdateInput = (value: unknown): DeckUpdateInput => {
   if ("legion" in value) update.legion = requireText(value.legion, "legion", MAX_LEGION_LENGTH);
   if ("cards_in_deck" in value) update.cards_in_deck = cardList(value.cards_in_deck, "cards_in_deck");
   if ("side_deck" in value) update.side_deck = cardList(value.side_deck, "side_deck");
+  for (const field of SPECIAL_MAIN_DECK_FIELDS) {
+    if (field in value) update[field] = cardList(value[field], field);
+  }
   return update;
 };

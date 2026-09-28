@@ -8,6 +8,10 @@ const deck = {
   legion: "Angels",
   cards_in_deck: ["507f1f77bcf86cd799439011"],
   side_deck: [],
+  warlords: [],
+  synergies: [],
+  veilRealms: [],
+  guardians: [],
 };
 
 describe("applyDeckJsonPatch", () => {
@@ -27,6 +31,14 @@ describe("applyDeckJsonPatch", () => {
       op: "remove",
       path: "/cards_in_deck/2",
     }])).toEqual({ ...deck, cards_in_deck: ["a", "b"] });
+  });
+
+  it("supports the same safe operations for dedicated special-card arrays", () => {
+    expect(applyDeckJsonPatch(deck, [{
+      op: "add",
+      path: "/warlords/-",
+      value: "507f191e810c19729de860ea",
+    }])).toEqual({ ...deck, warlords: ["507f191e810c19729de860ea"] });
   });
 
   it("renames a deck and replaces the full list for sorting", () => {

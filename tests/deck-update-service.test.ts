@@ -32,6 +32,10 @@ describe("updateDeckById", () => {
       legion: "Angels",
       userId: "user-1",
       cards_in_deck: [],
+      warlords: [],
+      synergies: [],
+      veilRealms: [],
+      guardians: [],
       created_at: new Date("2026-01-01"),
       updated_at: new Date("2026-01-01"),
     };

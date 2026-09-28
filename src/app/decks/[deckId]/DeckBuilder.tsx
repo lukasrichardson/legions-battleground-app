@@ -14,7 +14,7 @@ import FullPage from "@/app/components/FullPage";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { useDrop } from "react-dnd";
 import useIsMobile from "@/client/hooks/useIsMobile";
-import { getDeckCards, getMainDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, SIDE_DECK_MAX_SIZE } from "@/shared/deckComposition";
+import { getDeckCards, getOrdinaryMainDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, SIDE_DECK_MAX_SIZE, specialMainDeckFieldForCardType } from "@/shared/deckComposition";
 import { DeckPatchOperation } from "@/shared/interfaces/DeckPatch";
 import { createDeckPatchQueue } from "@/client/utils/deckPatchQueue";
 
@@ -106,21 +106,29 @@ export default function DeckBuilder() {
   const handleRemoveCardFromDeck = (card) => {
     const currentDeck = deckRef.current;
     if (!currentDeck) return;
-    const cardIndex = lastCardIndexById(currentDeck.cards_in_deck, card._id);
+    const field = specialMainDeckFieldForCardType(card.card_type?.names?.[0]);
+    const cards = field ? currentDeck[field] : currentDeck.cards_in_deck;
+    const cardIndex = lastCardIndexById(cards, card._id);
     if (cardIndex < 0) return;
 
     saveDeckPatch(
-      [{ op: "remove", path: `/cards_in_deck/${cardIndex}` }],
-      { ...currentDeck, cards_in_deck: currentDeck.cards_in_deck.filter((_, index) => index !== cardIndex) },
+      [{ op: "remove", path: `/${field ?? "cards_in_deck"}/${cardIndex}` }],
+      field
+        ? { ...currentDeck, [field]: cards.filter((_, index) => index !== cardIndex) }
+        : { ...currentDeck, cards_in_deck: cards.filter((_, index) => index !== cardIndex) },
     );
   };
 
   const handleAddCardToDeck = (card) => {
     const currentDeck = deckRef.current;
     if (!currentDeck || !card) return;
+    const field = specialMainDeckFieldForCardType(card.card_type?.names?.[0]);
+    const cards = field ? currentDeck[field] : currentDeck.cards_in_deck;
     saveDeckPatch(
-      [{ op: "add", path: "/cards_in_deck/-", value: card._id.toString() }],
-      { ...currentDeck, cards_in_deck: [...currentDeck.cards_in_deck, card._id], cards: includeCardMetadata(currentDeck, card) },
+      [{ op: "add", path: `/${field ?? "cards_in_deck"}/-`, value: card._id.toString() }],
+      field
+        ? { ...currentDeck, [field]: [...cards, card._id], cards: includeCardMetadata(currentDeck, card) }
+        : { ...currentDeck, cards_in_deck: [...cards, card._id], cards: includeCardMetadata(currentDeck, card) },
     );
   };
 
@@ -163,7 +171,7 @@ export default function DeckBuilder() {
   const handleSortClick = () => {
     const currentDeck = deckRef.current;
     if (!currentDeck) return;
-    const cards = getMainDeckCards(currentDeck);
+    const cards = getOrdinaryMainDeckCards(currentDeck);
     const counts = {};
     cards.forEach(card => {
       const cardId = card._id.toString();

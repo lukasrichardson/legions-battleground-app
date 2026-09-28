@@ -3,6 +3,16 @@ import { ObjectId } from "mongodb";
 import { DeckCardId, DeckResponse, HydratedDeckCard } from "./interfaces/DeckResponse";
 
 export const SIDE_DECK_MAX_SIZE = 15;
+export const SPECIAL_MAIN_DECK_FIELDS = ["warlords", "synergies", "veilRealms", "guardians"] as const;
+export type SpecialMainDeckField = typeof SPECIAL_MAIN_DECK_FIELDS[number];
+
+export const specialMainDeckFieldForCardType = (cardType: string | undefined): SpecialMainDeckField | null => {
+  if (cardType === CARD_TYPE.WARLORD) return "warlords";
+  if (cardType === CARD_TYPE.SYNERGY) return "synergies";
+  if (cardType === CARD_TYPE.VEIL_REALM) return "veilRealms";
+  if (cardType === CARD_TYPE.GUARDIAN) return "guardians";
+  return null;
+};
 
 const SIDE_DECK_EXCLUDED_TYPES = new Set<string>([
   CARD_TYPE.WARLORD,
@@ -10,9 +20,22 @@ const SIDE_DECK_EXCLUDED_TYPES = new Set<string>([
   CARD_TYPE.VEIL_REALM,
 ]);
 
-export const normalizeDeck = <T extends DeckResponse>(deck: T): T & { side_deck: DeckCardId[] } => ({
+const cardIds = (value: unknown): DeckCardId[] => Array.isArray(value) ? value as DeckCardId[] : [];
+
+export const normalizeDeck = <T extends DeckResponse>(deck: T): T & {
+  side_deck: DeckCardId[];
+  warlords: DeckCardId[];
+  synergies: DeckCardId[];
+  veilRealms: DeckCardId[];
+  guardians: DeckCardId[];
+} => ({
   ...deck,
-  side_deck: Array.isArray(deck.side_deck) ? deck.side_deck : [],
+  cards_in_deck: cardIds(deck.cards_in_deck),
+  side_deck: cardIds(deck.side_deck),
+  warlords: cardIds(deck.warlords),
+  synergies: cardIds(deck.synergies),
+  veilRealms: cardIds(deck.veilRealms),
+  guardians: cardIds(deck.guardians),
 });
 
 export const cardIdentity = (card: Pick<HydratedDeckCard, "title">): string => card.title.trim().toLocaleLowerCase();
@@ -28,11 +51,22 @@ export const getCardsForIds = (ids: DeckCardId[], cards: HydratedDeckCard[] = []
   });
 };
 
-export const getMainDeckCards = (deck: DeckResponse): HydratedDeckCard[] =>
-  getCardsForIds(deck.cards_in_deck, deck.cards);
+export const getOrdinaryMainDeckCards = (deck: DeckResponse): HydratedDeckCard[] =>
+  getCardsForIds(normalizeDeck(deck).cards_in_deck, deck.cards);
+
+export const getSpecialMainDeckCards = (deck: DeckResponse, field: SpecialMainDeckField): HydratedDeckCard[] =>
+  getCardsForIds(normalizeDeck(deck)[field], deck.cards);
+
+export const getMainDeckCards = (deck: DeckResponse): HydratedDeckCard[] => {
+  const normalizedDeck = normalizeDeck(deck);
+  return [
+    ...getCardsForIds(normalizedDeck.cards_in_deck, normalizedDeck.cards),
+    ...SPECIAL_MAIN_DECK_FIELDS.flatMap((field) => getCardsForIds(normalizedDeck[field], normalizedDeck.cards)),
+  ];
+};
 
 export const getSideDeckCards = (deck: DeckResponse): HydratedDeckCard[] =>
-  getCardsForIds(deck.side_deck ?? [], deck.cards);
+  getCardsForIds(normalizeDeck(deck).side_deck, deck.cards);
 
 export const getDeckCards = (deck: DeckResponse): HydratedDeckCard[] => [
   ...getMainDeckCards(deck),

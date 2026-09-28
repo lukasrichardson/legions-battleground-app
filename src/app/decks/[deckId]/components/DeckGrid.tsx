@@ -7,7 +7,7 @@ import useClientSettings from "@/client/hooks/useClientSettings";
 import DeckSection from "./DeckSection";
 import useIsMobile from "@/client/hooks/useIsMobile";
 import { useDrop } from "react-dnd";
-import { getMainDeckCards, getSideDeckCards } from "@/shared/deckComposition";
+import { getMainDeckCards, getOrdinaryMainDeckCards, getSideDeckCards, getSpecialMainDeckCards } from "@/shared/deckComposition";
 import LoadingState from "@/app/components/LoadingState";
 
 const renderSectionStructure = (name: string, cards: HydratedDeckCard[], renderSubSection: (cards: HydratedDeckCard[]) => JSX.Element) => (
@@ -46,15 +46,16 @@ export default function DeckGrid({
   readOnly?: boolean
 }) {
 
-  const deckCards = deck ? getMainDeckCards(deck) : [];
+  const deckCards = deck ? getOrdinaryMainDeckCards(deck) : [];
+  const allMainDeckCards = deck ? getMainDeckCards(deck) : [];
   const mainDeck = deckCards.filter(item => [CARD_TYPE.WARRIOR.toString(), CARD_TYPE.UNIFIED.toString(), CARD_TYPE.FORTIFIED.toString()].includes(item?.card_type?.names?.[0]));
   const warriors = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.WARRIOR);
   const unifieds = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.UNIFIED);
   const fortifieds = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.FORTIFIED);
-  const warlords = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.WARLORD);
-  const veilRealms = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.VEIL_REALM);
-  const synergies = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.SYNERGY);
-  const guardians = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.GUARDIAN);
+  const warlords = deck ? getSpecialMainDeckCards(deck, "warlords") : [];
+  const veilRealms = deck ? getSpecialMainDeckCards(deck, "veilRealms") : [];
+  const synergies = deck ? getSpecialMainDeckCards(deck, "synergies") : [];
+  const guardians = deck ? getSpecialMainDeckCards(deck, "guardians") : [];
   const tokens = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.TOKEN);
 
   const { deckbuild_groupedView, setDeckbuildGroupedView } = useClientSettings();
@@ -105,7 +106,7 @@ export default function DeckGrid({
       <CardHeader className="p-2 pb-1">
         <CardTitle className="flex items-center justify-between text-xs">
           <span className="flex items-center gap-1">
-            Main: {mainDeck?.length}
+            Main: {allMainDeckCards.length}
             {!isMobile &&(<><span>|  Warriors: {warriors?.length}</span>
             <span>|  Unified: {unifieds?.length}</span>
             <span>|  Fortified: {fortifieds?.length}</span>
@@ -143,7 +144,7 @@ export default function DeckGrid({
               {renderSectionStructure(CARD_TYPE.FORTIFIED, fortifieds, renderSection)}
 
               {/* Empty State */}
-              {(!deck.cards_in_deck || deck.cards_in_deck.length === 0) && (
+              {allMainDeckCards.length === 0 && (
                 <div className="text-center py-8">
                   <div className="w-8 h-8 bg-gray-700/50 rounded-full flex items-center justify-center mb-2">
                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

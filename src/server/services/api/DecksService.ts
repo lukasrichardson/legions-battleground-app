@@ -37,7 +37,7 @@ export const getDeckListSummariesForPlayer = async (user, legion): Promise<DeckL
   } else if (legion && Array.isArray(legion)) {
     query.legion = { $in: legion };
   }
-  return getDeckListSummaries("decks", query) as Promise<DeckListItem[]>;
+  return getDeckListSummaries("decks", query, {sort: {_id: -1}}) as Promise<DeckListItem[]>;
 };
 
 export const getFilterOptionsForPlayerDecks = async (user): Promise<string[]> => {
@@ -133,6 +133,10 @@ export const createNewDeck = async (user, deckData: { name: string; subtitle?: s
     userId: user.id,
     cards_in_deck: [],
     side_deck: [],
+    warlords: [],
+    synergies: [],
+    veilRealms: [],
+    guardians: [],
     created_at: new Date(),
     updated_at: new Date(),
   };

@@ -61,4 +61,19 @@ describe("deck-list summaries", () => {
     expect(parsePublishedDeckSummaryPagination("2", "24")).toEqual({ page: 2, limit: 24 });
     expect(parsePublishedDeckSummaryPagination(undefined, undefined)).toEqual({ page: 1, limit: 24 });
   });
+
+  it("projects the first warlord as the cover before the ordinary main deck", async () => {
+    aggregate.mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) });
+
+    await getDeckListSummaries("decks", { userId: "player-1" });
+
+    const project = aggregate.mock.calls[0][0].find((stage) => "$project" in stage).$project;
+    expect(project.mainDeckSize).toEqual(expect.objectContaining({ $add: expect.any(Array) }));
+    expect(project.coverCardId).toEqual({
+      $ifNull: [
+        { $arrayElemAt: [{ $ifNull: ["$warlords", []] }, 0] },
+        { $arrayElemAt: [{ $ifNull: ["$cards_in_deck", []] }, 0] },
+      ],
+    });
+  });
 });

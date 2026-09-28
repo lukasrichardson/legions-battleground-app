@@ -28,4 +28,9 @@ describe("parseDeckUpdateInput", () => {
     expect(update.cards_in_deck?.[0]).toBeInstanceOf(ObjectId);
     expect(update.cards_in_deck?.[0].toString()).toBe(id);
   });
+
+  it("accepts special main-deck arrays", () => {
+    const id = new ObjectId().toHexString();
+    expect(parseDeckUpdateInput({ warlords: [id] }).warlords?.[0].toString()).toBe(id);
+  });
 });

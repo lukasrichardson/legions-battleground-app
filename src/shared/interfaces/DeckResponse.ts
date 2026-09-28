@@ -42,6 +42,10 @@ export interface DeckResponse {
   /** Canonical persisted references. The API serializes these as hex strings. */
   cards_in_deck: DeckCardId[];
   side_deck?: DeckCardId[];
+  warlords: DeckCardId[];
+  synergies: DeckCardId[];
+  veilRealms: DeckCardId[];
+  guardians: DeckCardId[];
   /** Resolved catalogue cards returned for screens and game setup; never persisted in a deck. */
   cards?: HydratedDeckCard[];
   created_at: Date;

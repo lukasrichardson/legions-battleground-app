@@ -1,6 +1,7 @@
 import { getDatabase } from "@/server/utils/database.util";
 import { DeckCardId, DeckResponse, HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { ObjectId } from "mongodb";
+import { normalizeDeck } from "@/shared/deckComposition";
 
 type DeckCollection = "decks" | "published_decks";
 type StoredCard = Omit<HydratedDeckCard, "_id"> & { _id: ObjectId };
@@ -15,15 +16,23 @@ export const DECK_CARD_PROJECTION = {
   "legion.names": 1,
 } as const;
 
-const idsFor = (deck: Pick<DeckResponse, "cards_in_deck" | "side_deck">): ObjectId[] => [
-  ...deck.cards_in_deck,
-  ...(deck.side_deck ?? []),
-].map((id: DeckCardId) => id instanceof ObjectId ? id : new ObjectId(id));
+const idsFor = (deck: DeckResponse): ObjectId[] => {
+  const normalizedDeck = normalizeDeck(deck);
+  return [
+    ...normalizedDeck.cards_in_deck,
+    ...normalizedDeck.warlords,
+    ...normalizedDeck.synergies,
+    ...normalizedDeck.veilRealms,
+    ...normalizedDeck.guardians,
+    ...normalizedDeck.side_deck,
+  ].map((id: DeckCardId) => id instanceof ObjectId ? id : new ObjectId(id));
+};
 
 /** Hydrates one deck with its unique catalogue cards while preserving ID arrays. */
 export async function hydrateDeck<T extends DeckResponse>(deck: T): Promise<T> {
-  const ids = [...new Map(idsFor(deck).map((id) => [id.toString(), id])).values()];
-  if (!ids.length) return { ...deck, side_deck: deck.side_deck ?? [], cards: [] } as T;
+  const normalizedDeck = normalizeDeck(deck);
+  const ids = [...new Map(idsFor(normalizedDeck).map((id) => [id.toString(), id])).values()];
+  if (!ids.length) return { ...normalizedDeck, cards: [] } as T;
 
   const cards = await getDatabase().collection<StoredCard>("cards")
     .find({ _id: { $in: ids } }, { projection: DECK_CARD_PROJECTION })
@@ -33,7 +42,7 @@ export async function hydrateDeck<T extends DeckResponse>(deck: T): Promise<T> {
   if (missing.length) {
     throw new Error(`Deck references unavailable card IDs: ${missing.map((id) => id.toString()).join(", ")}`);
   }
-  return { ...deck, side_deck: deck.side_deck ?? [], cards } as T;
+  return { ...normalizedDeck, cards } as T;
 }
 
 /** One aggregate command for a detail read. $lookup uses cards' built-in _id index. */
@@ -43,8 +52,17 @@ export async function getHydratedDeck<T extends DeckResponse>(
 ): Promise<T | null> {
   const deck = await getDatabase().collection<T>(collectionName).aggregate<T>([
     { $match: match },
-    { $set: { side_deck: { $ifNull: ["$side_deck", []] } } },
-    { $set: { all_card_ids: { $setUnion: ["$cards_in_deck", "$side_deck"] } } },
+    {
+      $set: {
+        cards_in_deck: { $ifNull: ["$cards_in_deck", []] },
+        side_deck: { $ifNull: ["$side_deck", []] },
+        warlords: { $ifNull: ["$warlords", []] },
+        synergies: { $ifNull: ["$synergies", []] },
+        veilRealms: { $ifNull: ["$veilRealms", []] },
+        guardians: { $ifNull: ["$guardians", []] },
+      },
+    },
+    { $set: { all_card_ids: { $setUnion: ["$cards_in_deck", "$warlords", "$synergies", "$veilRealms", "$guardians", "$side_deck"] } } },
     { $lookup: { from: "cards", localField: "all_card_ids", foreignField: "_id", as: "cards" } },
     {
       $set: {
@@ -72,7 +90,8 @@ export async function getHydratedDeck<T extends DeckResponse>(
 
 export async function hydrateDecks<T extends DeckResponse>(decks: T[]): Promise<T[]> {
   if (!decks.length) return [];
-  const ids = [...new Map(decks.flatMap(idsFor).map((id) => [id.toString(), id])).values()];
+  const normalizedDecks = decks.map(normalizeDeck);
+  const ids = [...new Map(normalizedDecks.flatMap(idsFor).map((id) => [id.toString(), id])).values()];
   const cards = ids.length
     ? await getDatabase().collection<StoredCard>("cards").find({ _id: { $in: ids } }, { projection: DECK_CARD_PROJECTION }).toArray()
     : [];
@@ -81,12 +100,11 @@ export async function hydrateDecks<T extends DeckResponse>(decks: T[]): Promise<
     if (!byId.has(id.toString())) throw new Error(`Deck references unavailable card ID: ${id}`);
   }
   const cardsById = new Map(cards.map((card) => [card._id.toString(), card]));
-  return decks.map((deck) => {
+  return normalizedDecks.map((deck) => {
     const deckCards = idsFor(deck).map((id) => cardsById.get(id.toString())!);
     const uniqueDeckCards = [...new Map(deckCards.map((card) => [card._id.toString(), card])).values()];
     return {
       ...deck,
-      side_deck: deck.side_deck ?? [],
       cards: uniqueDeckCards,
     } as T;
   });

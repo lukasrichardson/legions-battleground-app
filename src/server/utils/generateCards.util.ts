@@ -1,6 +1,6 @@
 import { CardState } from "../../shared/interfaces/CardState";
 import { DeckResponse, HydratedDeckCard } from "../../shared/interfaces/DeckResponse";
-import { getMainDeckCards } from "../../shared/deckComposition";
+import { getOrdinaryMainDeckCards, getSpecialMainDeckCards } from "../../shared/deckComposition";
 import { CARD_TYPE } from "../../shared/enums/CardType";
 import { shuffle } from "./shuffleDeck.util";
 import { CARD_TARGET } from "../../shared/enums/CardTarget";
@@ -18,12 +18,12 @@ export const generateStartingPlayersCards = (p2DeckFromServer: DeckResponse, p1D
 }
 
 const generateStartingCards = (deckFromServer: DeckResponse, p1: boolean) => {
-  const filteredDeckFromServer = getMainDeckCards(deckFromServer);
+  const filteredDeckFromServer = getOrdinaryMainDeckCards(deckFromServer);
   //to do
-  const veilRealmsFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.VEIL_REALM);
-  const warlordsFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.WARLORD);
-  const synergiesFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.SYNERGY);
-  const guardiansFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.GUARDIAN);
+  const veilRealmsFromServer = getSpecialMainDeckCards(deckFromServer, "veilRealms");
+  const warlordsFromServer = getSpecialMainDeckCards(deckFromServer, "warlords");
+  const synergiesFromServer = getSpecialMainDeckCards(deckFromServer, "synergies");
+  const guardiansFromServer = getSpecialMainDeckCards(deckFromServer, "guardians");
   const warriorsFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.WARRIOR);
   const unnifiedsFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.UNIFIED);
   const fortifiedsFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.FORTIFIED);
