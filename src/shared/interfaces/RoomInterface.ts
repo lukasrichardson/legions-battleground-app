@@ -4,13 +4,18 @@ export interface PlayerInfo {
   p1: boolean;
 }
 
-export interface RoomInfo {
+export interface PublicRoomInfo {
   id: string;
-  players: { [socketId: string]: PlayerInfo };
+  hostName: string | null;
+  playerCount: number;
   sandboxMode: boolean;
-  password: string;
+  isLocked: boolean;
 }
 
-export interface RoomsCollection {
-  [roomId: string]: RoomInfo;
+export type PublicRoomsCollection = Record<string, PublicRoomInfo>;
+
+export interface RoomStateForMembers {
+  id: string;
+  players: Record<string, PlayerInfo>;
+  sandboxMode: boolean;
 }

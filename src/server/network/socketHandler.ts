@@ -1,6 +1,7 @@
 import { users,  } from "../game/game";
-import { RoomsCollection } from "../../shared/interfaces/RoomInterface";
 import { IOServer, CustomSocket } from "../interfaces/SocketTypes";
+import { RoomService } from "../services/game/RoomService";
+export { rooms } from "./roomRegistry";
 import { 
   handleSocketDisconnect,
   handleSocketGameEvent,
@@ -8,7 +9,7 @@ import {
   handleSocketRoomEvent
 } from "../utils/socket.util.clean";
 
-export const rooms: RoomsCollection = {};
+const roomService = new RoomService();
 
 export const handleSocketConnection = (io: IOServer) => {
   io.on("connection", (socket: CustomSocket) => {
@@ -17,9 +18,9 @@ export const handleSocketConnection = (io: IOServer) => {
       users[socket.id as string] = socket.id;
     }
     console.log("a user connected", users[socket.id as string]);
-    socket.emit("rooms", rooms);
+    socket.emit("rooms", roomService.getPublicRooms());
 
-    socket.on("joinGame", (data) => handleSocketJoinGame(io, socket, data));
+    socket.on("joinGame", () => handleSocketJoinGame(io, socket));
     socket.on("gameEvent", (data) => handleSocketGameEvent(io, socket, data));
     socket.on("roomEvent", (data) => handleSocketRoomEvent(io, socket, data));
 

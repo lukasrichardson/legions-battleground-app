@@ -255,16 +255,16 @@ export default function Home() {
                         <Table
                           className="min-w-[640px]"
                           tableHeaders={["Room Name", "Host", "Players", "Sandbox Mode", "Password", "Action"]}
-                          tableData={(Object.values(rooms) as {id: string, players: object, sandboxMode: boolean, password: string}[]).map((room: {id: string, players: object, sandboxMode: boolean, password: string}) => [
+                          tableData={Object.values(rooms).map((room) => [
                             <div className="flex items-center gap-2" key={room.id}>
                               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                               <span className="font-medium text-sm">{room.id}</span>
                             </div>,
                             <div className="flex items-center gap-2" key={room.id}>
-                              <span className="font-medium">{Object.values(room.players)?.[0]?.name || "Player"}</span>
+                              <span className="font-medium">{room.hostName || "Player"}</span>
                             </div>,
                             <div className="flex items-center gap-2" key={room.id}>
-                              <span className="font-medium">{Object.values(room.players).length}</span>
+                              <span className="font-medium">{room.playerCount}</span>
                               <span className="text-gray-400 text-sm">players</span>
                             </div>,
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -275,11 +275,11 @@ export default function Home() {
                               {room.sandboxMode ? "Yes" : "No"}
                             </span>,
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              room.password
+                              room.isLocked
                                 ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' 
                                 : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
                             }`} key={room.id}>
-                              {room.password ? "Yes" : "No"}
+                              {room.isLocked ? "Yes" : "No"}
                             </span>,
                             <Button 
                               onClick={() => handleJoinRoomClick(room.id)}

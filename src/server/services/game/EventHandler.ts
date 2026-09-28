@@ -168,7 +168,9 @@ export class EventHandler {
       switch (eventType) {
         case ROOM_EVENT.switchSide: {
           const roomState = this.roomService.switchSide(roomId, player);
-          io.to(roomId).emit("roomEvent", roomState);
+          if (roomState) {
+            io.to(roomId).emit("roomEvent", this.roomService.toRoomStateForMembers(roomState));
+          }
           break;
         }
         default: {

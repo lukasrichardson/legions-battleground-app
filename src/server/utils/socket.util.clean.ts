@@ -1,4 +1,4 @@
-import { CustomSocket, GameEventPayload, IOServer, JoinGamePayload, RoomEventPayload } from "../interfaces/SocketTypes";
+import { CustomSocket, GameEventPayload, IOServer, RoomEventPayload } from "../interfaces/SocketTypes";
 import { games, users } from "../game/game";
 import { setDeck } from "./game.util";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
@@ -8,6 +8,15 @@ import { EventHandler } from "../services/game/EventHandler";
 import { ROOM_EVENT } from "@/shared/enums/RoomEvent";
 import ValidatorService from "../services/game/ValidatorService";
 import { GameHistoryService } from "../services/game/GameHistoryService";
+import { ROOM_ADMISSION_COOKIE, resolveAdmissionGrant } from "../network/roomAdmissionTicket";
+
+const readCookie = (cookieHeader: string | undefined, name: string): string | undefined => {
+  if (!cookieHeader) return undefined;
+  return cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1);
+};
+
+const getAdmissionGrant = (socket: CustomSocket) =>
+  resolveAdmissionGrant(readCookie(socket.handshake.headers.cookie, ROOM_ADMISSION_COOKIE));
 
 // Create service instances
 const gameService = new GameService();
@@ -18,18 +27,16 @@ const gameHistoryService = new GameHistoryService();
 
 export const handleSocketJoinGame = async (
   io: IOServer,
-  socket: CustomSocket,
-  data: JoinGamePayload
+  socket: CustomSocket
 ) => {
   try {
-    // Validate input
-    const validation = validatorService.validateJoinGame(data);
-    if (!validation.valid) {
-      socket.emit('error', { message: validation.error });
+    const grant = getAdmissionGrant(socket);
+    if (!grant) {
+      socket.emit('error', { message: 'Join authorization expired. Return to the lobby and join again.' });
       return;
     }
 
-    const { roomName, playerName, deckId, p2DeckId } = data;
+    const { roomId: roomName, playerName, deckId, p2DeckId } = grant;
 
     // Join or create room
     const player = { id: socket.id, name: playerName };
@@ -53,8 +60,8 @@ export const handleSocketJoinGame = async (
     }
 
     // Emit updates
-    io.emit("rooms", roomService.getRooms());
-    io.to(roomName).emit("roomEvent", joinResult.room);
+    io.emit("rooms", roomService.getPublicRooms());
+    io.to(roomName).emit("roomEvent", roomService.toRoomStateForMembers(joinResult.room));
     io.to(roomName).emit("gameEvent", { 
       type: GAME_EVENT.startGame, 
       data: games[roomName] 
@@ -180,7 +187,7 @@ export const handleSocketDisconnect = async (
         }
 
         // Emit updated rooms
-        io.emit("rooms", roomService.getRooms());
+        io.emit("rooms", roomService.getPublicRooms());
       }
     }
 

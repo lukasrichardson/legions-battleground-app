@@ -65,10 +65,10 @@ export default function JoinRoomModal() {
         roomPassword
       });
       const { roomName: newRoomName, playerName: alias } = res.data;
-      router.push(`/play?room=${newRoomName}&playerName=${alias}&deckId=${deckId}${roomPassword ? `&roomPassword=${roomPassword}` : ""}`);
+      const query = new URLSearchParams({ room: newRoomName, playerName: alias, deckId });
+      router.push(`/play?${query.toString()}`);
       dispatch(setJoinRoomModalOpen(null));
       setPlayerName("");
-      setRoomPassword("");
       setDeckId("");
       setError("");
     } catch (err: unknown) {
@@ -78,6 +78,7 @@ export default function JoinRoomModal() {
         setError("An error occurred while joining the room. Please try again.");
       }
     } finally {
+      setRoomPassword("");
       setLoading(false);
     }
   }

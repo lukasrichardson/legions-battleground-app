@@ -3,12 +3,7 @@ import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { ROOM_EVENT } from '@/shared/enums/RoomEvent';
 
 
-export interface JoinGamePayload {
-  roomName: string;
-  playerName: string;
-  deckId: string;
-  p2DeckId?: string; // Optional field for player 2's deck ID
-}
+export type JoinGamePayload = Record<string, never>;
 export interface GameEventPayload {
   type: GAME_EVENT;
   data?: unknown;

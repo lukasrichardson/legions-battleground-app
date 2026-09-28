@@ -1,4 +1,3 @@
-import { rooms } from './socketHandler';
 import { DeckResponse } from '../../shared/interfaces/DeckResponse';
 import { ObjectId } from 'mongodb';
 import {Request, Response} from 'express';
@@ -13,6 +12,21 @@ import { DeckValidationError, validateDeckCompositionByIds } from "../services/a
 import { parseCardPagination, parseCardSearch } from "../utils/queryValidation.util";
 import { AliasTakenError, AliasValidationError, deleteAliasForUser, getAliasForUser, setAliasForUser } from "../services/api/AliasService";
 import { specialMainDeckFieldForCardType } from "@/shared/deckComposition";
+import { RoomService } from "../services/game/RoomService";
+import { passwordOrUndefined } from "../services/game/roomPassword";
+import { issueAdmissionGrant, ROOM_ADMISSION_COOKIE, ROOM_ADMISSION_TTL_MS } from "./roomAdmissionTicket";
+
+const roomService = new RoomService();
+
+const setAdmissionCookie = (res: Response, token: string) => {
+  res.cookie(ROOM_ADMISSION_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: ROOM_ADMISSION_TTL_MS,
+    path: "/",
+  });
+};
 
 export const routes = (app: ExpressApp) => {
   app.get('/healthz', (req: Request, res: Response) => {
@@ -45,7 +59,7 @@ export const routes = (app: ExpressApp) => {
       return res.status(400).send("roomName is required");
     }
     const playerName = await getAliasForUser(req.user!.id) ?? req.user!.name ?? req.user!.email ?? "Player";
-    if (rooms[req.body.roomName]) {
+    if (roomService.getRoom(req.body.roomName)) {
       return res.status(400).send("roomName " + req.body.roomName + " already exists");
     }
   
@@ -63,19 +77,17 @@ export const routes = (app: ExpressApp) => {
     } catch {
       return res.status(400).send("deckId " + req.body.deckId + " is invalid");
     }
-    rooms[req.body.roomName] = {
-      id: req.body.roomName,
-      players: {},
-      sandboxMode: req.body.sandboxMode,
-      password: req.body.roomPassword,
-    };
-    return res.send({
-      roomName: req.body.roomName,
-      playerName,
-      players: rooms[req.body.roomName].players,
-      sandboxMode: req.body.sandboxMode,
-      password: req.body.roomPassword,
+    await roomService.createRoom(req.body.roomName, {
+      sandboxMode: Boolean(req.body.sandboxMode),
+      password: passwordOrUndefined(req.body.roomPassword),
     });
+    setAdmissionCookie(res, issueAdmissionGrant({
+      roomId: req.body.roomName,
+      playerName,
+      deckId: req.body.deckId,
+      p2DeckId: req.body.p2DeckId || undefined,
+    }));
+    return res.status(201).send({ roomName: req.body.roomName, playerName });
   });
   
   app.post("/joinRoom", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
@@ -83,12 +95,11 @@ export const routes = (app: ExpressApp) => {
       return res.status(400).send("roomName is required");
     }
     const playerName = await getAliasForUser(req.user!.id) ?? req.user!.name ?? req.user!.email ?? "Player";
-    if (!rooms[req.body.roomName]) {
+    if (!roomService.getRoom(req.body.roomName)) {
       return res.status(400).send("roomName " + req.body.roomName + " does not exist");
     }
   
-    // check if password protected
-    if (rooms[req.body.roomName].password && rooms[req.body.roomName].password !== req.body.roomPassword) {
+    if (!(await roomService.mayJoin(req.body.roomName, req.body.roomPassword))) {
       return res.status(400).send("password is incorrect");
     }
   
@@ -100,7 +111,12 @@ export const routes = (app: ExpressApp) => {
     } catch {
       return res.status(400).send("deckId " + req.body.deckId + " is invalid");
     }
-    return res.send({ roomName: req.body.roomName, playerName, players: rooms[req.body.roomName].players });
+    setAdmissionCookie(res, issueAdmissionGrant({
+      roomId: req.body.roomName,
+      playerName,
+      deckId: req.body.deckId,
+    }));
+    return res.send({ roomName: req.body.roomName, playerName });
   })
 
   app.get("/api/cards", async (req: Request, res: Response) => {

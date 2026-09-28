@@ -4,16 +4,7 @@ import { moveCard } from "./gameStateSlice";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { GameEventLog } from "@/shared/interfaces/GameEventLog";
-interface GameRoom {
-    id: string;
-    password: string;
-    players: {[id: string]: {
-      id: string;
-      name: string;
-      p1: boolean;
-    }};
-    sandboxMode: boolean;
-  }
+import { RoomStateForMembers } from "@/shared/interfaces/RoomInterface";
 
 interface ClientGameState {
   cardInFocus: CardState | null;
@@ -32,7 +23,7 @@ interface ClientGameState {
     zoneIndex?: number;
   } | null;
   wisdoming: boolean;
-  room?: GameRoom;
+  room?: RoomStateForMembers;
   gameHistory: GameEventLog[];
   undoneHistory: GameEventLog[];
 }

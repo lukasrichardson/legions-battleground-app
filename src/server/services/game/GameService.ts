@@ -2,7 +2,7 @@ import {
   games,
 } from '../../game/game';
 import { fetchInitialDecks, resetPlayersCards, fetchPlayerDeckById } from '../../utils/game.util';
-import { rooms } from '../../network/socketHandler';
+import { rooms } from '../../network/roomRegistry';
 import { addGameLog } from '../../utils/generateGameLog';
 import { initialGameState } from '@/shared/constants/initialGameState';
 import { PreGamePhase } from '../../../shared/enums/Phases';

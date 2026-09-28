@@ -1,5 +1,5 @@
 import { games } from '../game/game';
-import { rooms } from '../network/socketHandler';
+import { rooms } from '../network/roomRegistry';
 
 export const logMemoryUsage = () => {
   const memoryUsage = process.memoryUsage();

@@ -68,14 +68,15 @@ export default function CreateRoomModal() {
         roomPassword,
       });
       const { roomName: newRoomName, playerName: alias } = res.data;
-      router.push(`/play?room=${newRoomName}&playerName=${alias}&deckId=${deckId}${roomPassword ? `&roomPassword=${roomPassword}` : ""}${p2DeckId ? `&p2DeckId=${p2DeckId}` : ""}`);
+      const query = new URLSearchParams({ room: newRoomName, playerName: alias, deckId });
+      if (p2DeckId) query.set("p2DeckId", p2DeckId);
+      router.push(`/play?${query.toString()}`);
       setRoomName("");
       setPlayerName("");
-      setSandboxMode(false);
+      setSandboxMode(true);
       setDeckId("");
       setP2DeckId("");
       setRoomPassword("");
-      setLoading(false);
       dispatch(setCreateRoomModalOpen(false));
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -84,6 +85,8 @@ export default function CreateRoomModal() {
       } else {
         setError("Error: " + error || " An Error Occurred, try again");
       }
+    } finally {
+      setRoomPassword("");
       setLoading(false);
     }
   }

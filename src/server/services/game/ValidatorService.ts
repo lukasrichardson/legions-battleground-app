@@ -1,4 +1,4 @@
-import { GameEventPayload, JoinGamePayload, RoomEventPayload } from "../../interfaces/SocketTypes";
+import { GameEventPayload, RoomEventPayload } from "../../interfaces/SocketTypes";
 
 interface ValidationResult {
   valid: boolean;
@@ -6,20 +6,6 @@ interface ValidationResult {
 } 
 
 export default class ValidatorService {
-  validateJoinGame(data: JoinGamePayload): ValidationResult {
-    if (!data) return { valid: false, error: 'No data provided' };
-    if (!data.roomName || typeof data.roomName !== 'string') {
-      return { valid: false, error: 'Room name is required' };
-    }
-    if (!data.playerName || typeof data.playerName !== 'string') {
-      return { valid: false, error: 'Player name is required' };
-    }
-    if (!data.deckId || typeof data.deckId !== 'string') {
-      return { valid: false, error: 'Deck ID is required' };
-    }
-    return { valid: true };
-  };
-  
   validateGameEvent(payload: GameEventPayload): ValidationResult {
     if (!payload) return { valid: false, error: 'No payload provided' };
     if (!payload.type) return { valid: false, error: 'Event type is required' };
