@@ -199,7 +199,7 @@ export class CardService {
     return games[roomId];
   }
 
-  mulligan(roomId: string, action: object, player: { name: string; p1: boolean }, io: IOServer): GameStateData {
+  mulligan(roomId: string, action: object, player: { name: string; p1: boolean }, io: IOServer, advancePhase = true): GameStateData {
     if (!games[roomId]) return;
     if (player.p1) {
       games[roomId].p1Mulligan = true;
@@ -236,7 +236,7 @@ export class CardService {
       }
     }
     games[roomId].gameLog = addGameLog(games[roomId].gameLog, `${player.name} (${player.p1 ? "P1" : "P2"}) ` + "mulliganed their hand.");
-    goNextPhase(roomId, {}, {}, io);
+    if (advancePhase) goNextPhase(roomId, {}, {}, io);
     return games[roomId];
   }
 

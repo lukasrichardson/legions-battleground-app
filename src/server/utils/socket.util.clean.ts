@@ -15,8 +15,13 @@ const readCookie = (cookieHeader: string | undefined, name: string): string | un
   return cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1);
 };
 
-const getAdmissionGrant = (socket: CustomSocket) =>
-  resolveAdmissionGrant(readCookie(socket.handshake.headers.cookie, ROOM_ADMISSION_COOKIE));
+const getAdmissionGrant = (socket: CustomSocket) => {
+  const handshakeToken = socket.handshake.auth?.admissionToken;
+  const token = typeof handshakeToken === "string"
+    ? handshakeToken
+    : readCookie(socket.handshake.headers.cookie, ROOM_ADMISSION_COOKIE);
+  return resolveAdmissionGrant(token);
+};
 
 // Create service instances
 const gameService = new GameService();
@@ -37,6 +42,22 @@ export const handleSocketJoinGame = async (
     }
 
     const { roomId: roomName, playerName, deckId, p2DeckId } = grant;
+    const existingRoom = roomService.getRoom(roomName);
+    if (!existingRoom) {
+      socket.emit('error', { message: 'Failed to join room' });
+      return;
+    }
+
+    if (!existingRoom.sandboxMode) {
+      roomService.joinOrResumeRegularRoom(roomName, grant, socket.id);
+      gameService.createRegularLobbyGame(roomName);
+      socket.room = roomName;
+      socket.join(roomName);
+      io.emit("rooms", roomService.getPublicRooms());
+      io.to(roomName).emit("roomEvent", roomService.toRoomStateForMembers(roomService.getRoom(roomName)!));
+      io.to(roomName).emit("gameEvent", { type: GAME_EVENT.startGame, data: games[roomName] });
+      return;
+    }
 
     // Join or create room
     const player = { id: socket.id, name: playerName };
@@ -174,7 +195,17 @@ export const handleSocketDisconnect = async (
     if (socket.room) {
       const room = roomService.getRoom(socket.room);
       
-      if (room && room.players[socket.id]) {
+      if (room && !room.sandboxMode) {
+        roomService.markRegularSeatDisconnected(socket.room, socket.id);
+        if (!roomService.hasConnectedRegularOpponent(socket.room)) {
+          roomService.removeRoom(socket.room);
+          delete games[socket.room];
+        } else {
+          io.to(socket.room).emit("roomEvent", roomService.toRoomStateForMembers(room));
+          io.to(socket.room).emit("gameEvent", { type: GAME_EVENT.startGame, data: games[socket.room] });
+        }
+        io.emit("rooms", roomService.getPublicRooms());
+      } else if (room && room.players[socket.id]) {
         // Trigger player left event
         gameService.playerLeft(socket.room, room.players[socket.id]);
         
@@ -206,4 +237,22 @@ export const handleSocketDisconnect = async (
       }
     }
   }
+};
+
+export const handleSocketLeaveRegularRoom = async (io: IOServer, socket: CustomSocket) => {
+  if (!socket.room) return;
+  const roomId = socket.room;
+  const room = roomService.getRoom(roomId);
+  if (!room || room.sandboxMode) return;
+  roomService.markRegularSeatDisconnected(roomId, socket.id);
+  socket.leave(roomId);
+  socket.room = undefined;
+  if (!roomService.hasConnectedRegularOpponent(roomId)) {
+    roomService.removeRoom(roomId);
+    delete games[roomId];
+  } else {
+    io.to(roomId).emit("roomEvent", roomService.toRoomStateForMembers(room));
+    io.to(roomId).emit("gameEvent", { type: GAME_EVENT.startGame, data: games[roomId] });
+  }
+  io.emit("rooms", roomService.getPublicRooms());
 };

@@ -5,6 +5,7 @@ import { useAppSelector, useAppDispatch } from "@/client/redux/hooks";
 import { moveCard } from "@/client/redux/gameStateSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
+import { MatchStatus } from "@/shared/enums/Match";
 
 export default function Hand({children, cardTarget}: {children: ReactNode, cardTarget: CARD_TARGET}) {
   const dispatch = useAppDispatch();
@@ -17,7 +18,7 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
   const [{isOver, canDrop}, drop] = useDrop(
     () => ({
       accept: ["card"],
-      canDrop: () => sandboxMode,
+      canDrop: () => gameState.matchStatus !== MatchStatus.Completed && (sandboxMode || !gameState.sandboxMode),
       drop: (
         cardToDrop: {id: string, cardTarget: CARD_TARGET, zoneIndex?: number}
       ) => {

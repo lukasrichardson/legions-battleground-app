@@ -2,6 +2,7 @@ import {
   // useAppDispatch, 
   useAppSelector } from "@/client/redux/hooks";
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
+import { MatchStatus } from "@/shared/enums/Match";
 // import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import {
   // renderAP,
@@ -55,6 +56,7 @@ export default function PlayArea({ }) {
   } = gameState;
   const { side } = clientGameState;
   const p1 = side === "p1";
+  const openingHandsPending = !gameState.sandboxMode && !gameState.started && [MatchStatus.ReadyCheck, MatchStatus.Rps].includes(gameState.matchStatus);
   // const goToNextPhase = () => {
   //   emitGameEvent({ type: GAME_EVENT.nextPhase, data: null });
   // }
@@ -62,7 +64,7 @@ export default function PlayArea({ }) {
 
   return (
     <div className="relative flex flex-col w-[80%] h-full overflow-visible">
-      {RenderHand({ items: p1 ? p2PlayerHand : p1PlayerHand, cardTarget: p1 ? CARD_TARGET.P2_PLAYER_HAND : CARD_TARGET.P1_PLAYER_HAND, p1 })}
+      {openingHandsPending ? <OpeningHandPlaceholder opponent /> : <RenderHand items={p1 ? p2PlayerHand : p1PlayerHand} cardTarget={p1 ? CARD_TARGET.P2_PLAYER_HAND : CARD_TARGET.P1_PLAYER_HAND} p1={p1} />}
       <div className="w-full h-[40%] grid grid-rows-3 grid-cols-8">
 
         {renderCardZone(p1 ? p2PlayerEradication : p1PlayerEradication, p1 ? CARD_TARGET.P2_PLAYER_ERADICATION : CARD_TARGET.P1_PLAYER_ERADICATION, "Eradication")}
@@ -111,7 +113,13 @@ export default function PlayArea({ }) {
         {renderCardRow(p1 ? p1PlayerFortifieds : p2PlayerFortifieds, p1 ? CARD_TARGET.P1_PLAYER_FORTIFIED : CARD_TARGET.P2_PLAYER_FORTIFIED, "Fortified")}
         {renderCardZone(p1 ? p1PlayerEradication : p2PlayerEradication, p1 ? CARD_TARGET.P1_PLAYER_ERADICATION : CARD_TARGET.P2_PLAYER_ERADICATION, "Eradication")}
       </div>
-      {RenderHand({ items: p1 ? p1PlayerHand : p2PlayerHand, cardTarget: p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND, p1 })}
+      {openingHandsPending ? <OpeningHandPlaceholder /> : <RenderHand items={p1 ? p1PlayerHand : p2PlayerHand} cardTarget={p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND} p1={p1} />}
     </div>
   )
+}
+
+function OpeningHandPlaceholder({ opponent = false }: { opponent?: boolean }) {
+  return <div className="flex h-[10%] items-center justify-center border-y border-dashed border-cyan-100/15 bg-slate-950/20 text-xs text-slate-400">
+    {opponent ? "Opponent opening hand is dealt after Rock Paper Scissors." : "Opening hand is dealt after Rock Paper Scissors."}
+  </div>;
 }

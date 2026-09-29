@@ -10,17 +10,73 @@ import { CardState } from '../../../shared/interfaces/CardState';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { CardService } from './CardService';
 import { GameHistoryService } from './GameHistoryService';
+import { RegularMatchService } from './RegularMatchService';
+import { MatchStatus } from '@/shared/enums/Match';
 
 export class EventHandler {
   private gameService = new GameService();
   private roomService = new RoomService();
   private cardService = new CardService();
   private gameHistoryService = new GameHistoryService();
+  private regularMatchService = new RegularMatchService();
 
   async handleGameEvent(roomId: string, eventType: GAME_EVENT, data: unknown, player: IPlayer, io: IOServer, isRedo: boolean = false) {
     try {
+      const room = this.roomService.getRoom(roomId);
+      const game = this.gameService.getGameState(roomId);
+      const isRegular = Boolean(room && !room.sandboxMode);
+      const side = player.p1 ? "p1" : "p2";
+      if (isRegular && game?.matchStatus === MatchStatus.Completed) {
+        throw new Error("Match is complete");
+      }
       switch (eventType) {
+        case GAME_EVENT.readyForMatch: {
+          const bothSeated = Boolean(room?.regularSeats?.p1 && room?.regularSeats?.p2);
+          this.regularMatchService.ready(roomId, side, bothSeated);
+          if (isRegular && bothSeated && game?.matchStatus === MatchStatus.Rps) {
+            await this.gameService.startRegularSetup(roomId, room!.regularSeats!.p1!.deckId, room!.regularSeats!.p2!.deckId);
+          }
+          break;
+        }
+        case GAME_EVENT.setRpsChoice: {
+          if (isRegular && game?.matchStatus !== MatchStatus.Rps) throw new Error("Rock Paper Scissors is not active");
+          if (isRegular) {
+            const choices = ["Rock", "Paper", "Scissors"] as const;
+            if (!choices.includes(data as typeof choices[number])) throw new Error("Invalid Rock Paper Scissors choice");
+            this.regularMatchService.chooseRps(roomId, side, data as typeof choices[number]);
+            // A tie leaves both hands absent. The first decisive result deals
+            // the opening state atomically before it is broadcast to either player.
+            if (game?.rpsWinner) this.gameService.dealRegularOpeningState(roomId);
+          } else {
+            const action = gameEventMap[eventType];
+            action(roomId, data, player, io);
+          }
+          break;
+        }
+        case GAME_EVENT.mulligan: {
+          if (isRegular) {
+            this.regularMatchService.completeMulligan(roomId, side);
+          }
+          this.cardService.mulligan(roomId, data as { number: number }, player, io, !isRegular);
+          break;
+        }
+        case GAME_EVENT.keepHand: {
+          if (!isRegular) throw new Error("Keep hand is only available in regular mode");
+          this.regularMatchService.completeMulligan(roomId, side);
+          break;
+        }
+        case GAME_EVENT.advancePhase: {
+          if (!isRegular) throw new Error("Phase advancement is only available in regular mode");
+          this.regularMatchService.advancePhase(roomId, side);
+          break;
+        }
+        case GAME_EVENT.concede: this.regularMatchService.concede(roomId, side); break;
+        case GAME_EVENT.offerDraw: this.regularMatchService.offerDraw(roomId, side); break;
+        case GAME_EVENT.rescindDrawOffer: this.regularMatchService.rescindDrawOffer(roomId, side); break;
+        case GAME_EVENT.acceptDrawOffer: this.regularMatchService.acceptDrawOffer(roomId, side); break;
+        case GAME_EVENT.declineDrawOffer: this.regularMatchService.declineDrawOffer(roomId, side); break;
         case GAME_EVENT.resetGame: {
+          if (isRegular) throw new Error("Regular matches cannot be reset");
           await this.gameService.resetGame(roomId, data);
           this.gameHistoryService.clearGameHistory(roomId);
           break;
@@ -67,10 +123,6 @@ export class EventHandler {
         }
         case GAME_EVENT.shuffleTargetPile: {
           this.cardService.shuffleTargetPile(roomId, data as { cardTarget: CARD_TARGET; targetIndex?: number });
-          break;
-        }
-        case GAME_EVENT.mulligan: {
-          this.cardService.mulligan(roomId, data as { number: number }, player, io);
           break;
         }
         case GAME_EVENT.sendChatMessage: {
@@ -160,6 +212,7 @@ export class EventHandler {
       io.to(roomId).emit("gameHistoryEvent", { gameHistory, undoneHistory });
     } catch (error) {
       console.error(`Game event ${eventType} failed for room ${roomId}:`, error);
+      throw error;
     }
   }
 

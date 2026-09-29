@@ -2,6 +2,7 @@ import { GamePhase, PreGamePhase } from "@/shared/enums/Phases";
 import { DeckResponse } from "../../shared/interfaces/DeckResponse";
 import { CardState } from "@/shared/interfaces/CardState";
 import { SequenceState } from "@/server/interfaces/SequenceInterfaces";
+import { DrawOffer, MatchResult, MatchStatus, PlayerSide } from "@/shared/enums/Match";
 
 type SingleZonePile = CardState[];
 type MultiZonePile = SingleZonePile[];
@@ -53,12 +54,18 @@ export interface GameStateData {
   rpsWinner: "p1" | "p2" | null;
   p1RPSChoice: string | null;
   p2RPSChoice: string | null;
+  rpsTieCount: number;
   p1Mulligan: boolean | null;
   p2Mulligan: boolean | null;
   sequences: SequenceState["sequences"];
   resolving: SequenceState["resolving"];
   playerConscripted: boolean;
   sandboxMode: boolean;
+  matchStatus: MatchStatus;
+  activePlayer: PlayerSide | null;
+  readyPlayers: Record<PlayerSide, boolean>;
+  drawOffer: DrawOffer | null;
+  result: MatchResult | null;
 }
 
 export default interface GameState {

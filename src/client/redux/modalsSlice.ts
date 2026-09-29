@@ -8,6 +8,8 @@ interface ModalsState {
   plunderModalOpen: boolean;
   previewDeckModalOpen: boolean;
   importDeckModalOpen: boolean;
+  concedeModalOpen: boolean;
+  leaveGameModalOpen: boolean;
 }
 
 const initialState: ModalsState = {
@@ -17,7 +19,9 @@ const initialState: ModalsState = {
   toolsSettingsModalOpen: false,
   plunderModalOpen: false,
   previewDeckModalOpen: false,
-  importDeckModalOpen: false
+  importDeckModalOpen: false,
+  concedeModalOpen: false,
+  leaveGameModalOpen: false,
 }
 
 const modalsSlice = createSlice({
@@ -59,7 +63,11 @@ const modalsSlice = createSlice({
     },
     closeImportDeckModal(state) {
       state.importDeckModalOpen = false;
-    }
+    },
+    openConcedeModal(state) { state.concedeModalOpen = true; },
+    closeConcedeModal(state) { state.concedeModalOpen = false; },
+    openLeaveGameModal(state) { state.leaveGameModalOpen = true; },
+    closeLeaveGameModal(state) { state.leaveGameModalOpen = false; }
   },
 });
 
@@ -75,7 +83,11 @@ export const {
   openPreviewDeckModal,
   closePreviewDeckModal,
   openImportDeckModal,
-  closeImportDeckModal
+  closeImportDeckModal,
+  openConcedeModal,
+  closeConcedeModal,
+  openLeaveGameModal,
+  closeLeaveGameModal
 } = modalsSlice.actions;
 
 export default modalsSlice.reducer;

@@ -9,6 +9,16 @@ export interface GameEventPayload {
   data?: unknown;
 }
 
+export type RegularMatchEvent =
+  | GAME_EVENT.readyForMatch
+  | GAME_EVENT.keepHand
+  | GAME_EVENT.advancePhase
+  | GAME_EVENT.concede
+  | GAME_EVENT.offerDraw
+  | GAME_EVENT.rescindDrawOffer
+  | GAME_EVENT.acceptDrawOffer
+  | GAME_EVENT.declineDrawOffer;
+
 export interface RoomEventPayload {
   type: ROOM_EVENT;
   data?: unknown;

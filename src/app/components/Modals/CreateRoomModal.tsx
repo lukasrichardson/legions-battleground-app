@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/client/ui/card";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
 import { fetchDeckPickerOptions } from "@/client/utils/api.utils";
 import { useAuth } from "@/client/hooks/useAuth";
+import { refreshSocketConnection } from "@/client/socket";
 
 const ModalConstants = {
   LoadingText: "Creating your game...",
@@ -67,9 +68,10 @@ export default function CreateRoomModal() {
         p2DeckId,
         roomPassword,
       });
-      const { roomName: newRoomName, playerName: alias } = res.data;
+      const { roomName: newRoomName, playerName: alias, admissionToken } = res.data;
       const query = new URLSearchParams({ room: newRoomName, playerName: alias, deckId });
       if (p2DeckId) query.set("p2DeckId", p2DeckId);
+      await refreshSocketConnection(admissionToken);
       router.push(`/play?${query.toString()}`);
       setRoomName("");
       setPlayerName("");
@@ -247,13 +249,12 @@ export default function CreateRoomModal() {
                   name="sandbox"
                   checked={sandboxMode}
                   onChange={onSandboxModeChange}
-                  disabled={process.env.NODE_ENV === "production"}
-                  className="w-5 h-5 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500 focus:ring-2 opacity-50"
+                  className="w-5 h-5 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500 focus:ring-2"
                 />
               </div>
               <div>
                 <label className="text-sm font-semibold text-white">{SandboxModeLabelText}</label>
-                <p className="text-xs text-gray-400">Currently enabled for all games</p>
+                <p className="text-xs text-gray-400">Enable free-form sandbox play, or disable it for a regular match.</p>
               </div>
             </div>
 

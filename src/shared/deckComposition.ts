@@ -61,7 +61,7 @@ export const getMainDeckCards = (deck: DeckResponse): HydratedDeckCard[] => {
   const normalizedDeck = normalizeDeck(deck);
   return [
     ...getCardsForIds(normalizedDeck.cards_in_deck, normalizedDeck.cards),
-    ...SPECIAL_MAIN_DECK_FIELDS.flatMap((field) => getCardsForIds(normalizedDeck[field], normalizedDeck.cards)),
+    // ...SPECIAL_MAIN_DECK_FIELDS.flatMap((field) => getCardsForIds(normalizedDeck[field], normalizedDeck.cards)),
   ];
 };
 

@@ -6,59 +6,24 @@ import { CARD_TYPE } from "@/shared/enums/CardType";
 import { moveCard } from "@/client/redux/gameStateSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
-import { GamePhase } from "@/client/redux/phaseSlice";
 import { setCardForSelectingZone, setSelectingZone } from "@/client/redux/clientGameStateSlice";
 import { CardState } from "@/shared/interfaces/CardState";
+import { MatchStatus } from "@/shared/enums/Match";
 
 
 export default function GridItem({ children, cardTarget, targetIndex }: { children: ReactNode, cardTarget: CARD_TARGET, targetIndex?: number }) {
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
-  const phaseState = useAppSelector((state) => state.phaseState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
   const { sequences, resolving } = sequenceState;
-  const { currentPhase, turnNumber } = phaseState;
-  const { playerConscripted, sandboxMode } = gameState;
   const { side, selectingZone, cardForSelectingZone } = clientGameState;
   const cardsInZone = (targetIndex || targetIndex === 0) ? gameState[cardTarget as keyof typeof gameState][targetIndex] as CardState[] : gameState[cardTarget as keyof typeof gameState] as CardState[];
-  const canDropCard = (target: CARD_TARGET, side: string, card: { type: CARD_TYPE, cardTarget: CARD_TARGET }) => {
-
-    if (sandboxMode) return true;
-
-    //aborted conscription logic, needs to be reworked with new sequence system
-    const p1 = side === "p1";
-    const { type, cardTarget: currentTarget } = card;
-    if (!sequences.length) {
-      if (!resolving) {
-        //conscriptions
-        if (target.includes("p1") && p1 && currentPhase === GamePhase.P1War) {
-          if (currentTarget === CARD_TARGET.P1_PLAYER_HAND) {
-            if (type === CARD_TYPE.WARRIOR && cardTarget === CARD_TARGET.P1_PLAYER_WARRIOR) {
-              if (!playerConscripted) {
-                return true;
-              }
-            }
-          }
-        };
-        if (target.includes("p2") && !p1 && currentPhase === GamePhase.P2War) {
-          if (currentTarget === CARD_TARGET.P2_PLAYER_HAND) {
-            if (type === CARD_TYPE.WARRIOR && cardTarget === CARD_TARGET.P2_PLAYER_WARRIOR) {
-              if (!playerConscripted) {
-                return true;
-              }
-            }
-          }
-        };
-      }
-    }
-
-    return false;
-  };
+  const canDropCard = () => gameState.matchStatus !== MatchStatus.Completed;
   const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
       accept: ["card"],
-      canDrop: (card) => canDropCard(cardTarget, side, card),
+      canDrop: () => canDropCard(),
       drop: (cardToDrop: { id: string, cardTarget: CARD_TARGET, name: string, type: CARD_TYPE, zoneIndex?: number }) => {
         // if (cardToDrop.type === CARD_TYPE.WARRIOR) {
         //   dispatch(moveCard({
@@ -115,7 +80,7 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
         canDrop: !!monitor.canDrop()
       })
     }),
-    [cardTarget, side, sequences, resolving, currentPhase, turnNumber, targetIndex] // dependencies for the drop hook
+    [cardTarget, side, sequences, resolving, targetIndex] // dependencies for the drop hook
   )
   const selecting = useMemo(() => {
     if (!selectingZone) return false;

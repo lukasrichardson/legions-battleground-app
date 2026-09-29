@@ -22,6 +22,7 @@ export enum SOCKET_PAYLOAD_TYPE {
 export const useSocket = () => {
   const [rooms, setRooms] = useState<PublicRoomsCollection>({});
   const [joinedGame, setJoinedGame] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
   const dispatch = useAppDispatch();
   const params = useSearchParams();
   const roomName = params.get("room");
@@ -42,6 +43,9 @@ export const useSocket = () => {
   }
   const handlePhaseEvent = (payload) => {
     dispatch(setPhaseState(payload.data));
+  }
+  const handleSocketError = (payload: { message?: string }) => {
+    setJoinError(payload.message ?? "Unable to join this game.");
   }
 
   const handleRoomEvent = useCallback((payload: RoomStateForMembers) => {
@@ -64,6 +68,7 @@ export const useSocket = () => {
     socket.on(SOCKET_PAYLOAD_TYPE.rooms, handleRooms)
     socket.on(SOCKET_PAYLOAD_TYPE.roomEvent, handleRoomEvent)
     socket.on(SOCKET_PAYLOAD_TYPE.gameHistoryEvent, handleHistoryEvent);
+    socket.on("error", handleSocketError);
     if (!socket.connected) socket.connect();
 
     return () => {
@@ -72,6 +77,7 @@ export const useSocket = () => {
       socket.off(SOCKET_PAYLOAD_TYPE.rooms, handleRooms)
       socket.off(SOCKET_PAYLOAD_TYPE.roomEvent, handleRoomEvent)
       socket.off(SOCKET_PAYLOAD_TYPE.gameHistoryEvent, handleHistoryEvent);
+      socket.off("error", handleSocketError);
       if (socket.connected) socket.disconnect();
     }
     // Keep one socket subscription for this hook's lifetime; changing handlers
@@ -88,6 +94,7 @@ export const useSocket = () => {
 
       const joinGame = () => {
         if (joinedGame) return;
+        setJoinError(null);
         setJoinedGame(true);
         socket.emit("joinGame", {});
       };
@@ -98,5 +105,5 @@ export const useSocket = () => {
       return () => { socket.off("connect", joinGame); };
     }
   }, [roomName, playerName, deckId, pathname, router, joinedGame])
-  return { socket, rooms };
+  return { socket, rooms, joinError };
 }

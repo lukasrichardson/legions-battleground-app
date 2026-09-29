@@ -4,6 +4,7 @@ import { RoomService } from "../services/game/RoomService";
 export { rooms } from "./roomRegistry";
 import { 
   handleSocketDisconnect,
+  handleSocketLeaveRegularRoom,
   handleSocketGameEvent,
   handleSocketJoinGame,
   handleSocketRoomEvent
@@ -23,6 +24,7 @@ export const handleSocketConnection = (io: IOServer) => {
     socket.on("joinGame", () => handleSocketJoinGame(io, socket));
     socket.on("gameEvent", (data) => handleSocketGameEvent(io, socket, data));
     socket.on("roomEvent", (data) => handleSocketRoomEvent(io, socket, data));
+    socket.on("leaveRegularRoom", () => handleSocketLeaveRegularRoom(io, socket));
 
     socket.on("disconnect", () => handleSocketDisconnect(io, socket));
   })

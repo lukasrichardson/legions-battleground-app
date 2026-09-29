@@ -11,6 +11,7 @@ import { useAuth } from "@/client/hooks/useAuth";
 import { signIn } from "next-auth/react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/client/ui/select";
 import { fetchDeckPickerOptions } from "@/client/utils/api.utils";
+import { refreshSocketConnection } from "@/client/socket";
 
 const ModalConstants = {
   LoadingText: "Loading...",
@@ -64,8 +65,9 @@ export default function JoinRoomModal() {
         deckId,
         roomPassword
       });
-      const { roomName: newRoomName, playerName: alias } = res.data;
+      const { roomName: newRoomName, playerName: alias, admissionToken } = res.data;
       const query = new URLSearchParams({ room: newRoomName, playerName: alias, deckId });
+      await refreshSocketConnection(admissionToken);
       router.push(`/play?${query.toString()}`);
       dispatch(setJoinRoomModalOpen(null));
       setPlayerName("");

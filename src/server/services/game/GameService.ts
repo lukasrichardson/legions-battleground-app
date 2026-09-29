@@ -4,7 +4,7 @@ import {
 import { fetchInitialDecks, resetPlayersCards, fetchPlayerDeckById } from '../../utils/game.util';
 import { rooms } from '../../network/roomRegistry';
 import { addGameLog } from '../../utils/generateGameLog';
-import { initialGameState } from '@/shared/constants/initialGameState';
+import { createInitialGameState } from '@/shared/constants/initialGameState';
 import { PreGamePhase } from '../../../shared/enums/Phases';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
 import { GameStateData } from '@/shared/interfaces/GameState';
@@ -22,7 +22,7 @@ export class GameService {
       return games[roomId];
     }
 
-    games[roomId] = { ...initialGameState };
+    games[roomId] = createInitialGameState();
     games[roomId].sandboxMode = rooms[roomId]?.sandboxMode || false;
 
     console.log(`🎮 Game started for room: ${roomId}, sandbox mode: ${games[roomId].sandboxMode}`);
@@ -36,6 +36,37 @@ export class GameService {
 
     games[roomId].started = true;
     return games[roomId];
+  }
+
+  createRegularLobbyGame(roomId: string): GameStateData {
+    if (!games[roomId]) {
+      games[roomId] = { ...createInitialGameState(), sandboxMode: false };
+    }
+    return games[roomId];
+  }
+
+  async startRegularSetup(roomId: string, p1DeckId: string, p2DeckId: string): Promise<GameStateData> {
+    const game = this.createRegularLobbyGame(roomId);
+    // Regular matches deliberately prepare deck data before RPS, but do not
+    // generate any board state or opening hands until RPS has a winner.
+    if (game.started || (game.p1DeckFromServer && game.p2DeckFromServer)) return game;
+    const { p1Deck, p2Deck } = await fetchInitialDecks(p1DeckId, p2DeckId);
+    game.p1DeckFromServer = p1Deck;
+    game.p2DeckFromServer = p2Deck;
+    return game;
+  }
+
+  dealRegularOpeningState(roomId: string): GameStateData {
+    const game = this.createRegularLobbyGame(roomId);
+    if (game.sandboxMode) throw new Error("Regular opening state is unavailable in sandbox mode");
+    if (game.started) return game;
+    if (!game.rpsWinner || !game.p1DeckFromServer || !game.p2DeckFromServer) {
+      throw new Error("Opening hands can be dealt only after a decisive RPS result");
+    }
+
+    resetPlayersCards(roomId, game.p1DeckFromServer, game.p2DeckFromServer);
+    game.started = true;
+    return game;
   }
 
   async resetGame(roomId: string, options?: { p2DeckId?: string; p1DeckId?: string }): Promise<GameStateData> {
@@ -68,6 +99,7 @@ export class GameService {
     games[roomId].rpsWinner = null;
     games[roomId].p1RPSChoice = null;
     games[roomId].p2RPSChoice = null;
+    games[roomId].rpsTieCount = 0;
     games[roomId].p1Mulligan = null;
     games[roomId].p2Mulligan = null;
     games[roomId].sequences = [];

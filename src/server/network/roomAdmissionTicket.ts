@@ -5,6 +5,7 @@ export const ROOM_ADMISSION_TTL_MS = 10 * 60 * 1000;
 
 export interface RoomAdmissionGrant {
   roomId: string;
+  userId: string;
   playerName: string;
   deckId: string;
   p2DeckId?: string;

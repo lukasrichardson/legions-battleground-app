@@ -7,18 +7,11 @@ export const metadata: Metadata = {
 };
 
 
-export default function RootLayout({
+export default function PlayLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   
-  return (
-    <html lang="en">
-
-        <ClientLayout>
-          {children}
-        </ClientLayout>
-    </html>
-  )
+  return <ClientLayout>{children}</ClientLayout>;
 }

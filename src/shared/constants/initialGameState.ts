@@ -1,7 +1,8 @@
 import { PreGamePhase } from "@/shared/enums/Phases";
 import { GameStateData } from "../interfaces/GameState";
+import { MatchStatus } from "@/shared/enums/Match";
 
-export const initialGameState: GameStateData = {
+const initialGameStateTemplate: GameStateData = {
   started: false,
   gameLog: [],
   p2PlayerHealth: 0,
@@ -51,6 +52,7 @@ export const initialGameState: GameStateData = {
   rpsWinner: null,
   p1RPSChoice: null,
   p2RPSChoice: null,
+  rpsTieCount: 0,
   p1Mulligan: null,
   p2Mulligan: null,
   //
@@ -59,4 +61,15 @@ export const initialGameState: GameStateData = {
   //
   playerConscripted: false,
   sandboxMode: true,
+  matchStatus: MatchStatus.ReadyCheck,
+  activePlayer: null,
+  readyPlayers: { p1: false, p2: false },
+  drawOffer: null,
+  result: null,
 }
+
+// Game state contains nested arrays and records. A shallow spread shares those
+// nested values between rooms, so every new game must be created from a deep copy.
+// Keep the clone source private so legacy consumers cannot accidentally pollute it.
+export const createInitialGameState = (): GameStateData => structuredClone(initialGameStateTemplate);
+export const initialGameState: GameStateData = createInitialGameState();

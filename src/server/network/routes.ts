@@ -81,13 +81,15 @@ export const routes = (app: ExpressApp) => {
       sandboxMode: Boolean(req.body.sandboxMode),
       password: passwordOrUndefined(req.body.roomPassword),
     });
-    setAdmissionCookie(res, issueAdmissionGrant({
+    const admissionToken = issueAdmissionGrant({
       roomId: req.body.roomName,
+      userId: req.user!.id,
       playerName,
       deckId: req.body.deckId,
       p2DeckId: req.body.p2DeckId || undefined,
-    }));
-    return res.status(201).send({ roomName: req.body.roomName, playerName });
+    });
+    setAdmissionCookie(res, admissionToken);
+    return res.status(201).send({ roomName: req.body.roomName, playerName, admissionToken });
   });
   
   app.post("/joinRoom", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
@@ -111,12 +113,14 @@ export const routes = (app: ExpressApp) => {
     } catch {
       return res.status(400).send("deckId " + req.body.deckId + " is invalid");
     }
-    setAdmissionCookie(res, issueAdmissionGrant({
+    const admissionToken = issueAdmissionGrant({
       roomId: req.body.roomName,
+      userId: req.user!.id,
       playerName,
       deckId: req.body.deckId,
-    }));
-    return res.send({ roomName: req.body.roomName, playerName });
+    });
+    setAdmissionCookie(res, admissionToken);
+    return res.send({ roomName: req.body.roomName, playerName, admissionToken });
   })
 
   app.get("/api/cards", async (req: Request, res: Response) => {

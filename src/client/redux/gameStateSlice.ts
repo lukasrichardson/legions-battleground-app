@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { initialGameState } from "@/shared/constants/initialGameState";
+import { createInitialGameState } from "@/shared/constants/initialGameState";
 
 import {
   changeP1AP_reducer,
@@ -19,10 +19,10 @@ import { selectCardHelper, multiSelectCardHelper } from "@/shared/utils";
 
 const gameStateSlice = createSlice({
   name: "gameState",
-  initialState: initialGameState,
+  initialState: createInitialGameState(),
   reducers: {
     setState: (state, action) => setState_reducer(state, action),
-    resetState: () => initialGameState,
+    resetState: () => createInitialGameState(),
 
     //move card, change health and ap, select card, clear selected card, flip card, icnrease atk, inc/dec counter, ===doing it on client first and then syncing to server to reduce visual lag
     moveCard: (state, action) => moveCard_reducer(state, action),
