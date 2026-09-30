@@ -18,7 +18,7 @@ export default function CardPreview({}) {
     <div className="relative left-0 top-0 w-[100%] flex justify-start opacity-100 flex-col aspect-[3/4]">
       <CardImage src={cardToShow.img} alt="back of card" />
     </div>
-    <div className="max-h-[20%] text-xs overflow-y-auto overflow-x-hidden sidebar-scrollbar shadow-inner p-2 bg-black/50 rounded-md mt-2 border border-white/10 mb-2">
+    <div className="h-[20%] w-full text-xs overflow-y-auto overflow-x-hidden sidebar-scrollbar shadow-inner p-2 bg-black/50 rounded-md mt-2 border border-white/10 mb-2">
       <div className="font-bold break-words">{cardToShow?.name ? decodeHTMLEntities(cardToShow.name) : ''}</div>
       <div className="break-words whitespace-pre-wrap">{cardToShow?.text ? decodeHTMLEntities(cardToShow.text) : ''}</div>
     </div>

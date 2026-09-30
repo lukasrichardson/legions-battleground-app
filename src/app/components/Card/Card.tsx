@@ -20,7 +20,9 @@ export default function Card({
   index, 
   inPileView = false, 
   zoneIndex, 
-  hidden = false 
+  hidden = false,
+  compactHand = false,
+  compactOpponentHand = false,
 }: CardProps) {
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
@@ -281,6 +283,8 @@ export default function Card({
       index={index}
       zoneIndex={zoneIndex}
       handlePopoverVisibleChange={handlePopoverVisibleChange}
+      compactHand={compactHand}
+      compactOpponentHand={compactOpponentHand}
       onMenuItemClick={handleMenuClick}
       {...interactionHandlers}
       {...modifierHandlers}

@@ -6,7 +6,7 @@ import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import { fetchPublishedDeckById, copyPublishedDeck } from "@/client/utils/api.utils";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import Preview from "../../[deckId]/Preview";
-import { DeckResponse, HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
+import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { signIn, useSession } from "next-auth/react";
 import { Button } from "@/client/ui/button";
 import { getMainDeckCards } from "@/shared/deckComposition";
@@ -22,23 +22,20 @@ export default function PublishedDeckViewer() {
   useEffect(() => {
     const fetchDeck = async () => {
       if (!params.published_deck_id) return;
-      fetchPublishedDeckById(params.published_deck_id, (data) => setDeck(data as PublishedDeck));
+      setDeck(await fetchPublishedDeckById(params.published_deck_id));
     }
     fetchDeck();
     return () => { setDeck(null) };
   }, [params?.published_deck_id]);
 
-  const handleCopyDeck = () => {
+  const handleCopyDeck = async () => {
     if (!deck?._id) return;
     if (!session) {
       signIn(undefined, { callbackUrl: pathname });
       return;
     }
-    copyPublishedDeck(deck._id.toString(), (data: {deck: DeckResponse}) => {
-      if (data?.deck?._id) {
-        router.push(`/decks/${data?.deck?._id}`);
-      }
-    });
+    const copiedDeck = await copyPublishedDeck(deck._id.toString());
+    if (copiedDeck._id) router.push(`/decks/${copiedDeck._id}`);
   }
   return (
     <FullPage showBreadcrumbs={true}>

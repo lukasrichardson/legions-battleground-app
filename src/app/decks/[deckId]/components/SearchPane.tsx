@@ -47,7 +47,7 @@ export default function SearchPane({
   const horizontalScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    fetchBanlist((data: BanlistItem[]) => setBanlist(data));
+    void fetchBanlist().then(setBanlist).catch((error) => console.warn("[SearchPane] Banlist request failed:", error));
   }, []);
 
   useEffect(() => {
@@ -134,7 +134,7 @@ export default function SearchPane({
   }
 
   const getFilterOptions = async () => {
-    fetchFilterOptions(setFilterOptions);
+    setFilterOptions(await fetchFilterOptions());
   }
 
   const nextPage = () => {
@@ -234,13 +234,11 @@ export default function SearchPane({
     }
   }, [setHoveredCard]);
 
-  const handleCardSrlClick = (card, status) => {
-    postBanlistUpdate({
+  const handleCardSrlClick = async (card, status) => {
+    setBanlist(await postBanlistUpdate({
       name: card.title,
       status
-    }, (data: BanlistItem[]) => {
-      setBanlist(data);
-    });
+    }));
   }
 
   const suspendedCards = useMemo(() => {

@@ -41,7 +41,7 @@ export default function DeckBrowser() {
   }, [legion])
 
   useEffect(() => {
-    fetchPublishedDeckFilterOptions((data: {legion: string[]}) => setFilterOptions(data));
+    void fetchPublishedDeckFilterOptions<{ legion: string[] }>().then(setFilterOptions).catch((error) => console.warn("[DeckBrowser] Filter request failed:", error));
   }, [])
 
   const loadMore = async () => {

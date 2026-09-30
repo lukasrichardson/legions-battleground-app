@@ -16,6 +16,7 @@ if (!uri) {
   throw new Error("MONGO_URL environment variable is required");
 }
 getDatabaseName();
+const appOrigin = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 connectToDatabase().then(async () => {
   await ensureAliasIndexes();
@@ -26,14 +27,14 @@ connectToDatabase().then(async () => {
   nextApp.prepare().then(() => {
   
     const app = express();
-    app.use(cors());
+    app.use(cors({ origin: appOrigin }));
     app.use(cookieParser());
     app.use(bodyParser.json({ limit: "10mb", type: ["application/json", "application/json-patch+json"] }));
   
     const httpServer = createServer(app);
     const io = new Server(httpServer, {
       cors: {
-        origin: "*"
+        origin: appOrigin,
       }
     });
     handleSocketConnection(io);

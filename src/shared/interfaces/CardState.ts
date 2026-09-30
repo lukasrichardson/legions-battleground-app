@@ -1,5 +1,5 @@
 import { CARD_TYPE } from "@/shared/enums/CardType";
-import { EffectStep } from "../../server/interfaces/SequenceInterfaces";
+import { EffectStep } from "@/shared/interfaces/GameCommands";
 
 export interface CardState {
   id?: string;

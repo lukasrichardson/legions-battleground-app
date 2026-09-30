@@ -1,51 +1,7 @@
-import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-
-
-export interface MoveCardActionInterface { id: string, from: {target: CARD_TARGET, targetIndex: number | null}, target: CARD_TARGET, targetIndex?: number }
-
-
-export enum Triggers {
-  Conscript, Keyword, Unified, Fortified, Bloodbourne, AP
-}
-
-export enum StepType {
-  ChooseCards,
-  MoveCard,
-  ChangeHealth,
-  ChangeAP,
-  DrawCard,
-  SelectCard,
-  Shuffle,
-  None
-}
-
-export interface EffectStep {
-  type: StepType,
-  selectMin?: number | null, // Minimum number of cards to select
-  selectMax?: number | null, // Maximum number of cards to select
-  from?: {target: CARD_TARGET, targetIndex: number | null}[], // e.g. "P1_PLAYER_HAND", "P2_PLAYER_DECK", etc.
-  to?: {target: CARD_TARGET, targetIndex: number | null}[], // e.g. "P1_PLAYER_DECK", "P2_PLAYER_HAND", etc.
-  selected?: MoveCardActionInterface[], // Array of selected card IDs
-  quantity?: string, // e.g. "selected", "all", etc.
-  waitingForInput?: {p1: boolean, p2: boolean, controller: boolean}, // Indicates if the step is waiting for player input
-}
-
-export interface SequenceItem {
-  name: string,
-  cost: EffectStep[],
-  effect: EffectStep[],
-  type: string, // e.g. "moveCards", "changeHealth", etc.
-}
-
-export interface Sequence {
-  items: SequenceItem[],
-}
-
-export interface SequenceState {
-  sequences: Sequence[],
-  resolving: boolean,
-}
+import type { SequenceState } from "@/shared/interfaces/GameCommands";
+export type { EffectStep, MoveCardAction as MoveCardActionInterface, Sequence, SequenceItem, SequenceState } from "@/shared/interfaces/GameCommands";
+export { StepType, Triggers } from "@/shared/interfaces/GameCommands";
 
 const initialState: SequenceState = {
   sequences: [],

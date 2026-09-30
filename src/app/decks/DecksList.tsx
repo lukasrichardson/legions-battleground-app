@@ -25,7 +25,7 @@ export const DecksList = () => {
   }, [legion])
 
   useEffect(() => {
-    fetchDeckFilterOptions((data: {legion: string[]}) => setFilterOptions(data));
+    void fetchDeckFilterOptions<{ legion: string[] }>().then(setFilterOptions).catch((error) => console.warn("[DecksList] Filter request failed:", error));
   }, []);
   
   const handleDeckSelect = (deckId) => () => {

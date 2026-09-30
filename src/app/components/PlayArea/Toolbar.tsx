@@ -2,8 +2,6 @@
 import {
   openHelpModal,
   openToolsSettingsModal,
-  closeConcedeModal,
-  closeLeaveGameModal,
   openConcedeModal,
   openLeaveGameModal,
 } from "@/client/redux/modalsSlice";
@@ -17,10 +15,7 @@ import { useEffect, useRef } from "react";
 import CardPreview from "../Card/CardPreview";
 import AppIcon, { AppIconName } from "../AppIcon";
 import { Tooltip } from "antd";
-import Modal from "../Modals/Modal";
 import { socket } from "@/client/socket";
-import MatchStatusBar from "./MatchStatusBar";
-import { MatchStatus } from "@/shared/enums/Match";
 
 const ToolbarConstants = {
   GameLogHeaderText: "Game Log",
@@ -78,13 +73,12 @@ export default function Toolbar({ }) {
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
-  const sequenceState = useAppSelector((state) => state.sequenceState);
   const gameLogRef = useRef<HTMLDivElement>(null);
   const { side, gameHistory, undoneHistory } = clientGameState;
   const p1 = side === "p1";
   const { gameLog } = gameState;
-  const { concedeModalOpen, leaveGameModalOpen } = useAppSelector((state) => state.modalsState);
   const regularMode = !gameState.sandboxMode;
+  const hasOpponentDrawOffer = regularMode && gameState.drawOffer !== null && gameState.drawOffer.offeredBy !== side;
 
   const onChatSubmit = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter") {
@@ -119,29 +113,6 @@ export default function Toolbar({ }) {
     dispatch(resetState());
   }
 
-  const leaveRegularRoom = () => {
-    socket.emit("leaveRegularRoom");
-    dispatch(closeLeaveGameModal());
-    dispatch(resetState());
-    router.push("/");
-  };
-
-  const concede = () => {
-    emitGameEvent({ type: GAME_EVENT.concede, data: null });
-    dispatch(closeConcedeModal());
-  };
-
-  const concedeAndLeave = () => {
-    const leaveAfterConfirmation = (payload: { type?: GAME_EVENT }) => {
-      if (payload.type !== GAME_EVENT.concede) return;
-      dispatch(closeLeaveGameModal());
-      dispatch(resetState());
-      router.push("/");
-    };
-    socket.once("gameEvent", leaveAfterConfirmation);
-    emitGameEvent({ type: GAME_EVENT.concede, data: null });
-  };
-
   useEffect(() => {
     gameLogRef.current?.scrollTo(0, gameLogRef.current.scrollHeight);
   }, [gameState.gameLog.length]);
@@ -150,17 +121,7 @@ export default function Toolbar({ }) {
     <div className="h-[100%] w-[20%] flex flex-col items-center text-white p-[8px] bg-gradient-to-b from-slate-900/90 to-slate-950/90 backdrop-blur border-r border-white/10">
       <CardPreview />
 
-      {regularMode && <MatchStatusBar
-        status={gameState.matchStatus}
-        phase={gameState.currentPhase}
-        turn={gameState.turnNumber}
-        activeSide={gameState.activePlayer}
-        canAdvance={clientGameState.side === gameState.activePlayer && [MatchStatus.PreGame, MatchStatus.InProgress].includes(gameState.matchStatus)}
-        onAdvance={() => emitGameEvent({ type: GAME_EVENT.advancePhase, data: null })}
-      />}
-
-      {gameState.sandboxMode ?
-      <div className="relative w-full h-[25%] overflow-y-auto sidebar-scrollbar bg-black/50 text-white rounded-md p-1 mb-1 border border-white/10" ref={gameLogRef}>
+      <div className="relative w-full h-[25%] overflow-y-auto sidebar-scrollbar bg-black/50 text-white rounded-md p-1 pt-0 mb-1 border border-white/10" ref={gameLogRef}>
         {gameLog.length ? (
           <>
             <div className="text-sm text-center text-white/80 sticky top-0 bg-black/90">Logs</div>
@@ -174,33 +135,17 @@ export default function Toolbar({ }) {
           <div className="text-sm text-white/70">No sequences</div>
         )}
       </div>
-      :
-      <div className="w-full h-[25%] overflow-y-auto sidebar-scrollbar bg-black/50 text-white rounded-md p-2 mb-4 border border-white/10">
-        {sequenceState.sequences.length ? (
-          <div>
-            <div className="mb-2 text-sm text-white/80">Sequences State</div>
-            {sequenceState.sequences.map((seq, index) => (
-              <div key={index} className="border border-white/10 rounded mb-1 p-1">
-                <div className="text-xs">sequence: {index + 1}</div>
-                {seq.items.map((item, itemIndex) => (
-                  <div key={itemIndex} className="text-xs text-white/80">{item.name}</div>
-                ))}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-sm text-white/70">No sequences</div>
-        )}
-      </div>
-      }
 
       <textarea
         placeholder="Type to chat"
-        className="w-full min-h-[56px] max-h-[96px] px-3 py-2 text-sm leading-5 overflow-y-auto sidebar-scrollbar bg-black/55 text-white rounded-lg mb-4 border border-white/15 resize-none placeholder:text-white/50 focus:outline-none focus:ring-1 focus:ring-blue-400/60 focus:border-blue-400/50"
+        className="w-full min-h-[56px] max-h-[96px] px-3 py-2 text-sm leading-5 overflow-y-auto sidebar-scrollbar bg-black/55 text-white rounded-lg mb-1 border border-white/15 resize-none placeholder:text-white/50 focus:outline-none focus:ring-1 focus:ring-blue-400/60 focus:border-blue-400/50"
         onKeyDown={onChatSubmit}
       />
-
-      <div className="mt-auto w-full space-y-2">
+      {hasOpponentDrawOffer && <div className="grid w-full grid-cols-2 gap-1 mb-1">
+        {renderToolbarButton({ text: "Accept Draw", onClick: () => emitGameEvent({ type: GAME_EVENT.acceptDrawOffer, data: null }), className: "bg-emerald-800" })}
+        {renderToolbarButton({ text: "Decline Draw", onClick: () => emitGameEvent({ type: GAME_EVENT.declineDrawOffer, data: null }), className: "bg-slate-700" })}
+      </div>}
+      <div className="mt-auto w-full space-y-0.5">
         <div className="grid grid-cols-3 gap-1">
           {!regularMode && renderToolbarButton({
             icon: "tools",
@@ -256,7 +201,7 @@ export default function Toolbar({ }) {
             onClick: handleLeaveGame,
             className: "w-full bg-gradient-to-r from-rose-900/90 to-slate-800/95 hover:from-rose-800/90 hover:to-slate-700/95"
           })}
-          <div className="grid grid-cols-2 gap-1">
+          {!regularMode && <div className="grid grid-cols-2 gap-1">
             {renderToolbarButton({
               text: "Undo",
               icon: null,
@@ -271,15 +216,9 @@ export default function Toolbar({ }) {
               className: "w-full bg-gradient-to-r from-yellow-900/85 to-slate-800/95 hover:from-yellow-800/85 hover:to-slate-700/95",
               disabled: undoneHistory.length === 0
             })}
-          </div>
+          </div>}
         </div>
       </div>
-      {regularMode && gameState.drawOffer?.offeredBy !== side && <div className="mt-2 grid w-full grid-cols-2 gap-1">
-        {renderToolbarButton({ text: "Accept Draw", onClick: () => emitGameEvent({ type: GAME_EVENT.acceptDrawOffer, data: null }), className: "bg-emerald-800" })}
-        {renderToolbarButton({ text: "Decline Draw", onClick: () => emitGameEvent({ type: GAME_EVENT.declineDrawOffer, data: null }), className: "bg-slate-700" })}
-      </div>}
-      <Modal open={concedeModalOpen} closeModal={() => dispatch(closeConcedeModal())} modalHeader={<div className="py-3 text-white">Concede match?</div>} modalContent={<div className="space-y-3 text-white"><p>This immediately awards the match to your opponent.</p><button className="rounded bg-rose-700 px-3 py-2" onClick={concede}>Concede</button></div>} />
-      <Modal open={leaveGameModalOpen} closeModal={() => dispatch(closeLeaveGameModal())} modalHeader={<div className="py-3 text-white">Leave game?</div>} modalContent={<div className="space-y-3 text-white"><p>Leaving without conceding reserves your seat while your opponent remains connected.</p><div className="flex gap-2"><button className="rounded bg-rose-700 px-3 py-2" onClick={concedeAndLeave}>Concede and leave</button><button className="rounded bg-slate-700 px-3 py-2" onClick={leaveRegularRoom}>Leave without conceding</button><button className="rounded bg-slate-600 px-3 py-2" onClick={() => dispatch(closeLeaveGameModal())}>Stay</button></div></div>} />
     </div>
   )
 }

@@ -41,7 +41,7 @@ export default function CreateDeckModal({
 
   useEffect(() => {
     if (!open) return
-    fetchFilterOptions(setFilterOptions);
+    void fetchFilterOptions<{ legion: string[] }>().then(setFilterOptions).catch((error) => console.warn("[CreateDeckModal] Filter request failed:", error));
   }, [open])
 
   const handleCreateDeck = async (e: React.FormEvent) => {
@@ -61,7 +61,7 @@ export default function CreateDeckModal({
     setError("");
 
     try {
-      const newDeck: { _id: string, id: string } = await createDeck({ name: deckName.trim(), legion: selectedLegion }, () => null);
+      const newDeck = await createDeck({ name: deckName.trim(), legion: selectedLegion });
       router.push(`/decks/${newDeck._id || newDeck.id}`);
       setDeckName("");
       setSelectedLegion("");

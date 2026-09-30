@@ -8,7 +8,7 @@ import { decodeHTMLEntities } from "@/client/utils/string.util";
 export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck, readOnly = false }: { cards: HydratedDeckCard[], removeCardFromDeck: (e: React.MouseEvent, card: HydratedDeckCard) => void, setHoveredCard: (card: HydratedDeckCard) => void, useGroupedView: boolean, addCardToDeck: (card: HydratedDeckCard) => void, readOnly?: boolean }) {
   const [banlist, setBanlist] = useState<BanlistItem[]>([]);
   useEffect(() => {
-    fetchBanlist((data: BanlistItem[]) => setBanlist(data));
+    void fetchBanlist().then(setBanlist).catch((error) => console.warn("[DeckSection] Banlist request failed:", error));
   }, []);
 
   // Group cards by name to apply grouping styling

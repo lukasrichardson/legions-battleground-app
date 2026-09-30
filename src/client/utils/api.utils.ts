@@ -4,17 +4,16 @@ import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { DeckPatchOperation } from "@/shared/interfaces/DeckPatch";
 import { DeckListItem, PublishedDeckListItem, PublishedDeckListResponse } from "@/shared/interfaces/DeckListItem";
+import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 const publishedDecksPath = "/api/published_decks";
 
 //cards
 
 export const fetchCards = async ({legion, query, page, pageSize, type, rarity, set, srlStatus}: {legion?: string[], query?: string, page: number, pageSize: number, type?: string[], rarity?: string[], set?: string[], srlStatus?: string[]}): Promise<{cards: [], total: number}> => {
-  return new Promise((resolve, reject) => {
-    let url = window.location.origin + '/api/cards';
-    url = appendQueryParams(url, {legion, page, pageSize, query, type, rarity, set, srlStatus})
-    axios.get(url).then(res => resolve({cards: res?.data?.cards, total: res?.data?.total})).catch(err => reject(err));
-  })
-}
+  const url = appendQueryParams(`${window.location.origin}/api/cards`, { legion, page, pageSize, query, type, rarity, set, srlStatus });
+  const response = await axios.get(url);
+  return { cards: response.data?.cards, total: response.data?.total };
+};
 
 //decks
 
@@ -23,16 +22,6 @@ export const patchDeckById = async (deckId: string, operations: DeckPatchOperati
     headers: { "Content-Type": "application/json-patch+json" },
   });
   return res.data;
-}
-
-export const fetchDecks = async (legion: string[] | null, callback: (data: unknown) => void) => {
-  const url = appendQueryParams(window.location.origin + '/api/decks', { legion });
-  try {
-    const res = await axios.get(url);
-    callback?.(res?.data);
-  } catch (err) {
-    console.log(err);
-  }
 }
 
 export const fetchDeckListSummaries = async (legion: string[] | null): Promise<DeckListItem[]> => {
@@ -48,16 +37,6 @@ export const fetchDeckPickerOptions = async (): Promise<Array<{ _id: string; nam
   return decks.map((deck) => ({ _id: deck._id.toString(), name: deck.name, legion: deck.legion }));
 }
 
-export const fetchPublishedDecks = async (legion: string[] | null, callback: (data: unknown) => void) => {
-  const url = appendQueryParams(window.location.origin + publishedDecksPath, { legion });
-  try {
-    const res = await axios.get(url);
-    callback?.(res?.data);
-  } catch (err) {
-    console.log(err);
-  }
-}
-
 export const fetchPublishedDeckListSummaries = async (
   legion: string[] | null,
   page = 1,
@@ -70,100 +49,39 @@ export const fetchPublishedDeckListSummaries = async (
   return res.data;
 }
 
-export const fetchPublishedDeckById = async (deckId: string, callback: (data: unknown) => void) => {
-  try {
-    const res = await axios.get(`${publishedDecksPath}/`+deckId);
-    callback?.(res?.data);
-  } catch (err) {
-    console.log(err);
-  }
-}
+export const fetchPublishedDeckById = async (deckId: string): Promise<PublishedDeck> =>
+  (await axios.get<PublishedDeck>(`${publishedDecksPath}/${deckId}`)).data;
 
-export const createPublishedDeck = async (_id: string, callback: (data: unknown) => void) => {
-  try {
-    const res = await axios.post(publishedDecksPath, {_id});
-    callback?.(res?.data);
-    return res?.data?.deck;
-  } catch (err) {
-    console.log(err);
-  }
-}
+export const createPublishedDeck = async (_id: string): Promise<PublishedDeck> =>
+  (await axios.post<{ deck: PublishedDeck }>(publishedDecksPath, { _id })).data.deck;
 
-export const copyPublishedDeck = async (publishedDeckId: string, callback: (data: unknown) => void) => {
-  try {
-    const res = await axios.post(`/api/decks/${publishedDeckId}`);
-    callback?.(res?.data);
-    return res?.data?.deck;
-  } catch (err) {
-    console.log(err);
-  }
-}
+export const copyPublishedDeck = async (publishedDeckId: string): Promise<DeckResponse> =>
+  (await axios.post<{ deck: DeckResponse }>(`/api/decks/${publishedDeckId}`)).data.deck;
 
 export const fetchDeckById = async (deckId: string): Promise<DeckResponse> => {
   const res = await axios.get<DeckResponse>(`/api/decks/${deckId}`);
   return res.data;
 }
 
-export const createDeck = async (deckData: {name: string, legion: string}, callback: (data: unknown) => void) => {
-  try {
-    const res = await axios.post(`/api/decks`, deckData);
-    callback?.(res?.data);
-    return res?.data?.deck;
-  } catch (err) {
-    console.log(err);
-  }
-}
+export const createDeck = async (deckData: { name: string; legion: string }): Promise<DeckResponse> =>
+  (await axios.post<{ deck: DeckResponse }>("/api/decks", deckData)).data.deck;
 
 //filters
 
-export const fetchFilterOptions = async (callback: (data: unknown) => void) => {
-  const URL = '/api/cards/filterOptions';
-  try {
-    const res = await axios.get(URL);
-    callback?.(res?.data);
-  } catch (err) {
-    console.log(err);
-  }
-}
+export const fetchFilterOptions = async <T = unknown>(): Promise<T> =>
+  (await axios.get<T>("/api/cards/filterOptions")).data;
 
-export const fetchDeckFilterOptions = async (callback: (data: unknown) => void) => {
-  const URL = '/api/decks/filterOptions';
-  try {
-    const res = await axios.get(URL);
-    callback?.(res?.data);
-  } catch (err) {
-    console.log(err);
-  }
-}
-export const fetchPublishedDeckFilterOptions = async (callback: (data: unknown) => void) => {
-  const URL = window.location.origin + publishedDecksPath + '/filterOptions';
-  try {
-    const res = await axios.get(URL);
-    callback?.(res?.data?.filterOptions);
-  } catch (err) {
-    console.log(err);
-  }
-}
+export const fetchDeckFilterOptions = async <T = unknown>(): Promise<T> =>
+  (await axios.get<T>("/api/decks/filterOptions")).data;
 
-export const fetchBanlist = async (callback: (data: unknown) => void) => {
-  const URL = '/api/banlist';
-  try {
-    const res = await axios.get(URL);
-    callback?.(res?.data);
-  } catch (err) {
-    console.log(err);
-  }
-}
+export const fetchPublishedDeckFilterOptions = async <T = unknown>(): Promise<T> =>
+  (await axios.get<{ filterOptions: T }>(`${publishedDecksPath}/filterOptions`)).data.filterOptions;
 
-export const postBanlistUpdate = async (banlistData: BanlistItem, callback: (data: unknown) => void) => {
-  const URL = '/api/banlist';
-  try {
-    const res = await axios.post(URL, banlistData);
-    callback?.(res?.data);
-  } catch (err) {
-    console.log(err);
-  }
-}
+export const fetchBanlist = async (): Promise<BanlistItem[]> =>
+  (await axios.get<BanlistItem[]>("/api/banlist")).data;
+
+export const postBanlistUpdate = async (banlistData: BanlistItem): Promise<BanlistItem[]> =>
+  (await axios.post<BanlistItem[]>("/api/banlist", banlistData)).data;
 
 export const fetchRecentPublishedDecks = async (): Promise<PublishedDeckListItem[]> => {
   const res = await axios.get(publishedDecksPath, {

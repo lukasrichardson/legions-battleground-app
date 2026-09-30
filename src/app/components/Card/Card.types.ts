@@ -8,6 +8,8 @@ export interface CardProps {
   inPileView?: boolean;
   zoneIndex?: number;
   hidden?: boolean;
+  compactHand?: boolean;
+  compactOpponentHand?: boolean;
 }
 
 export interface CardModifierHandlers {

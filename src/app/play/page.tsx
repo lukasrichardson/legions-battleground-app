@@ -9,6 +9,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { Suspense, useCallback, useEffect } from "react";
 import PlayArea from "@/app/components/PlayArea/PlayArea";
 import Toolbar from "../components/PlayArea/Toolbar";
+import RegularMatchActionModals from "../components/PlayArea/RegularMatchActionModals";
 import RegularMatchSetupOverlay from "../components/PlayArea/RegularMatchSetupOverlay";
 import CardPileModal from "../components/Modals/CardPileModal";
 import ToolsSettingsModal from "../components/Modals/ToolsSettingsModal";
@@ -17,16 +18,25 @@ import PlunderModal from "../components/Modals/PlunderModal";
 import Modal from "../components/Modals/Modal";
 import { useSocket } from "@/client/hooks/useSocket";
 import { MatchStatus } from "@/shared/enums/Match";
+import { resetState } from "@/client/redux/gameStateSlice";
+import { socket } from "@/client/socket";
+import { useRouter } from "next/navigation";
 
 function Page() {
   const gameState = useAppSelector((state) => state.gameState);
   const { side } = useAppSelector((state) => state.clientGameState);
   const { sequences, resolving } = useAppSelector((state) => state.sequenceState);
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const { joinError } = useSocket();
   const p1 = side === "p1";
 
   const closePileInView = useCallback(() => dispatch(clearPileInView()), [dispatch]);
+  const exitCompletedMatch = useCallback(() => {
+    socket.emit("leaveRegularRoom");
+    dispatch(resetState());
+    router.push("/");
+  }, [dispatch, router]);
 
   useEffect(() => {
     if (!gameState.started) return;
@@ -66,9 +76,10 @@ function Page() {
         <CardPileModal closeModal={closePileInView} />
         <ToolsSettingsModal closeModal={() => dispatch(closeToolsSettingsModal())} />
         <HelpModal />
+        <RegularMatchActionModals />
         <PlunderModal closeModal={() => dispatch(closePlunderModal())} />
         {joinError && <Modal open closeModal={() => null} modalHeader={<div className="py-3 text-xl font-bold text-white">Unable to join game</div>} modalContent={<div className="space-y-3 text-white"><p>{joinError}</p><p className="text-sm text-white/70">Regular matches require two different authenticated accounts. Return to the lobby and join with the other player’s account.</p></div>} />}
-        {!gameState.sandboxMode && gameState.matchStatus === MatchStatus.Completed && gameState.result && <Modal open closeModal={() => null} modalHeader={<div className="py-3 text-xl font-bold text-white">Match complete</div>} modalContent={<div className="text-white">{gameState.result.kind === "draw" ? "The match ended in a draw." : `${gameState.result.winner === (p1 ? "p1" : "p2") ? "You win by concession." : "Your opponent wins by concession."}`}</div>} />}
+        {!gameState.sandboxMode && gameState.matchStatus === MatchStatus.Completed && gameState.result && <Modal open closeModal={() => null} modalHeader={<div className="py-3 text-xl font-bold text-white">Match complete</div>} modalContent={<div className="space-y-4 text-white"><p>{gameState.result.kind === "draw" ? "The match ended in a draw." : `${gameState.result.winner === (p1 ? "p1" : "p2") ? "You win by concession." : "Your opponent wins by concession."}`}</p><button type="button" onClick={exitCompletedMatch} className="rounded-lg bg-slate-700 px-4 py-2 font-semibold text-white transition hover:bg-slate-600">Leave match</button></div>} />}
         <RegularMatchSetupOverlay />
         {playerInputRequiredBlock()}
       </DndProvider>

@@ -7,7 +7,7 @@ import AppIcon, { AppIconName } from "../AppIcon";
 import { Tooltip } from "antd";
 import { useEffect, useState } from "react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
-import { fetchDeckPickerOptions } from "@/client/utils/api.utils";
+import { useDeckPickerOptions } from "@/client/hooks/useDeckPickerOptions";
 import { Button } from "@/client/ui/button";
 
 const ModalConstants = {
@@ -46,13 +46,13 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
   const [showDeckSelector, setShowDeckSelector] = useState(false);
   const [p2DeckId, setP2DeckId] = useState<string | null>(null);
   const [p1DeckId, setP1DeckId] = useState<string | null>(null);
-  const [decks, setDecks] = useState<{ name: string, _id: string }[]>([]);
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
   const { toolsSettingsModalOpen } = useAppSelector((state) => state.modalsState);
   const { p2DeckFromServer, p1DeckFromServer } = gameState;
   const { side } = clientGameState;
   const p1 = side === "p1";
+  const { options: decks } = useDeckPickerOptions(toolsSettingsModalOpen);
   const {
     hoverMenu,
     setHoverMenu,
@@ -81,13 +81,8 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
     SubmitBtnText
   } = ModalConstants;
 
-  const getDecks = async () => {
-    setDecks(await fetchDeckPickerOptions());
-  };
-
   useEffect(() => {
     if (!toolsSettingsModalOpen) return;
-    getDecks();
     setP1DeckId(p1DeckFromServer?._id?.toString() || "");
     setP2DeckId(p2DeckFromServer?._id?.toString() || "");
     setShowDeckSelector(false);

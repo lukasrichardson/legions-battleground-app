@@ -8,7 +8,7 @@ import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
 import { Card, CardContent } from "@/client/ui/card";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
-import { fetchDeckPickerOptions } from "@/client/utils/api.utils";
+import { useDeckPickerOptions } from "@/client/hooks/useDeckPickerOptions";
 import { useAuth } from "@/client/hooks/useAuth";
 import { refreshSocketConnection } from "@/client/socket";
 
@@ -35,10 +35,10 @@ export default function CreateRoomModal() {
   const [sandboxMode, setSandboxMode] = useState(true);
   const [deckId, setDeckId] = useState("");
   const [p2DeckId, setP2DeckId] = useState("");
-  const [decks, setDecks] = useState<{ name: string, _id: string }[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const auth = useAuth();
+  const { options: decks } = useDeckPickerOptions(Boolean(createRoomModalOpen && isAuthenticated));
 
   const {
     LoadingText,
@@ -93,15 +93,9 @@ export default function CreateRoomModal() {
     }
   }
 
-  const getDecks = async () => {
-    const options = await fetchDeckPickerOptions();
-    setDecks(options);
-    setDeckId(options[0]?._id || "");
-  }
-
   useEffect(() => {
     if (!createRoomModalOpen) return;
-    getDecks();
+    setDeckId(decks[0]?._id || "");
     const loadAlias = async () => {
       try {
         const response = await axios.get("/api/me/alias");
@@ -111,7 +105,7 @@ export default function CreateRoomModal() {
       }
     };
     if (isAuthenticated) void loadAlias();
-  }, [createRoomModalOpen, isAuthenticated]);
+  }, [createRoomModalOpen, decks, isAuthenticated]);
 
   const onSandboxModeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSandboxMode(e.target.checked);

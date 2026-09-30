@@ -1,7 +1,7 @@
 import { GamePhase, PreGamePhase } from "@/shared/enums/Phases";
 import { DeckResponse } from "../../shared/interfaces/DeckResponse";
 import { CardState } from "@/shared/interfaces/CardState";
-import { SequenceState } from "@/server/interfaces/SequenceInterfaces";
+import { SequenceState } from "@/shared/interfaces/GameCommands";
 import { DrawOffer, MatchResult, MatchStatus, PlayerSide } from "@/shared/enums/Match";
 
 type SingleZonePile = CardState[];

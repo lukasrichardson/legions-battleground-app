@@ -10,7 +10,7 @@ import { Input } from "@/client/ui/input";
 import { useAuth } from "@/client/hooks/useAuth";
 import { signIn } from "next-auth/react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/client/ui/select";
-import { fetchDeckPickerOptions } from "@/client/utils/api.utils";
+import { useDeckPickerOptions } from "@/client/hooks/useDeckPickerOptions";
 import { refreshSocketConnection } from "@/client/socket";
 
 const ModalConstants = {
@@ -35,8 +35,8 @@ export default function JoinRoomModal() {
   const [error, setError] = useState("");
   const [deckId, setDeckId] = useState("");
   const [loading, setLoading] = useState(false);
-  const [decks, setDecks] = useState<{name: string, _id: string}[]>([]);
   const auth = useAuth();
+  const { options: decks } = useDeckPickerOptions(Boolean(joinRoomModalOpen && isAuthenticated));
 
   const {
     LoadingText,
@@ -85,13 +85,8 @@ export default function JoinRoomModal() {
     }
   }
 
-  const getDecks = async () => {
-    setDecks(await fetchDeckPickerOptions());
-  }
-  
   useEffect(() => {
     if (!joinRoomModalOpen) return;
-    getDecks();
     const loadAlias = async () => {
       try {
         const response = await axios.get("/api/me/alias");

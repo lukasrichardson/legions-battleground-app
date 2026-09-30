@@ -3,6 +3,9 @@ import {
   useAppSelector } from "@/client/redux/hooks";
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { MatchStatus } from "@/shared/enums/Match";
+import { GAME_EVENT } from "@/shared/enums/GameEvent";
+import { emitGameEvent } from "@/client/utils/emitEvent";
+import MatchStatusBar from "./MatchStatusBar";
 // import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import {
   // renderAP,
@@ -56,6 +59,7 @@ export default function PlayArea({ }) {
   } = gameState;
   const { side } = clientGameState;
   const p1 = side === "p1";
+  const regularMode = !gameState.sandboxMode;
   const openingHandsPending = !gameState.sandboxMode && !gameState.started && [MatchStatus.ReadyCheck, MatchStatus.Rps].includes(gameState.matchStatus);
   // const goToNextPhase = () => {
   //   emitGameEvent({ type: GAME_EVENT.nextPhase, data: null });
@@ -63,9 +67,11 @@ export default function PlayArea({ }) {
   // const nextPhaseMap = rpsWinner === "p1" ? NextPhaseP1Wins : NextPhaseP2Wins;
 
   return (
-    <div className="relative flex flex-col w-[80%] h-full overflow-visible">
-      {openingHandsPending ? <OpeningHandPlaceholder opponent /> : <RenderHand items={p1 ? p2PlayerHand : p1PlayerHand} cardTarget={p1 ? CARD_TARGET.P2_PLAYER_HAND : CARD_TARGET.P1_PLAYER_HAND} p1={p1} />}
-      <div className="w-full h-[40%] grid grid-rows-3 grid-cols-8">
+    <div className={regularMode ? "relative grid h-full w-[80%] grid-rows-[60px_minmax(0,1fr)_64px_minmax(0,1fr)_60px] overflow-visible" : "relative flex h-full w-[80%] flex-col overflow-visible"}>
+      <div className={regularMode ? "relative min-h-0" : "contents"}>
+        {openingHandsPending ? <OpeningHandPlaceholder compact={regularMode} opponent /> : <RenderHand compact={regularMode} items={p1 ? p2PlayerHand : p1PlayerHand} cardTarget={p1 ? CARD_TARGET.P2_PLAYER_HAND : CARD_TARGET.P1_PLAYER_HAND} p1={p1} />}
+      </div>
+      <div className={regularMode ? "grid min-h-0 w-full grid-rows-3 grid-cols-8" : "h-[40%] w-full grid grid-rows-3 grid-cols-8"}>
 
         {renderCardZone(p1 ? p2PlayerEradication : p1PlayerEradication, p1 ? CARD_TARGET.P2_PLAYER_ERADICATION : CARD_TARGET.P1_PLAYER_ERADICATION, "Eradication")}
         {renderCardRowUpsideDown(p1 ? p2PlayerFortifieds : p1PlayerFortifieds, p1 ? CARD_TARGET.P2_PLAYER_FORTIFIED : CARD_TARGET.P1_PLAYER_FORTIFIED, "Fortified")}
@@ -99,7 +105,16 @@ export default function PlayArea({ }) {
           </button>
         </div></> : null}
       </div> */}
-      <div className="w-full h-[40%] grid grid-rows-3 grid-cols-8">
+      {regularMode && <MatchStatusBar
+        variant="board"
+        status={gameState.matchStatus}
+        phase={gameState.currentPhase}
+        turn={gameState.turnNumber}
+        activeSide={gameState.activePlayer}
+        canAdvance={clientGameState.side === gameState.activePlayer && [MatchStatus.PreGame, MatchStatus.InProgress].includes(gameState.matchStatus)}
+        onAdvance={() => emitGameEvent({ type: GAME_EVENT.advancePhase, data: null })}
+      />}
+      <div className={regularMode ? "grid min-h-0 w-full grid-rows-3 grid-cols-8" : "h-[40%] w-full grid grid-rows-3 grid-cols-8"}>
         {renderCardZone(p1 ? p1PlayerVeilRealm : p2PlayerVeilRealm, p1 ? CARD_TARGET.P1_PLAYER_VEIL_REALM : CARD_TARGET.P2_PLAYER_VEIL_REALM, "Veil / Realm")}
         {renderCardZone(p1 ? p1PlayerWarlord : p2PlayerWarlord, p1 ? CARD_TARGET.P1_PLAYER_WARLORD : CARD_TARGET.P2_PLAYER_WARLORD, "Warlord")}
         {renderCardRow(p1 ? p1PlayerWarriors : p2PlayerWarriors, p1 ? CARD_TARGET.P1_PLAYER_WARRIOR : CARD_TARGET.P2_PLAYER_WARRIOR, "Warrior")}
@@ -113,13 +128,15 @@ export default function PlayArea({ }) {
         {renderCardRow(p1 ? p1PlayerFortifieds : p2PlayerFortifieds, p1 ? CARD_TARGET.P1_PLAYER_FORTIFIED : CARD_TARGET.P2_PLAYER_FORTIFIED, "Fortified")}
         {renderCardZone(p1 ? p1PlayerEradication : p2PlayerEradication, p1 ? CARD_TARGET.P1_PLAYER_ERADICATION : CARD_TARGET.P2_PLAYER_ERADICATION, "Eradication")}
       </div>
-      {openingHandsPending ? <OpeningHandPlaceholder /> : <RenderHand items={p1 ? p1PlayerHand : p2PlayerHand} cardTarget={p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND} p1={p1} />}
+      <div className={regularMode ? "relative min-h-0" : "contents"}>
+        {openingHandsPending ? <OpeningHandPlaceholder compact={regularMode} /> : <RenderHand compact={regularMode} items={p1 ? p1PlayerHand : p2PlayerHand} cardTarget={p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND} p1={p1} />}
+      </div>
     </div>
   )
 }
 
-function OpeningHandPlaceholder({ opponent = false }: { opponent?: boolean }) {
-  return <div className="flex h-[10%] items-center justify-center border-y border-dashed border-cyan-100/15 bg-slate-950/20 text-xs text-slate-400">
+function OpeningHandPlaceholder({ opponent = false, compact = false }: { opponent?: boolean, compact?: boolean }) {
+  return <div className={`flex ${compact ? "h-full" : "h-[10%]"} items-center justify-center border-y border-dashed border-cyan-100/15 bg-slate-950/20 text-xs text-slate-400`}>
     {opponent ? "Opponent opening hand is dealt after Rock Paper Scissors." : "Opening hand is dealt after Rock Paper Scissors."}
   </div>;
 }

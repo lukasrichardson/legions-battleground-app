@@ -67,6 +67,8 @@ interface CardInnerProps {
   handleHealthIncrease?: () => void;
   handleAPDecrease?: () => void;
   handleAPIncrease?: () => void;
+  compactHand?: boolean;
+  compactOpponentHand?: boolean;
 }
 
 export default function CardInner({
@@ -93,6 +95,8 @@ export default function CardInner({
   handleDecreaseOtherModifier,
   handleIncreaseCooldown,
   handleDecreaseCooldown,
+  compactHand = false,
+  compactOpponentHand = false,
 }: CardInnerProps) {
   const gameState = useCardGameState(cardTarget);
   const clientSettings = useAppSelector(state => state.clientSettings);
@@ -181,9 +185,10 @@ export default function CardInner({
       ? "relative"
       : "absolute",
     inPileOfMinTwo ? "left-0" : "",
-    isPlayerHandCard ? "[&:hover]:z-[1000] hover:transform hover:-translate-y-[40%] hover:scale-[1.5]" : "",
+    compactOpponentHand ? "bottom-0" : "",
+    isPlayerHandCard ? (compactHand ? "[&:hover]:z-[1000] hover:transform hover:-translate-y-[40%]" : "[&:hover]:z-[1000] hover:transform hover:-translate-y-[40%] hover:scale-[1.5]") : "",
     isBeingPlayed ? "border-yellow-400 border-4 animate-bounce duration-800" : "",
-  ].join(" "), [cardInView, inPileView, inPileOfMinTwo, isPlayerHandCard, isBeingPlayed]);
+  ].join(" "), [cardInView, inPileView, inPileOfMinTwo, isPlayerHandCard, isBeingPlayed, compactHand, compactOpponentHand]);
 
   return (
     <Popover

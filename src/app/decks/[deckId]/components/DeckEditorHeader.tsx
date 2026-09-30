@@ -1,11 +1,10 @@
 import useIsMobile from "@/client/hooks/useIsMobile";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
-import { createPublishedDeck, fetchDeckPickerOptions } from "@/client/utils/api.utils";
+import { createPublishedDeck } from "@/client/utils/api.utils";
+import { useDeckPickerOptions } from "@/client/hooks/useDeckPickerOptions";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
-import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
 interface DeckEditorHeaderProps {
   deck?: DeckResponse | null;
@@ -32,26 +31,8 @@ export default function DeckEditorHeader({
   onNameKeyPress,
   deckListRefreshTrigger
 }: DeckEditorHeaderProps) {
-  const [decks, setDecks] = useState<Array<{ _id: string; name: string; legion: string }>>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { options: decks, loading, error } = useDeckPickerOptions(true, deckListRefreshTrigger);
   const router = useRouter();
-
-  useEffect(() => {
-    const getDecks = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        setDecks(await fetchDeckPickerOptions());
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load decks');
-        setLoading(false);
-        console.error('Error fetching decks:', err);
-      }
-    };
-    getDecks();
-  }, [deckListRefreshTrigger]);
 
   const handleDeckChange = (selectedId: string) => {
     if (selectedId && selectedId !== (deck?._id || deck?.id)) {
@@ -76,11 +57,9 @@ export default function DeckEditorHeader({
     });
   }
 
-  const handlePublishDeckClick = () => {
-    createPublishedDeck(deck?._id.toString() || "", (data) => {
-      const publishedDeck = data as unknown as {deck: PublishedDeck};
-      router.push(`/decks/browse/${publishedDeck?.deck?._id}`);
-    });
+  const handlePublishDeckClick = async () => {
+    const publishedDeck = await createPublishedDeck(deck?._id.toString() || "");
+    router.push(`/decks/browse/${publishedDeck._id}`);
   }
   const isMobile = useIsMobile();
   return (

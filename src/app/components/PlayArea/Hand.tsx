@@ -7,18 +7,18 @@ import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { MatchStatus } from "@/shared/enums/Match";
 
-export default function Hand({children, cardTarget}: {children: ReactNode, cardTarget: CARD_TARGET}) {
+export default function Hand({children, cardTarget, compact = false}: {children: ReactNode, cardTarget: CARD_TARGET, compact?: boolean}) {
   const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
   const { side, room } = clientGameState;
-  const { p1Viewing, p2Viewing, sandboxMode} = gameState;
+  const { p1Viewing, p2Viewing } = gameState;
   const p1Side = side === "p1";
   const viewing = cardTarget.includes("p1") ? p1Viewing : p2Viewing;
   const [{isOver, canDrop}, drop] = useDrop(
     () => ({
       accept: ["card"],
-      canDrop: () => gameState.matchStatus !== MatchStatus.Completed && (sandboxMode || !gameState.sandboxMode),
+      canDrop: () => gameState.matchStatus !== MatchStatus.Completed,
       drop: (
         cardToDrop: {id: string, cardTarget: CARD_TARGET, zoneIndex?: number}
       ) => {
@@ -50,7 +50,7 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
         canDrop: !!monitor.canDrop()
       })
     }),
-    [cardTarget, viewing]
+    [cardTarget, viewing, gameState.matchStatus]
   )
   const playerHand = (p1Side && cardTarget === CARD_TARGET.P1_PLAYER_HAND) || (!p1Side && cardTarget === CARD_TARGET.P2_PLAYER_HAND);
   const p1Name = Object.values(room?.players || {})?.find(player => player.p1)?.name || "Player 1";
@@ -58,8 +58,8 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
   return (
       <div ref={(node) => { drop(node); }} className={[
         "relative flex justify-center w-full",
-        "h-[10%]",
-        !playerHand ? "-translate-y-[20%]" : "",
+        compact ? "h-full" : "h-[10%]",
+        !compact && !playerHand ? "-translate-y-[20%]" : "",
         isOver && canDrop ? "border-green-400 bg-green-400/50 scale-[1.02]" : "",
         isOver && !canDrop ? "border-red-400 bg-red-400/10" : "",
         canDrop && !isOver ? "border border-green-400/50 bg-blue-400/10" : "",
@@ -73,7 +73,7 @@ export default function Hand({children, cardTarget}: {children: ReactNode, cardT
         <div className="w-1/8 h-full flex items-center justify-center text-3xl">
           {(p1Side && playerHand) || (!p1Side && !playerHand) ? "P1" : "P2"}
         </div>
-        <div className="w-6/8 h-full flex justify-center">
+        <div className={"w-6/8 h-full flex justify-center" + (compact && !playerHand ? " items-end" : "")}>
         {children}
         </div>
         <div className="w-1/8 h-full flex items-center justify-center text-xl overflow-hidden">

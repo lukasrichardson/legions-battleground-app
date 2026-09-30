@@ -73,13 +73,14 @@ export const renderAP = (ap: number, gameEvent: GAME_EVENT, p1: boolean, dispatc
   </div>
 )}
 
-export const RenderHand = ({items, cardTarget, p1}: {items: CardState[], cardTarget: CARD_TARGET, p1: boolean}) => {
+export const RenderHand = ({items, cardTarget, p1, compact = false}: {items: CardState[], cardTarget: CARD_TARGET, p1: boolean, compact?: boolean}) => {
   const clientSettings = useClientSettings();
   const { openHand } = clientSettings;
   const hidden = openHand ? false : p1 ? cardTarget === CARD_TARGET.P2_PLAYER_HAND : cardTarget === CARD_TARGET.P1_PLAYER_HAND;
+  const playerHand = (p1 && cardTarget === CARD_TARGET.P1_PLAYER_HAND) || (!p1 && cardTarget === CARD_TARGET.P2_PLAYER_HAND);
   return (
-    <Hand cardTarget={cardTarget}>
-      {items.map((item, index) => (<Card card={item} cardTarget={cardTarget} key={item.id} index={index} hidden={hidden} />))}
+    <Hand cardTarget={cardTarget} compact={compact}>
+      {items.map((item, index) => (<Card card={item} cardTarget={cardTarget} key={item.id} index={index} hidden={hidden} compactHand={compact} compactOpponentHand={compact && !playerHand} />))}
     </Hand>
   )
 }
