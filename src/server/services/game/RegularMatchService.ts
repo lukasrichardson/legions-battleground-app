@@ -29,8 +29,8 @@ export class RegularMatchService {
   rpsResolved(roomId: string) {
     const game = this.game(roomId);
     if (game.matchStatus !== MatchStatus.Rps || !game.rpsWinner) return;
-    game.matchStatus = MatchStatus.Mulligans;
-    game.activePlayer = ownerOf(game.currentPhase);
+    game.matchStatus = MatchStatus.FirstPlayerChoice;
+    game.activePlayer = null;
   }
 
   chooseRps(roomId: string, side: PlayerSide, choice: "Rock" | "Paper" | "Scissors") {
@@ -49,20 +49,33 @@ export class RegularMatchService {
     }
     const beats: Record<"Rock" | "Paper" | "Scissors", "Rock" | "Paper" | "Scissors"> = { Rock: "Scissors", Paper: "Rock", Scissors: "Paper" };
     game.rpsWinner = beats[game.p1RPSChoice as keyof typeof beats] === game.p2RPSChoice ? "p1" : "p2";
-    game.currentPhase = game.rpsWinner === "p1" ? PreGamePhase.P1Mulligan : PreGamePhase.P2Mulligan;
-    game.matchStatus = MatchStatus.Mulligans;
-    game.activePlayer = game.rpsWinner;
+    game.matchStatus = MatchStatus.FirstPlayerChoice;
+    game.activePlayer = null;
     game.gameLog = addGameLog(game.gameLog, `${game.rpsWinner.toUpperCase()} wins Rock Paper Scissors`);
+  }
+
+  chooseFirstPlayer(roomId: string, side: PlayerSide, choice: "first" | "second") {
+    const game = this.game(roomId);
+    if (game.matchStatus !== MatchStatus.FirstPlayerChoice || !game.rpsWinner) throw new Error("Turn order choice is not active");
+    if (game.rpsWinner !== side) throw new Error("Only the Rock Paper Scissors winner may choose turn order");
+    if (game.firstPlayer) throw new Error("Turn order has already been chosen");
+
+    game.firstPlayer = choice === "first" ? side : opposite(side);
+    game.currentPhase = game.firstPlayer === "p1" ? PreGamePhase.P1Mulligan : PreGamePhase.P2Mulligan;
+    game.matchStatus = MatchStatus.Mulligans;
+    game.activePlayer = game.firstPlayer;
+    game.gameLog = addGameLog(game.gameLog, `${game.firstPlayer.toUpperCase()} will go first`);
   }
 
   completeMulligan(roomId: string, side: PlayerSide) {
     const game = this.game(roomId);
     if (game.matchStatus !== MatchStatus.Mulligans || game.activePlayer !== side) throw new Error("It is not this player's mulligan");
-    const next = (game.rpsWinner === "p1" ? NextPhaseP1Wins : NextPhaseP2Wins)[game.currentPhase];
+    if (!game.firstPlayer) throw new Error("Turn order has not been chosen");
+    const next = (game.firstPlayer === "p1" ? NextPhaseP1Wins : NextPhaseP2Wins)[game.currentPhase];
     game.currentPhase = next;
     if (next === PreGamePhase.PostMulliganDraw) {
       game.matchStatus = MatchStatus.PreGame;
-      game.activePlayer = game.rpsWinner;
+      game.activePlayer = game.firstPlayer;
     } else {
       game.activePlayer = ownerOf(next);
     }
@@ -72,7 +85,8 @@ export class RegularMatchService {
     const game = this.game(roomId);
     if (![MatchStatus.PreGame, MatchStatus.InProgress].includes(game.matchStatus)) throw new Error("The match is not ready for phase advancement");
     if (game.activePlayer !== side) throw new Error("Only the active player may advance the phase");
-    const next = (game.rpsWinner === "p1" ? NextPhaseP1Wins : NextPhaseP2Wins)[game.currentPhase];
+    if (!game.firstPlayer) throw new Error("Turn order has not been chosen");
+    const next = (game.firstPlayer === "p1" ? NextPhaseP1Wins : NextPhaseP2Wins)[game.currentPhase];
     if (!next) throw new Error("No next phase");
     game.currentPhase = next;
     game.activePlayer = ownerOf(next);

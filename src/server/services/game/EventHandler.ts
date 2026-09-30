@@ -44,13 +44,17 @@ export class EventHandler {
             const choices = ["Rock", "Paper", "Scissors"] as const;
             if (!choices.includes(data as typeof choices[number])) throw new Error("Invalid Rock Paper Scissors choice");
             this.regularMatchService.chooseRps(roomId, side, data as typeof choices[number]);
-            // A tie leaves both hands absent. The first decisive result deals
-            // the opening state atomically before it is broadcast to either player.
-            if (game?.rpsWinner) this.gameService.dealRegularOpeningState(roomId);
           } else {
             const action = gameEventMap[eventType];
             action(roomId, data, player, io);
           }
+          break;
+        }
+        case GAME_EVENT.chooseFirstPlayer: {
+          if (!isRegular) throw new Error("Turn order choice is only available in regular mode");
+          if (data !== "first" && data !== "second") throw new Error("Invalid turn order choice");
+          this.regularMatchService.chooseFirstPlayer(roomId, side, data);
+          this.gameService.dealRegularOpeningState(roomId);
           break;
         }
         case GAME_EVENT.mulligan: {
@@ -197,6 +201,7 @@ export class EventHandler {
         eventType !== GAME_EVENT.setP1Viewing &&
         eventType !== GAME_EVENT.setP2Viewing &&
         eventType !== GAME_EVENT.mulligan &&
+        eventType !== GAME_EVENT.chooseFirstPlayer &&
         eventType !== GAME_EVENT.selectCard &&
         eventType !== GAME_EVENT.multiSelectCard &&
         eventType !== GAME_EVENT.resetGame &&

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Circle, Hand, Scissors, ScrollText } from "lucide-react";
 import { useAppSelector } from "@/client/redux/hooks";
 import { emitGameEvent } from "@/client/utils/emitEvent";
@@ -8,30 +8,26 @@ import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { MatchStatus } from "@/shared/enums/Match";
 import { PreGamePhase } from "@/shared/enums/Phases";
 
-const setupSteps = ["Ready", "RPS", "Mulligans", "Opening phases"];
+const setupSteps = ["Ready", "RPS", "Turn order", "Mulligans", "Opening phases"];
 
 export default function RegularMatchSetupOverlay() {
   const game = useAppSelector((state) => state.gameState);
   const { side } = useAppSelector((state) => state.clientGameState);
-  const [resultAcknowledged, setResultAcknowledged] = useState(false);
   const isP1 = side === "p1";
+  const playerSide = isP1 ? "p1" : "p2";
   const myChoice = isP1 ? game.p1RPSChoice : game.p2RPSChoice;
   const isMyMulligan = (isP1 && game.currentPhase === PreGamePhase.P1Mulligan)
     || (!isP1 && game.currentPhase === PreGamePhase.P2Mulligan);
-
-  useEffect(() => {
-    if (!game.rpsWinner) setResultAcknowledged(false);
-  }, [game.rpsWinner]);
+  const iGoFirst = game.firstPlayer === playerSide;
 
   if (game.sandboxMode || game.matchStatus === MatchStatus.Completed) return null;
 
   const activeStep = game.matchStatus === MatchStatus.ReadyCheck ? 0
     : game.matchStatus === MatchStatus.Rps ? 1
-      : game.matchStatus === MatchStatus.Mulligans ? 2 : 3;
-  const winnerLabel = game.rpsWinner === (isP1 ? "p1" : "p2") ? "You" : "Your opponent";
-
+      : game.matchStatus === MatchStatus.FirstPlayerChoice ? 2
+        : game.matchStatus === MatchStatus.Mulligans ? 3 : 4;
   const progress = (
-    <ol className="mb-6 grid grid-cols-4 gap-1 text-center text-[10px] font-semibold uppercase tracking-wide sm:text-xs">
+    <ol className="mb-6 grid grid-cols-5 gap-1 text-center text-[10px] font-semibold uppercase tracking-wide sm:text-xs">
       {setupSteps.map((step, index) => (
         <li key={step} className={index <= activeStep ? "text-cyan-200" : "text-white/35"}>
           <span className={`mx-auto mb-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${index <= activeStep ? "bg-cyan-500 text-slate-950" : "bg-white/10 text-white/50"}`}>{index + 1}</span>
@@ -69,11 +65,17 @@ export default function RegularMatchSetupOverlay() {
     </BlockingPanel>;
   }
 
-  if (game.rpsWinner && !resultAcknowledged) {
+  if (game.matchStatus === MatchStatus.FirstPlayerChoice && game.rpsWinner) {
+    const iWonRps = game.rpsWinner === (isP1 ? "p1" : "p2");
     return <BlockingPanel>{progress}
-      <PanelHeading icon={null} title="RPS complete" />
-      <p className="mt-3 text-sm text-slate-200"><strong>{winnerLabel}</strong> won RPS and will go first.</p>
-      <PrimaryButton onClick={() => setResultAcknowledged(true)}>View opening hand</PrimaryButton>
+      <PanelHeading icon={null} title="Choose turn order" />
+      {iWonRps ? <>
+        <p className="mt-3 text-sm text-slate-200">You won Rock Paper Scissors. Choose who takes the first turn.</p>
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <ChoiceButton onClick={() => emitGameEvent({ type: GAME_EVENT.chooseFirstPlayer, data: "first" })}>Go first</ChoiceButton>
+          <ChoiceButton onClick={() => emitGameEvent({ type: GAME_EVENT.chooseFirstPlayer, data: "second" })}>Go second</ChoiceButton>
+        </div>
+      </> : <WaitingMessage message="Your opponent won Rock Paper Scissors and is choosing who goes first." />}
     </BlockingPanel>;
   }
 
@@ -86,7 +88,10 @@ export default function RegularMatchSetupOverlay() {
           <button type="button" onClick={() => emitGameEvent({ type: GAME_EVENT.mulligan, data: {} })} className="flex min-h-12 items-center justify-center rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-100 focus:ring-offset-2 focus:ring-offset-slate-950">Mulligan</button>
           <button type="button" onClick={() => emitGameEvent({ type: GAME_EVENT.keepHand, data: {} })} className="flex min-h-12 items-center justify-center rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-300">Keep hand</button>
         </div>
-      </> : <WaitingMessage message="Your opponent is deciding whether to mulligan." />}
+      </> : <WaitingMessage message={iGoFirst
+        ? "You will go first. Your opponent is deciding whether to mulligan."
+        : "Your opponent will go first and is deciding whether to mulligan."
+      } />}
     </aside>;
   }
 
@@ -115,6 +120,10 @@ function WaitingMessage({ message }: { message: string }) {
 
 function PrimaryButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
   return <button type="button" onClick={onClick} className="mt-5 w-full rounded-xl bg-cyan-400 px-4 py-3 font-bold text-slate-950 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-100 focus:ring-offset-2 focus:ring-offset-slate-950">{children}</button>;
+}
+
+function ChoiceButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className="min-h-12 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-bold text-white transition hover:border-cyan-200/60 hover:bg-cyan-300/10 focus:outline-none focus:ring-2 focus:ring-cyan-200">{children}</button>;
 }
 
 function RpsChoice({ label, icon, onClick }: { label: string; icon: ReactNode; onClick: () => void }) {

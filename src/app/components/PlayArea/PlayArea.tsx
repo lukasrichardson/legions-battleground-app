@@ -60,7 +60,7 @@ export default function PlayArea({ }) {
   const { side } = clientGameState;
   const p1 = side === "p1";
   const regularMode = !gameState.sandboxMode;
-  const openingHandsPending = !gameState.sandboxMode && !gameState.started && [MatchStatus.ReadyCheck, MatchStatus.Rps].includes(gameState.matchStatus);
+  const openingHandsPending = !gameState.sandboxMode && !gameState.started && [MatchStatus.ReadyCheck, MatchStatus.Rps, MatchStatus.FirstPlayerChoice].includes(gameState.matchStatus);
   // const goToNextPhase = () => {
   //   emitGameEvent({ type: GAME_EVENT.nextPhase, data: null });
   // }

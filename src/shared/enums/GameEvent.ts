@@ -24,6 +24,7 @@ export enum GAME_EVENT {
   plunder = "plunder",
   nextPhase = "nextPhase",
   setRpsChoice = "setRpsChoice",
+  chooseFirstPlayer = "chooseFirstPlayer",
   mulligan = "mulligan",
   readyForMatch = "readyForMatch",
   keepHand = "keepHand",

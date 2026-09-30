@@ -52,6 +52,7 @@ export interface GameStateData {
   currentPhase: PreGamePhase | GamePhase;
   turnNumber: number;
   rpsWinner: "p1" | "p2" | null;
+  firstPlayer: PlayerSide | null;
   p1RPSChoice: string | null;
   p2RPSChoice: string | null;
   rpsTieCount: number;

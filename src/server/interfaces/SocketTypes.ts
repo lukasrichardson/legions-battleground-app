@@ -11,6 +11,7 @@ export interface GameEventPayload {
 
 export type RegularMatchEvent =
   | GAME_EVENT.readyForMatch
+  | GAME_EVENT.chooseFirstPlayer
   | GAME_EVENT.keepHand
   | GAME_EVENT.advancePhase
   | GAME_EVENT.concede

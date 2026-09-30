@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createInitialGameState } from "@/shared/constants/initialGameState";
 import { MatchStatus } from "@/shared/enums/Match";
-import { GamePhase } from "@/shared/enums/Phases";
+import { GamePhase, PreGamePhase } from "@/shared/enums/Phases";
 import { games } from "@/server/game/game";
 import { RegularMatchService } from "@/server/services/game/RegularMatchService";
 import { GameService } from "@/server/services/game/GameService";
@@ -51,8 +51,46 @@ describe("RegularMatchService", () => {
     expect(games[roomId].p2PlayerHand).toHaveLength(0);
   });
 
+  it("waits for the RPS winner to choose turn order before opening hands are dealt", () => {
+    service.ready(roomId, "p1", true);
+    service.ready(roomId, "p2", true);
+    service.chooseRps(roomId, "p1", "Rock");
+    service.chooseRps(roomId, "p2", "Scissors");
+
+    expect(games[roomId]).toMatchObject({
+      rpsWinner: "p1",
+      firstPlayer: null,
+      matchStatus: MatchStatus.FirstPlayerChoice,
+      activePlayer: null,
+      started: false,
+    });
+    expect(() => service.chooseFirstPlayer(roomId, "p2", "first")).toThrow("Only the Rock Paper Scissors winner");
+
+    service.chooseFirstPlayer(roomId, "p1", "second");
+    expect(games[roomId]).toMatchObject({
+      firstPlayer: "p2",
+      matchStatus: MatchStatus.Mulligans,
+      currentPhase: PreGamePhase.P2Mulligan,
+      activePlayer: "p2",
+    });
+    expect(() => service.chooseFirstPlayer(roomId, "p1", "first")).toThrow("Turn order choice is not active");
+  });
+
+  it("uses the selected first player for the opening sequence", () => {
+    Object.assign(games[roomId], {
+      rpsWinner: "p1",
+      firstPlayer: "p2",
+      matchStatus: MatchStatus.Mulligans,
+      currentPhase: PreGamePhase.P2Mulligan,
+      activePlayer: "p2",
+    });
+
+    service.completeMulligan(roomId, "p2");
+    expect(games[roomId]).toMatchObject({ currentPhase: PreGamePhase.P1Mulligan, activePlayer: "p1" });
+  });
+
   it("allows only the active player to advance to the immediate next phase", () => {
-    Object.assign(games[roomId], { matchStatus: MatchStatus.InProgress, activePlayer: "p1", rpsWinner: "p1", currentPhase: GamePhase.P1War });
+    Object.assign(games[roomId], { matchStatus: MatchStatus.InProgress, activePlayer: "p1", rpsWinner: "p1", firstPlayer: "p1", currentPhase: GamePhase.P1War });
     expect(() => service.advancePhase(roomId, "p2")).toThrow("Only the active player");
     service.advancePhase(roomId, "p1");
     expect(games[roomId].currentPhase).toBe(GamePhase.P1EndOfWar);

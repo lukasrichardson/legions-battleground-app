@@ -60,8 +60,8 @@ export class GameService {
     const game = this.createRegularLobbyGame(roomId);
     if (game.sandboxMode) throw new Error("Regular opening state is unavailable in sandbox mode");
     if (game.started) return game;
-    if (!game.rpsWinner || !game.p1DeckFromServer || !game.p2DeckFromServer) {
-      throw new Error("Opening hands can be dealt only after a decisive RPS result");
+    if (!game.rpsWinner || !game.firstPlayer || !game.p1DeckFromServer || !game.p2DeckFromServer) {
+      throw new Error("Opening hands can be dealt only after turn order is chosen");
     }
 
     resetPlayersCards(roomId, game.p1DeckFromServer, game.p2DeckFromServer);
@@ -97,6 +97,7 @@ export class GameService {
     games[roomId].currentPhase = PreGamePhase.RPS;
     games[roomId].turnNumber = 0;
     games[roomId].rpsWinner = null;
+    games[roomId].firstPlayer = null;
     games[roomId].p1RPSChoice = null;
     games[roomId].p2RPSChoice = null;
     games[roomId].rpsTieCount = 0;

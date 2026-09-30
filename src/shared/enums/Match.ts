@@ -3,6 +3,7 @@ export type PlayerSide = "p1" | "p2";
 export enum MatchStatus {
   ReadyCheck = "readyCheck",
   Rps = "rps",
+  FirstPlayerChoice = "firstPlayerChoice",
   Mulligans = "mulligans",
   PreGame = "preGame",
   InProgress = "inProgress",

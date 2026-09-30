@@ -13,6 +13,7 @@ export default function MatchStatusBar({ status, phase, turn, activeSide, canAdv
   const statusLabel: Record<MatchStatus, string> = {
     [MatchStatus.ReadyCheck]: "Match setup",
     [MatchStatus.Rps]: "Rock Paper Scissors",
+    [MatchStatus.FirstPlayerChoice]: "Choose turn order",
     [MatchStatus.Mulligans]: "Opening hands",
     [MatchStatus.PreGame]: "Opening phases",
     [MatchStatus.InProgress]: "Match in progress",

@@ -50,6 +50,7 @@ const initialGameStateTemplate: GameStateData = {
   currentPhase: PreGamePhase.RPS,
   turnNumber: 0,
   rpsWinner: null,
+  firstPlayer: null,
   p1RPSChoice: null,
   p2RPSChoice: null,
   rpsTieCount: 0,
