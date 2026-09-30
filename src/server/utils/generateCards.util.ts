@@ -7,6 +7,8 @@ import { CARD_TARGET } from "../../shared/enums/CardTarget";
 import { StepType } from "../interfaces/SequenceInterfaces";
 
 let nextId = 0;
+export const STARTING_HAND_SIZE = 6;
+
 export const generateStartingPlayersCards = (p2DeckFromServer: DeckResponse, p1DeckFromServer: DeckResponse) => {
   const p2Deck = generateStartingCards(p2DeckFromServer, false);
   const p1Deck = generateStartingCards(p1DeckFromServer, true);
@@ -194,8 +196,13 @@ const generateDeck = (warriors: HydratedDeckCard[], unifieds: HydratedDeckCard[]
 const generateDeckAndHand = (warriors: HydratedDeckCard[], unifieds: HydratedDeckCard[], fortifieds: HydratedDeckCard[]): { deck: CardState[], hand: CardState[] } => {
   const deck = generateDeck(warriors, unifieds, fortifieds);
   const hand: CardState[] = [];
-  for (let i = 0; i < 6; i++) {
-    hand.push(deck.pop() as CardState);
+  // A legacy or incomplete deck can contain fewer cards than the opening-hand
+  // size. Do not add `undefined` placeholders: Socket.IO serializes those as
+  // `null`, which would make every connected client crash while rendering it.
+  const openingHandCount = Math.min(STARTING_HAND_SIZE, deck.length);
+  for (let i = 0; i < openingHandCount; i++) {
+    const card = deck.pop();
+    if (card) hand.push(card);
   }
   return { deck, hand };
 }
