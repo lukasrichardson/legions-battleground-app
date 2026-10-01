@@ -120,12 +120,12 @@ export default function Home() {
             />
             <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto mb-4">
               {HomeDescription}{"   "}
-            <span className="text-green-500">Powered By <a className="!underline" href="https://api.legionstoolbox.com" target="_blank" rel="noopener noreferrer">LegionsToolbox.com</a></span>
+            <span className="text-green-500">Powered By <a className="!underline" href="https://legionstoolbox.com" target="_blank" rel="noopener noreferrer">LegionsToolbox.com</a></span>
             </p>
           </div>
 
           {sessionStatus !== "loading" && !session && (
-            <section className="mx-auto flex w-full max-w-4xl flex-col grow overflow-y-hidden items-center gap-6 text-center">
+            <section className="mx-auto flex w-full max-w-5xl flex-col grow overflow-y-hidden items-center gap-6 text-center">
               <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
                 {renderQuickActionCard({
                   title: "Card Gallery",
@@ -161,7 +161,7 @@ export default function Home() {
                   />
                 </CardContent>
               </Card>
-              <div className="grow overflow-y-hidden w-full max-w-2xl">
+              <div className="grow overflow-y-hidden w-full">
                 <RecentPublishedDecksPanel />
               </div>
             </section>
