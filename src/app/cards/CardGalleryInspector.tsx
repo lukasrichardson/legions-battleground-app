@@ -51,12 +51,12 @@ export default function CardGalleryInspector({
   return (
     <section aria-label={`${decodeHTMLEntities(card.title)} details`} className="relative flex h-full min-h-0 flex-col text-slate-100">
       {isPinned && onClearPinned && (
-        <button type="button" aria-label="Clear pinned card" onClick={onClearPinned} className="absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-full border border-white bg-cyan-300/70 px-2 py-1 text-xs font-medium text-black hover:text-cyan-50 shadow-sm backdrop-blur transition hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
+        <button type="button" aria-label="Clear pinned card" onClick={onClearPinned} className="absolute left-2 top-2 z-10 inline-flex cursor-pointer items-center gap-1 rounded-full border border-white bg-cyan-300/70 px-2 py-1 text-xs font-medium text-black hover:text-cyan-50 shadow-sm backdrop-blur transition hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
           Pinned <AppIcon name="close" size={12} />
         </button>
       )}
       {onClose && (
-        <button type="button" aria-label="Close card details" onClick={onClose} className="sticky right-3 top-4 ml-auto z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-slate-950/80 text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
+        <button type="button" aria-label="Close card details" onClick={onClose} className="sticky right-3 top-4 ml-auto z-10 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-slate-950/80 text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
           <AppIcon name="close" size={18} />
         </button>
       )}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Modal from "./Modal";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { closeImportDeckModal } from "@/client/redux/modalsSlice";
@@ -6,11 +6,14 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
-import { Card, CardContent } from "@/client/ui/card";
 import { useAuth } from "@/client/hooks/useAuth";
 import CardImage from "../Card/CardImage";
 import { fetchToolboxDeck, type ToolboxCard, type ToolboxDeck } from "@/client/utils/toolboxDeck";
-import AppIcon from "../AppIcon";
+import { InlineStatus } from "@/client/ui/inline-status";
+import LoadingState from "../LoadingState";
+import PublicModalForm, { publicModalFieldClassName, publicModalInputClassName, publicModalLabelClassName } from "../PublicModalForm";
+import PublicFormSubmitButton from "../PublicFormSubmitButton";
+import PublicModalHeader from "../PublicModalHeader";
 
 const ModalConstants = {
   LoadingText: "Loading...",
@@ -39,6 +42,25 @@ export default function PreviewDeckModal() {
   const [guardian, setGuardian] = useState<ToolboxCard | null>(null);
   const [realm, setRealm] = useState<ToolboxCard | null>(null);
   const [synergy, setSynergy] = useState<ToolboxCard | null>(null);
+
+  const resetForm = () => {
+    setError("");
+    setDeckId("");
+    setLoading(false);
+    setDeck(null);
+    setWarriors(null);
+    setUnifieds(null);
+    setFortifieds(null);
+    setWarlord(null);
+    setGuardian(null);
+    setRealm(null);
+    setSynergy(null);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    dispatch(closeImportDeckModal());
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -97,21 +119,6 @@ export default function PreviewDeckModal() {
   } = ModalConstants;
 
 
-  const renderLoading = () => (
-    <div className="flex flex-col items-center justify-center py-16">
-      <div className="relative">
-        <div className="w-16 h-16 border-4 border-white/20 rounded-full"></div>
-        <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-      <p className="text-lg text-white font-medium mt-6">{LoadingText}</p>
-      <div className="flex space-x-1 mt-4">
-        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-      </div>
-    </div>
-  );
-
   const handleImportDeckClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
@@ -124,8 +131,7 @@ export default function PreviewDeckModal() {
     try {
       const res = await axios.post(`${window.location.origin}/api/importDecks`, deck);
       router.push(`/decks/${res.data.id}`);
-      dispatch(closeImportDeckModal());
-      setError("");
+      handleClose();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         // Axios error: response may contain server error details
@@ -141,20 +147,55 @@ export default function PreviewDeckModal() {
 
   }
 
-  const renderModalContent = () => (
-    <div className="w-full max-w-2xl mx-auto">
-      {/* Header inside content */}
-      <div className="text-center mb-6">
-        <p className="text-gray-300 text-base max-w-md mx-auto leading-relaxed">Paste a deck ID to fetch and preview your deck before importing.</p>
+  const renderDeckPreview = () => deck && (
+    <div className="mt-8">
+      <h4 className="text-xl font-semibold text-white mb-3">Deck Preview</h4>
+      <div className="text-gray-300 mb-4 space-y-1">
+        <div><span className="font-medium text-white">Name:</span> {deck.name}</div>
+        <div><span className="font-medium text-white">Id:</span> {deck.id}</div>
       </div>
 
-      {/* Form Card */}
-      <Card className="bg-white/10 border-white/20 backdrop-blur-sm shadow-2xl">
-        <CardContent className="p-6 sm:p-8">
+      {(deck.name && deck.id && deck.legion && deck.cards_in_deck) && (
+        <div className="sticky top-0 z-10 py-2">
+          <Button
+            onClick={handleImportDeckClick}
+            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-4 text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            {ImportButtonText}
+          </Button>
+        </div>
+      )}
+
+      <div>
+        <span className="block text-white font-medium mb-3">Cards:</span>
+        <div className="flex flex-wrap gap-2">
+          {([warlord, realm, synergy, guardian, ...(warriors || []), ...(unifieds || []), ...(fortifieds || [])] as ToolboxCard[])
+            .map((card, index) => (
+              card ? (
+                <div key={card.id ?? 'card' + index.toString()} className="w-[90px] h-[120px] relative">
+                  <CardImage
+                    src={card.thumb || card.image}
+                    alt={`Card ${index + 1}`}
+                    className="w-24 h-32 object-cover rounded-lg border border-white/20"
+                  />
+                </div>
+              ) : null
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderModalContent = () => (
+    <PublicModalForm
+      description="Paste a deck ID to fetch and preview your deck before importing."
+      afterForm={renderDeckPreview()}
+    >
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-3">
-              <label className="block text-sm font-semibold text-white">{DeckIdLabelText}</label>
+            <div className={publicModalFieldClassName}>
+              <label htmlFor="toolbox-deck-id" className={publicModalLabelClassName}>{DeckIdLabelText}</label>
               <Input
+                id="toolbox-deck-id"
                 type="text"
                 value={deckId}
                 onChange={(e) => setDeckId(e.target.value)}
@@ -162,7 +203,7 @@ export default function PreviewDeckModal() {
                 name="deckId"
                 autoComplete="on"
                 autoFocus
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500/20 h-12 transition-all duration-200"
+                className={publicModalInputClassName}
                 required
               />
               <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl p-4">
@@ -180,104 +221,20 @@ export default function PreviewDeckModal() {
             </div>
 
             {/* Error Display */}
-            {error && (
-              <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-4">
-                <div className="flex items-center space-x-2">
-                  <AppIcon name="error" className="text-red-400 flex-shrink-0" size={20} />
-                  <p className="text-red-300 text-sm font-medium">{error}</p>
-                </div>
-              </div>
-            )}
+            {error && <InlineStatus variant="error">{error}</InlineStatus>}
 
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
-              disabled={loading}
-            >
+            <PublicFormSubmitButton loading={loading} loadingLabel="Generating preview…" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
               {GeneratePreviewText}
-            </Button>
+            </PublicFormSubmitButton>
           </form>
-        </CardContent>
-      </Card>
-
-      {/* Deck Preview */}
-      {deck && (
-        <div className="mt-8">
-          <h4 className="text-xl font-semibold text-white mb-3">Deck Preview</h4>
-          <div className="text-gray-300 mb-4 space-y-1">
-            <div><span className="font-medium text-white">Name:</span> {deck.name}</div>
-            <div><span className="font-medium text-white">Id:</span> {deck.id}</div>
-          </div>
-
-          {(deck && deck.name && deck.id && deck.legion && deck.cards_in_deck) && (
-            <div className="sticky top-0 z-10 py-2">
-              <Button
-                onClick={handleImportDeckClick}
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-4 text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                {ImportButtonText}
-              </Button>
-            </div>
-          )}
-
-          <div>
-            <span className="block text-white font-medium mb-3">Cards:</span>
-            <div className="flex flex-wrap gap-2">
-              {([warlord, realm, synergy, guardian, ...(warriors || []), ...(unifieds || []), ...(fortifieds || [])] as ToolboxCard[])
-                .map((card, index) => (
-                  card ?
-                    <div key={card.id ?? 'card' + index.toString()} className="w-[90px] h-[120px] relative">
-                      <CardImage
-                        src={card.thumb || card.image}
-                        alt={`Card ${index + 1}`}
-                        className="w-24 h-32 object-cover rounded-lg border border-white/20"
-                      />
-                    </div>
-                    : null
-
-                ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </PublicModalForm>
   )
-  useEffect(() => {
-    return () => {
-      setError("");
-      setDeckId("");
-      setLoading(false);
-      setDeck(null);
-      setWarriors(null);
-      setUnifieds(null);
-      setFortifieds(null);
-      setWarlord(null);
-      setGuardian(null);
-      setRealm(null);
-      setSynergy(null);
-    }
-  }, [importDeckModalOpen])
   return (
     <Modal
       open={importDeckModalOpen !== false}
-      closeModal={() => dispatch(closeImportDeckModal())}
-      modalHeader={
-        <div className="flex items-center justify-between w-full p-6 pb-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <AppIcon name="import" className="text-white" size={20} />
-            </div>
-            <span className="text-xl font-bold text-white">{TitleText}</span>
-          </div>
-          <button
-            onClick={() => dispatch(closeImportDeckModal())}
-            className="text-gray-400 hover:text-white transition-colors duration-200 p-2 hover:bg-white/10 rounded-lg"
-          >
-            <AppIcon name="close" size={24} />
-          </button>
-        </div>
-      }
-      modalContent={loading ? renderLoading() : renderModalContent()}
+      closeModal={handleClose}
+      modalHeader={<PublicModalHeader title={TitleText} icon="import" onClose={handleClose} closeLabel="Close deck import" />}
+      modalContent={loading ? <LoadingState label={LoadingText} className="min-h-64 border-white/20 bg-white/10" /> : renderModalContent()}
     />
   )
 }

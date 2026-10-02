@@ -22,6 +22,7 @@ function Page() {
           <Home />
           {process.env.NODE_ENV === "development" && <div className='dev-tools fixed flex flex-col left-0 top-1/3 bg-white'>
             <button
+              className="cursor-pointer text-black"
               onClick={async () => {
                 //create test game quickly
                 try {

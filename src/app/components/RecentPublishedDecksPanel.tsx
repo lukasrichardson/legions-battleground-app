@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import LoadingState from "./LoadingState";
 import { PublishedDeckListItem } from "@/shared/interfaces/DeckListItem";
+import { EmptyState } from "@/client/ui/empty-state";
+import { InlineStatus } from "@/client/ui/inline-status";
 
 const getDeckCoverImage = (deck: PublishedDeckListItem): string | null => deck.coverCard?.featured_image ?? null;
 
@@ -44,18 +46,6 @@ const formatWarlordName = (title: string) => (
     .replace(/&#x([0-9a-f]+);/gi, (_, value) => String.fromCodePoint(Number.parseInt(value, 16)))
     .replace(/&#(\d+);/g, (_, value) => String.fromCodePoint(Number.parseInt(value, 10)))
 );
-
-function EmptyState() {
-  return (
-    <div className="flex h-full flex-col items-center justify-center px-4 py-8 text-center">
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-700/50 text-xl" aria-hidden="true">
-        ♜
-      </div>
-      <p className="text-base text-gray-300">No published decks yet</p>
-      <p className="mt-1 text-sm text-gray-500">Community decklists will appear here.</p>
-    </div>
-  );
-}
 
 export default function RecentPublishedDecksPanel() {
   const router = useRouter();
@@ -100,12 +90,10 @@ export default function RecentPublishedDecksPanel() {
         )}
 
         {status === "error" && (
-          <div className="flex h-full flex-col items-center justify-center px-4 py-8 text-center">
-            <p className="text-sm text-gray-400">Recent decks could not be loaded.</p>
-          </div>
+          <div className="flex h-full items-center justify-center px-4"><InlineStatus variant="error">Recent decks could not be loaded. Please try again shortly.</InlineStatus></div>
         )}
 
-        {status === "ready" && decks.length === 0 && <EmptyState />}
+        {status === "ready" && decks.length === 0 && <EmptyState icon="♜" title="No published decks yet" description="Community decklists will appear here." />}
 
         {status === "ready" && decks.length > 0 && (
           <ul className="divide-y divide-white/10" aria-label="Five most recently published decks">
@@ -139,6 +127,8 @@ export default function RecentPublishedDecksPanel() {
                       <span className="flex min-w-0 items-center gap-1.5">
                         <span className="max-w-[60%] shrink-0 truncate text-sm font-bold text-white">{deck.name}</span>
                         <span className="min-w-0 truncate text-xs text-gray-400">by {deck.author || "Unknown Author"}</span>
+                        <span className="shrink-0 text-xs text-white ml-auto">Main: {deck.mainDeckSize}</span>
+                        <span className="shrink-0 text-xs text-white">Side: {deck.sideDeckSize}</span>
                       </span>
                       <span className="mt-1 flex min-w-0 items-center gap-2">
                         <span

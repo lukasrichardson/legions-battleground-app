@@ -4,7 +4,9 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/client/ui/card";
+import { InlineStatus } from "@/client/ui/inline-status";
 import AppIcon from "../AppIcon";
+import LoadingState from "../LoadingState";
 
 type AliasResponse = { alias: string | null; error?: string };
 
@@ -30,7 +32,11 @@ export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
         if (response.ok && data.alias) {
           setAlias(data.alias);
           setSavedAlias(data.alias);
+        } else if (!response.ok) {
+          setError(data.error ?? "Could not load username. You can still set one below.");
         }
+      } catch {
+        setError("Could not load username. You can still set one below.");
       } finally {
         setLoading(false);
       }
@@ -112,12 +118,12 @@ export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
             <CardTitle className="text-base text-white">Battleground username</CardTitle>
           </div>
         </div>
-        <button type="button" onClick={onClose} className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-white/10 hover:text-white" aria-label="Close username editor">
+        <button type="button" onClick={onClose} className="cursor-pointer rounded-lg p-1 text-gray-400 transition-colors hover:bg-white/10 hover:text-white" aria-label="Close username editor">
           <AppIcon name="close" size={16} />
         </button>
       </CardHeader>
       <CardContent className="p-4 pt-4">
-        <form className="space-y-3" onSubmit={saveAlias}>
+        {loading ? <LoadingState label="Loading username…" className="min-h-0 py-5" /> : <form className="space-y-3" onSubmit={saveAlias}>
           <label className="block text-sm font-semibold text-white">
             Username
           <Input
@@ -131,11 +137,11 @@ export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
           />
           </label>
           <p className="text-xs leading-relaxed text-gray-400">3–24 letters, numbers, hyphens, or underscores. Usernames are case-insensitively unique.</p>
-          {error && <p className="rounded-lg border border-red-500/30 bg-red-500/20 p-3 text-sm font-medium text-red-300">{error}</p>}
+          {error && <InlineStatus variant="error">{error}</InlineStatus>}
           <Button type="submit" disabled={loading || saving || !alias.trim()} className="h-10 w-full bg-gradient-to-r from-blue-600 to-blue-700 font-semibold text-white hover:from-blue-700 hover:to-blue-800">
             {saving ? "Saving…" : savedAlias ? "Update username" : "Set username"}
           </Button>
-        </form>
+        </form>}
       </CardContent>
       {savedAlias && (
         <CardFooter className="block border-t border-white/10 p-4 pt-3">

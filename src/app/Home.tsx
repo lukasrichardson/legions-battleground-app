@@ -5,7 +5,7 @@ import { setCreateRoomModalOpen, setJoinRoomModalOpen } from "@/client/redux/mod
 import { ReactElement, useEffect, useState } from "react";
 import Table from "./components/Table/Table";
 import { Button } from "@/client/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/client/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import { useSession } from "next-auth/react";
 import AuthButtons from "./components/auth/AuthButtons";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,7 @@ import useIsMobile from "@/client/hooks/useIsMobile";
 import Image from "next/image";
 import RecentPublishedDecksPanel from "./components/RecentPublishedDecksPanel";
 import AppIcon from "./components/AppIcon";
+import ActionCard from "./components/ActionCard";
 
 const HomeConstants = {
   HomeTitle: "Legions Battleground",
@@ -26,32 +27,6 @@ const HomeConstants = {
   ImportDeckText: "Import Deck",
   BrowseDecksText: "Browse Decks"
 }
-
-const renderQuickActionCard = ({
-  title,
-  description,
-  icon,
-  onClick
-}: {
-  title: string;
-  description: string;
-  icon: JSX.Element;
-  onClick: () => void;
-}) => (
-  <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-colors cursor-pointer" onClick={onClick}>
-    <CardHeader className="p-2">
-      <CardTitle className="flex justify-center items-center gap-2 text-lg">
-        <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center">
-          {icon}
-        </div>
-        {title}
-      </CardTitle>
-      <CardDescription className="text-gray-300 text-sm text-center hidden sm:block">
-        {description}
-      </CardDescription>
-    </CardHeader>
-  </Card>
-)
 
 export default function Home() {
   const dispatch = useAppDispatch();
@@ -128,18 +103,8 @@ export default function Home() {
           {sessionStatus !== "loading" && !session && (
             <section className="mx-auto flex w-full max-w-5xl flex-col grow overflow-y-hidden items-center gap-6 text-center">
               <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-                {renderQuickActionCard({
-                  title: "Card Gallery",
-                  description: "Search & Filter all cards",
-                  icon: <div className="w-6 h-6 bg-purple-500 rounded-lg flex items-center justify-center"><AppIcon name="card-gallery" className="text-white" size={16} /></div>,
-                  onClick: handleCardsClick,
-                })}
-                {renderQuickActionCard({
-                  title: BrowseDecksText,
-                  description: "Browse published decklists",
-                  icon: <div className="w-6 h-6 bg-pink-500 rounded-lg flex items-center justify-center"><AppIcon name="browse" className="text-white" size={16} /></div>,
-                  onClick: handleBrowseDecksClick,
-                })}
+                <ActionCard title="Card Gallery" description="Search and filter every card" icon={<AppIcon name="card-gallery" size={18} />} iconClassName="bg-violet-500/20 text-violet-200" onClick={handleCardsClick} />
+                <ActionCard title={BrowseDecksText} description="Browse published decklists" icon={<AppIcon name="browse" size={18} />} iconClassName="bg-pink-500/20 text-pink-200" onClick={handleBrowseDecksClick} />
               </div>
 
               <Card className="w-full max-w-2xl border-white/20 bg-slate-950/30 text-white">
@@ -162,39 +127,14 @@ export default function Home() {
 
           {session &&<>
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 mb-2 sm:mb-6 max-w-6xl mx-auto w-full">
-              {renderQuickActionCard({
-                title: "Decks",
-                description: "Create and edit your decks",
-                icon: <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center"><AppIcon name="card-gallery" className="text-white" size={16} /></div>,
-                onClick: handleDecksClick
-              })}
-              {renderQuickActionCard({
-                title: "Card Gallery",
-                description: "Search & Filter all cards",
-                icon: <div className="w-6 h-6 bg-purple-500 rounded-lg flex items-center justify-center"><AppIcon name="card-gallery" className="text-white" size={16} /></div>,
-                onClick: handleCardsClick
-              })}
+            <div className="grid xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 mb-2 sm:mb-6 max-w-6xl mx-auto sm:w-full">
+              <ActionCard title="Decks" description="Create and edit your decks" icon={<AppIcon name="decks" size={18} />} iconClassName="bg-blue-500/20 text-blue-200" onClick={handleDecksClick} />
+              <ActionCard title="Card Gallery" description="Search and filter every card" icon={<AppIcon name="card-gallery" size={18} />} iconClassName="bg-violet-500/20 text-violet-200" onClick={handleCardsClick} />
               {!isMobile && (
-                renderQuickActionCard({
-                  title: CreateGameBtnText,
-                  description: "Create a VS or Solo game",
-                  icon: <div className="w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center"><AppIcon name="create" className="text-white" size={16} /></div>,
-                  onClick: handleCreateGame
-                })
+                <ActionCard title={CreateGameBtnText} description="Create a VS or solo game" icon={<AppIcon name="create" size={18} />} iconClassName="bg-emerald-500/20 text-emerald-200" onClick={handleCreateGame} />
               )}
-              {renderQuickActionCard({
-                title: ImportDeckText,
-                description: "Import a deck from Toolbox",
-                icon: <div className="w-6 h-6 bg-orange-500 rounded-lg flex items-center justify-center"><AppIcon name="import" className="text-white" size={16} /></div>,
-                onClick: handleImportDeck
-              })}
-              {renderQuickActionCard({
-                title: BrowseDecksText,
-                description: "Browse published decklists",
-                icon: <div className="w-6 h-6 bg-pink-500 rounded-lg flex items-center justify-center"><AppIcon name="browse" className="text-white" size={16} /></div>,
-                onClick: handleBrowseDecksClick
-              })}
+              <ActionCard title={ImportDeckText} description="Import a deck from Toolbox" icon={<AppIcon name="import" size={18} />} iconClassName="bg-orange-500/20 text-orange-200" onClick={handleImportDeck} />
+              <ActionCard title={BrowseDecksText} description="Browse published decklists" icon={<AppIcon name="browse" size={18} />} iconClassName="bg-pink-500/20 text-pink-200" onClick={handleBrowseDecksClick} />
             </div>
 
             {/* Desktop and tablet community activity. Mobile intentionally keeps its existing layout. */}
@@ -255,7 +195,7 @@ export default function Home() {
                             <Button 
                               onClick={() => handleJoinRoomClick(room.id)}
                               size="sm"
-                              className="bg-blue-600 hover:bg-blue-700 text-xs"
+                              className="bg-blue-600 hover:bg-blue-700 text-xs text-white"
                               key={room.id}
                             >
                               {JoinBtnText}
@@ -280,7 +220,7 @@ export default function Home() {
               <Button
                 onClick={() => setShowPerformanceDashboard(true)}
                 size="sm"
-                className="bg-purple-600 hover:bg-purple-700 text-xs"
+                className="bg-purple-600 hover:bg-purple-700 text-xs text-white"
               >
                 📊 Image Performance
               </Button>

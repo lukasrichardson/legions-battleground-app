@@ -38,15 +38,7 @@ export const getDeckListSummaries = async (
       legion: 1,
       author: 1,
       published_date: 1,
-      mainDeckSize: {
-        $add: [
-          { $size: { $ifNull: ["$cards_in_deck", []] } },
-          { $size: { $ifNull: ["$warlords", []] } },
-          { $size: { $ifNull: ["$synergies", []] } },
-          { $size: { $ifNull: ["$veilRealms", []] } },
-          { $size: { $ifNull: ["$guardians", []] } },
-        ],
-      },
+      mainDeckSize: { $size: { $ifNull: ["$cards_in_deck", []] } },
       sideDeckSize: { $size: { $ifNull: ["$side_deck", []] } },
       coverCardId: {
         $ifNull: [

@@ -17,6 +17,7 @@ import useIsMobile from "@/client/hooks/useIsMobile";
 import { getDeckCards, getOrdinaryMainDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, SIDE_DECK_MAX_SIZE, specialMainDeckFieldForCardType } from "@/shared/deckComposition";
 import { DeckPatchOperation } from "@/shared/interfaces/DeckPatch";
 import { createDeckPatchQueue } from "@/client/utils/deckPatchQueue";
+import { InlineStatus } from "@/client/ui/inline-status";
 
 export default function DeckBuilder() {
   const params = useParams<{ deckId: string }>()
@@ -304,7 +305,7 @@ export default function DeckBuilder() {
           deckListRefreshTrigger={deckListRefreshTrigger}
         />
       </div>
-      {saveError && <p role="alert" className="mb-2 rounded border border-red-300/50 bg-red-950/40 px-3 py-2 text-center text-sm text-red-100">{saveError}</p>}
+      {saveError && <InlineStatus variant="error" className="mb-2 text-center">{saveError}</InlineStatus>}
 
       {/* Main Content Area - Takes remaining space */}
       <div className="flex-1 min-h-0 flex flex-col-reverse lg:flex-row gap-2">

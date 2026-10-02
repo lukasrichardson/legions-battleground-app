@@ -2,12 +2,11 @@ import { fetchDeckFilterOptions, fetchDeckListSummaries } from "@/client/utils/a
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { renderCardTile } from "./[deckId]/components/CardTile";
-import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import axios from "axios";
 import { MultiSelect } from "@/client/ui/multiselect";
-import LoadingState from "../components/LoadingState";
 import { DeckListItem } from "@/shared/interfaces/DeckListItem";
-import AppIcon from "@/app/components/AppIcon";
+import DeckCollectionPanel from "@/app/components/DeckCollectionPanel";
+import { InlineStatus } from "@/client/ui/inline-status";
 
 export const DecksList = () => {
   const router = useRouter();
@@ -15,6 +14,7 @@ export const DecksList = () => {
   const [legion, setLegion] = useState<string[]>([]);
   const [filterOptions, setFilterOptions] = useState<{ legion: string[] }>({ legion: [] });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   const handleLegionSelect = (legionVal: string[]) => {
     setLegion(legionVal);
@@ -22,7 +22,11 @@ export const DecksList = () => {
 
   useEffect(() => {
     setLoading(true);
-    void fetchDeckListSummaries(legion).then(setDecks).finally(() => setLoading(false));
+    setLoadError("");
+    void fetchDeckListSummaries(legion)
+      .then(setDecks)
+      .catch(() => setLoadError("Could not load your decks. Please try again."))
+      .finally(() => setLoading(false));
   }, [legion])
 
   useEffect(() => {
@@ -34,8 +38,9 @@ export const DecksList = () => {
     router.push("/decks/"+deckId);
   }
 
-  const handleDeleteDeckClick = (deckId) => (e) => {
+  const handleDeleteDeckClick = (deckId, deckName) => (e) => {
     e.stopPropagation();
+    if (!window.confirm(`Delete ${deckName}? This cannot be undone.`)) return;
     axios.delete(`/api/decks/${deckId}`).then(() => {
       return fetchDeckListSummaries(legion).then(setDecks);
     }).catch((err) => {
@@ -47,77 +52,39 @@ export const DecksList = () => {
     setLegion([]);
   }
   return (
-    <div className="flex-1 min-h-0">
-      <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
-        <CardHeader className="p-4 pb-2">
-          <CardTitle className="flex items-center justify-start text-lg">
-            <span className="flex items-center gap-2 text-sm">
-              Your Decks
-            </span>
-            <span className="text-sm text-gray-400 mx-2">
-              {decks.length} decks
-            </span>
-            <MultiSelect
-              options={filterOptions?.legion?.map((option) => ({ value: option, label: option[0].toUpperCase() + option.slice(1) })) || []}
-              value={legion}
-              onChange={handleLegionSelect}
-              placeholder="Legion"
-              className="cursor-pointer text-xs"
-            />
-            <button onClick={clearFilters} className="ml-2 text-xs text-gray-400 hover:text-gray-200 transition-colors cursor-pointer border border-gray-400 rounded p-0.5">
-              Clear
-            </button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 pt-0 flex-1 overflow-hidden">
-          {loading ? (
-            <LoadingState label="Loading your decks…" className="h-full" />
-          ) : decks.length === 0 ? (
-            <div className="text-center py-8 h-full flex flex-col items-center justify-center">
-              <div className="w-12 h-12 bg-gray-700/50 rounded-full flex items-center justify-center mb-3">
-                <AppIcon name="card-gallery" className="text-gray-400" size={24} />
-              </div>
-              <p className="text-gray-400 text-base">No decks found</p>
-              <p className="text-gray-500 text-sm mt-1">Create your first deck to get started!</p>
-            </div>
-          ) : (
-            <div className="h-full overflow-auto">
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
-                {decks.map(deck => {
-                  return(
-                  <div 
-                    key={deck._id.toString()}
-                    className="cursor-pointer group relative" 
-                    onClick={handleDeckSelect(deck._id.toString())}
-                  >
-                    <div
-                      className="text-white bg-amber-900 w-full h-0 absolute bottom-0 overflow-hidden group-hover:h-6 text-center"
-                      onClick={handleDeleteDeckClick(deck._id.toString())}
-                    >
-                      DELETE
-                    </div>
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-1 hover:bg-white/10 transition-colors">
-                      <div className="flex justify-center mb-1">
-                        {deck.coverCard ? renderCardTile(deck.coverCard, 0, () => null) : (
-                          <div className="flex aspect-[3/4] w-full items-center justify-center rounded-lg bg-slate-700/60 text-gray-400">♜</div>
-                        )}
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-medium text-white truncate">
-                          {deck.name}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {deck.mainDeckSize} cards · Side {deck.sideDeckSize}/15
-                        </p>
-                      </div>
-                    </div>
+    <div className="min-h-0 flex-1">
+      <DeckCollectionPanel
+        title="Your Decks"
+        count={decks.length}
+        filter={<MultiSelect options={filterOptions.legion.map((option) => ({ value: option, label: option[0].toUpperCase() + option.slice(1) }))} value={legion} onChange={handleLegionSelect} placeholder="Legion" />}
+        onClearFilters={legion.length > 0 ? clearFilters : undefined}
+        loading={loading}
+        loadingLabel="Loading your decks…"
+        isEmpty={!loadError && decks.length === 0}
+        emptyTitle="No decks found"
+        emptyDescription="Create your first deck to get started."
+      >
+        {loadError ? <div className="flex h-full items-center justify-center"><InlineStatus variant="error">{loadError}</InlineStatus></div> : (
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8">
+            {decks.map((deck) => (
+              <article key={deck._id.toString()} className="group relative">
+                <button type="button" className="w-full cursor-pointer rounded-lg border border-white/10 bg-white/5 p-1 text-left transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={handleDeckSelect(deck._id.toString())}>
+                  <div className="mb-1 flex justify-center">
+                    {deck.coverCard ? renderCardTile(deck.coverCard, 0, () => null) : <div className="flex aspect-[3/4] w-full items-center justify-center rounded-lg bg-slate-700/60 text-muted-foreground">♜</div>}
                   </div>
-                )})}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  <div className="text-center">
+                    <p className="truncate text-sm font-medium text-white">{deck.name}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{deck.mainDeckSize} cards · Side {deck.sideDeckSize}/15</p>
+                  </div>
+                </button>
+                <button type="button" className="absolute right-1 top-1 cursor-pointer rounded-md bg-destructive/90 px-2 py-1 text-xs font-semibold text-destructive-foreground opacity-0 transition-opacity hover:bg-destructive focus-visible:opacity-100 group-hover:opacity-100" onClick={handleDeleteDeckClick(deck._id.toString(), deck.name)} aria-label={`Delete ${deck.name}`}>
+                  Delete
+                </button>
+              </article>
+            ))}
+          </div>
+        )}
+      </DeckCollectionPanel>
     </div>
   )
 }

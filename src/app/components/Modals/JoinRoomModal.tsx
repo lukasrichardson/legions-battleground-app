@@ -4,15 +4,19 @@ import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { setJoinRoomModalOpen } from "@/client/redux/modalsSlice";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { Card, CardContent } from "@/client/ui/card";
 import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
 import { useAuth } from "@/client/hooks/useAuth";
 import { signIn } from "next-auth/react";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/client/ui/select";
 import { useDeckPickerOptions } from "@/client/hooks/useDeckPickerOptions";
 import { refreshSocketConnection } from "@/client/socket";
+import { InlineStatus } from "@/client/ui/inline-status";
 import AppIcon from "../AppIcon";
+import LoadingState from "../LoadingState";
+import PublicDeckPickerField from "../PublicDeckPickerField";
+import PublicModalForm, { publicModalFieldClassName, publicModalInputClassName, publicModalLabelClassName } from "../PublicModalForm";
+import PublicFormSubmitButton from "../PublicFormSubmitButton";
+import PublicModalHeader from "../PublicModalHeader";
 
 const ModalConstants = {
   LoadingText: "Loading...",
@@ -37,7 +41,7 @@ export default function JoinRoomModal() {
   const [deckId, setDeckId] = useState("");
   const [loading, setLoading] = useState(false);
   const auth = useAuth();
-  const { options: decks } = useDeckPickerOptions(Boolean(joinRoomModalOpen && isAuthenticated));
+  const { options: decks, loading: decksLoading, error: decksError } = useDeckPickerOptions(Boolean(joinRoomModalOpen && isAuthenticated));
 
   const {
     LoadingText,
@@ -47,6 +51,19 @@ export default function JoinRoomModal() {
     RoomPasswordLabelText,
     DeckLabelText
   } = ModalConstants;
+
+  const resetForm = () => {
+    setPlayerName("");
+    setRoomPassword("");
+    setDeckId("");
+    setError("");
+    setLoading(false);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    dispatch(setJoinRoomModalOpen(null));
+  };
 
   const handleJoinRoom = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -70,10 +87,7 @@ export default function JoinRoomModal() {
       const query = new URLSearchParams({ room: newRoomName, playerName: alias, deckId });
       await refreshSocketConnection(admissionToken);
       router.push(`/play?${query.toString()}`);
-      dispatch(setJoinRoomModalOpen(null));
-      setPlayerName("");
-      setDeckId("");
-      setError("");
+      handleClose();
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message || "Invalid request. Please check your inputs.");
@@ -81,7 +95,6 @@ export default function JoinRoomModal() {
         setError("An error occurred while joining the room. Please try again.");
       }
     } finally {
-      setRoomPassword("");
       setLoading(false);
     }
   }
@@ -115,19 +128,6 @@ export default function JoinRoomModal() {
     </div>
   );
 
-  const renderLoading = () => (
-    <div className="max-w-2xl mx-auto p-6">
-      <Card className="bg-white/5 backdrop-blur-sm border border-white/10 shadow-2xl">
-        <CardContent className="p-8">
-          <div className="flex items-center justify-center gap-3 text-white">
-            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-lg">{LoadingText}</span>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
   const handleDeckChange = (selectedId: string) => {
     if (selectedId && selectedId !== deckId) {
       setDeckId(selectedId);
@@ -135,136 +135,78 @@ export default function JoinRoomModal() {
   }
 
   const renderModalContent = () => (
-    <div className="max-w-2xl mx-auto p-6">
-      <Card className="bg-white/5 backdrop-blur-sm border border-white/10 shadow-2xl">
-        <CardContent className="p-8">
+    <PublicModalForm>
           <form onSubmit={handleJoinRoom} className="space-y-6">
             {/* Room Name Input */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-200">
+            <div className={publicModalFieldClassName}>
+              <label htmlFor="join-room-name" className={publicModalLabelClassName}>
                 {RoomNameLabelText}
               </label>
               <Input
+                id="join-room-name"
                 type="text"
                 value={joinRoomModalOpen}
                 disabled={true}
                 name="roomName"
-                className="w-full bg-white/10 border-white/20 text-white placeholder-gray-400 rounded-xl h-12 px-4 disabled:opacity-60 disabled:cursor-not-allowed"
+                className={publicModalInputClassName}
               />
             </div>
 
             {/* Grid Layout for Name and Password */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Player Name Input */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-200">
+              <div className={publicModalFieldClassName}>
+                <label htmlFor="join-room-username" className={publicModalLabelClassName}>
                   {YourNameLabelText}
                 </label>
                 <Input
+                  id="join-room-username"
                   type="text"
                   value={playerName || auth?.user?.name || ""}
                   disabled={true}
                   name="playerName"
                   autoComplete="on"
                   autoFocus
-                  className="w-full bg-white/10 border-white/20 text-white placeholder-gray-400 rounded-xl h-12 px-4 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200"
+                  className={publicModalInputClassName}
                 />
               </div>
 
               {/* Room Password Input */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-200">
+              <div className={publicModalFieldClassName}>
+                <label htmlFor="join-room-password" className={publicModalLabelClassName}>
                   {RoomPasswordLabelText}
                 </label>
                 <Input
+                  id="join-room-password"
                   type="password"
                   value={roomPassword}
                   onChange={(e) => setRoomPassword(e.target.value)}
                   placeholder="Optional"
-                  className="w-full bg-white/10 border-white/20 text-white placeholder-gray-400 rounded-xl h-12 px-4 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200"
+                  className={publicModalInputClassName}
                 />
               </div>
             </div>
 
             {/* Deck  Section */}
-            <div className="space-y-3">
-              <label className="block text-sm font-semibold text-white">
-                {DeckLabelText}
-              </label>
-              <Select value={deckId} onValueChange={handleDeckChange}>
-                <SelectTrigger className="h-6 w-32 text-xs bg-white/10 border-white/20 text-white">
-                  <SelectValue placeholder="Select deck" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Your Decks</SelectLabel>
-                    {decks.map((deckOption, index) => (
-                      <SelectItem key={deckOption._id + `${index}`} value={deckOption._id}>
-                        {deckOption.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
+            <PublicDeckPickerField label={DeckLabelText} value={deckId} onValueChange={handleDeckChange} options={decks} loading={decksLoading} error={decksError} />
 
             {/* Error Display */}
-            {error && (
-              <div className="bg-red-500/10 border border-red-400/20 rounded-xl p-4">
-                <div className="text-red-300 text-sm font-medium">{error}</div>
-              </div>
-            )}
+            {error && <InlineStatus variant="error">{error}</InlineStatus>}
 
             {/* Submit Button */}
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-4 text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-              disabled={loading}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center gap-3">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Joining Room...</span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center gap-2">
-                  <AppIcon name="join-room" size={20} />
-                  <span>{JoinRoomBtnText}</span>
-                </div>
-              )}
-            </Button>
+            <PublicFormSubmitButton loading={loading} loadingLabel="Joining room…" className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800">
+              <AppIcon name="join-room" size={20} />
+              <span>{JoinRoomBtnText}</span>
+            </PublicFormSubmitButton>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+    </PublicModalForm>
   );
   return (
     <Modal
       open={joinRoomModalOpen !== null}
-      closeModal={() => {
-        dispatch(setJoinRoomModalOpen(null));
-        setRoomPassword("");
-        setDeckId("");
-        setError("");
-        setLoading(false);
-      }}
-      modalHeader={
-        <div className="flex items-center justify-between w-full p-6 pb-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-              <AppIcon name="join-room" className="text-white" size={20} />
-            </div>
-            <span className="text-xl font-bold text-white">{JoinRoomBtnText}</span>
-          </div>
-          <button
-            onClick={() => dispatch(setJoinRoomModalOpen(null))}
-            className="text-gray-400 hover:text-white transition-colors duration-200 p-2 hover:bg-white/10 rounded-lg"
-          >
-            <AppIcon name="close" size={24} />
-          </button>
-        </div>
-      }
-      modalContent={loading ? renderLoading() : (!isAuthenticated ? renderAuthRequired() : renderModalContent())}
+      closeModal={handleClose}
+      modalHeader={<PublicModalHeader title={JoinRoomBtnText} icon="join-room" tone="green" onClose={handleClose} closeLabel="Close join room" />}
+      modalContent={loading ? <LoadingState label={LoadingText} className="min-h-64 border-white/20 bg-white/10" /> : (!isAuthenticated ? renderAuthRequired() : renderModalContent())}
     />
   )
 }

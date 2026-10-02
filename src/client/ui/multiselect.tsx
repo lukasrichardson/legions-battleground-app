@@ -126,13 +126,13 @@ export function MultiSelect({
         aria-controls={listboxId}
         onClick={() => setOpen(o => !o)}
         className={`
-          w-auto inline-flex items-center justify-between gap-2 rounded-xl border
-          bg-gray-400 text-black p-1 text-sm shadow-sm ring-1 ring-black/5
-          hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500
+          w-auto inline-flex min-h-9 items-center justify-between gap-2 rounded-md border border-input
+          bg-secondary px-3 py-2 text-sm text-secondary-foreground shadow-sm
+          hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
           disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
         `}
       >
-        <span className={"text-black"}>
+        <span>
           {summary}
         </span>
         <AppIcon name="chevron-down" className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
@@ -143,15 +143,15 @@ export function MultiSelect({
           ref={menuRef}
           style={menuPlacement === "viewport" ? menuStyle : undefined}
           className={menuPlacement === "viewport"
-            ? "fixed z-[60] flex flex-col overflow-hidden rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5"
+            ? "fixed z-[60] flex flex-col overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-lg"
             : menuPlacement === "inline"
-            ? "relative z-50 mt-2 flex w-full flex-col overflow-hidden rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5"
-            : "absolute z-50 mt-2 rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5 overflow-auto"}
+            ? "relative z-50 mt-2 flex w-full flex-col overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-lg"
+            : "absolute z-50 mt-2 overflow-auto rounded-md border border-border bg-popover text-popover-foreground shadow-lg"}
         >
-          <div className="flex items-center justify-between px-2 py-1 border-b">
+          <div className="flex items-center justify-between border-b border-border px-2 py-1">
             <button
               type="button"
-              className="text-xs rounded-md px-2 py-1 hover:bg-gray-500 cursor-pointer text-black w-full"
+              className="w-full cursor-pointer rounded-sm px-2 py-1 text-xs hover:bg-accent"
               onClick={() => allSelected ? clearAll() : selectAll()}
             >
               {allSelected ? "Clear all" : "Select all"}
@@ -159,7 +159,7 @@ export function MultiSelect({
             {value.length > 0 && (
               <button
                 type="button"
-                className="text-xs rounded-md px-2 py-1 hover:bg-gray-100 cursor-pointer text-black"
+                className="cursor-pointer rounded-sm px-2 py-1 text-xs hover:bg-accent"
                 onClick={clearAll}
               >
                 Clear
@@ -179,14 +179,14 @@ export function MultiSelect({
                   key={opt.value}
                   role="option"
                   aria-selected={isSelected}
-                  className={`cursor-pointer select-none px-4 py-2 text-sm hover:bg-gray-100 ${
-                    isSelected ? "bg-indigo-50 text-indigo-600" : "text-gray-900"
+                  className={`cursor-pointer select-none px-4 py-2 text-sm hover:bg-accent ${
+                    isSelected ? "bg-primary/20 text-primary" : "text-popover-foreground"
                   }`}
                   onClick={() => toggle(opt.value)}
                 >
                   <div className="flex items-center gap-2">
                     <div className={`w-4 h-4 border rounded flex items-center justify-center ${
-                      isSelected ? "bg-indigo-600 border-indigo-600" : "border-gray-300"
+                      isSelected ? "border-primary bg-primary text-primary-foreground" : "border-input"
                     }`}>
                       {isSelected && <AppIcon name="check" className="text-white" size={12} />}
                     </div>

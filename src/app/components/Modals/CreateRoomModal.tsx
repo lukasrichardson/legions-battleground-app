@@ -4,14 +4,16 @@ import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { setCreateRoomModalOpen } from "@/client/redux/modalsSlice";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
-import { Card, CardContent } from "@/client/ui/card";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
 import { useDeckPickerOptions } from "@/client/hooks/useDeckPickerOptions";
 import { useAuth } from "@/client/hooks/useAuth";
 import { refreshSocketConnection } from "@/client/socket";
-import AppIcon from "../AppIcon";
+import { InlineStatus } from "@/client/ui/inline-status";
+import LoadingState from "../LoadingState";
+import PublicDeckPickerField from "../PublicDeckPickerField";
+import PublicModalForm, { publicModalFieldClassName, publicModalInputClassName, publicModalLabelClassName } from "../PublicModalForm";
+import PublicFormSubmitButton from "../PublicFormSubmitButton";
+import PublicModalHeader from "../PublicModalHeader";
 
 const ModalConstants = {
   LoadingText: "Creating your game...",
@@ -21,7 +23,6 @@ const ModalConstants = {
   SandboxModeLabelText: "Sandbox Mode",
   CreateGameBtnText: "Create New Game",
   RoomPasswordLabelText: "Room Password (Optional)",
-  CreateGameDescription: "Set up a new game session and invite others to join",
 }
 
 export default function CreateRoomModal() {
@@ -39,7 +40,7 @@ export default function CreateRoomModal() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const auth = useAuth();
-  const { options: decks } = useDeckPickerOptions(Boolean(createRoomModalOpen && isAuthenticated));
+  const { options: decks, loading: decksLoading, error: decksError } = useDeckPickerOptions(Boolean(createRoomModalOpen && isAuthenticated));
 
   const {
     LoadingText,
@@ -50,6 +51,22 @@ export default function CreateRoomModal() {
     CreateGameBtnText,
     RoomPasswordLabelText,
   } = ModalConstants;
+
+  const resetForm = () => {
+    setRoomName("");
+    setPlayerName("");
+    setRoomPassword("");
+    setSandboxMode(true);
+    setDeckId("");
+    setP2DeckId("");
+    setError("");
+    setLoading(false);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    dispatch(setCreateRoomModalOpen(false));
+  };
 
   const handleCreateRoom = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -74,13 +91,7 @@ export default function CreateRoomModal() {
       if (p2DeckId) query.set("p2DeckId", p2DeckId);
       await refreshSocketConnection(admissionToken);
       router.push(`/play?${query.toString()}`);
-      setRoomName("");
-      setPlayerName("");
-      setSandboxMode(true);
-      setDeckId("");
-      setP2DeckId("");
-      setRoomPassword("");
-      dispatch(setCreateRoomModalOpen(false));
+      handleClose();
     } catch (error: unknown) {
       if (error instanceof Error) {
         // Error handled by UI feedback
@@ -89,7 +100,6 @@ export default function CreateRoomModal() {
         setError("Error: " + error || " An Error Occurred, try again");
       }
     } finally {
-      setRoomPassword("");
       setLoading(false);
     }
   }
@@ -112,21 +122,6 @@ export default function CreateRoomModal() {
     setSandboxMode(e.target.checked);
   }
 
-  const renderLoading = () => (
-    <div className="flex flex-col items-center justify-center py-16">
-      <div className="relative">
-        <div className="w-16 h-16 border-4 border-white/20 rounded-full"></div>
-        <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-      <p className="text-lg text-white font-medium mt-6">{LoadingText}</p>
-      <div className="flex space-x-1 mt-4">
-        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-      </div>
-    </div>
-  );
-
   const handleDeckChange = (selectedId: string) => {
     if (selectedId && selectedId !== deckId) {
       setDeckId(selectedId);
@@ -140,98 +135,61 @@ export default function CreateRoomModal() {
   }
 
   const renderModalContent = () => (
-    <div className="w-full max-w-2xl flex flex-col items-center">
-
-      <Card className="bg-white/10 border-white/20 backdrop-blur-sm shadow-2xl">
-        <CardContent className="p-6 sm:p-8">
+    <PublicModalForm>
           <form onSubmit={handleCreateRoom} className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Room Name */}
-              <div className="space-y-3">
-                <label className="block text-sm font-semibold text-white">
+              <div className={publicModalFieldClassName}>
+                <label htmlFor="create-room-name" className={publicModalLabelClassName}>
                   {RoomNameLabelText}
                 </label>
                 <Input
+                  id="create-room-name"
                   type="text"
                   value={roomName}
                   onChange={(e) => setRoomName(e.target.value)}
                   name="roomName"
                   autoComplete="on"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500/20 h-12 transition-all duration-200"
+                  className={publicModalInputClassName}
                   placeholder="Enter room name"
                   required
                 />
               </div>
 
               {/* Player Name */}
-              <div className="space-y-3">
-                <label className="block text-sm font-semibold text-white">
+              <div className={publicModalFieldClassName}>
+                <label htmlFor="create-room-username" className={publicModalLabelClassName}>
                   {YourNameLabelText}
                 </label>
                 <Input
+                  id="create-room-username"
                   type="text"
                   value={playerName || auth?.user?.name || ""}
                   readOnly
                   name="playerName"
                   autoComplete="on"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500/20 h-12 transition-all duration-200"
+                  className={publicModalInputClassName}
                 />
               </div>
             </div>
 
             {/* Deck  Section */}
-            <div className="space-y-3 flex justify-between flex-wrap">
-              <div>
-                <label className="block text-sm font-semibold text-white">
-                  {DeckLabelText}
-                </label>
-                <Select value={deckId} onValueChange={handleDeckChange}>
-                  <SelectTrigger className="h-6 w-32 text-xs bg-white/10 border-white/20 text-white">
-                    <SelectValue placeholder="Select deck" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {decks.map((deckOption, index) => (
-                        <SelectItem key={deckOption._id + `${index}`} value={deckOption._id}>
-                          {deckOption.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-white">
-                  P2 {DeckLabelText} (Optional)
-                </label>
-                <Select value={p2DeckId} onValueChange={handleP2DeckChange}>
-                  <SelectTrigger className="h-6 w-32 text-xs bg-white/10 border-white/20 text-white">
-                    <SelectValue placeholder="Select deck" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {decks.map((deckOption, index) => (
-                        <SelectItem key={deckOption._id + `${index}`} value={deckOption._id}>
-                          {deckOption.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <PublicDeckPickerField label={DeckLabelText} value={deckId} onValueChange={handleDeckChange} options={decks} loading={decksLoading} error={decksError} />
+              <PublicDeckPickerField label={`P2 ${DeckLabelText} (Optional)`} value={p2DeckId} onValueChange={handleP2DeckChange} options={decks} loading={decksLoading} error={decksError} />
             </div>
 
             {/* Room Password */}
-            <div className="space-y-3">
-              <label className="block text-sm font-semibold text-white">
+            <div className={publicModalFieldClassName}>
+              <label htmlFor="create-room-password" className={publicModalLabelClassName}>
                 {RoomPasswordLabelText}
               </label>
               <Input
+                id="create-room-password"
                 type="password"
                 value={roomPassword}
                 onChange={(e) => setRoomPassword(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500/20 h-12 transition-all duration-200"
+                className={publicModalInputClassName}
                 placeholder="Leave empty for no password"
               />
             </div>
@@ -240,6 +198,7 @@ export default function CreateRoomModal() {
             <div className="flex items-center space-x-3 p-4 bg-white/5 border border-white/10 rounded-lg">
               <div className="relative">
                 <input
+                  id="create-room-sandbox"
                   type="checkbox"
                   name="sandbox"
                   checked={sandboxMode}
@@ -248,72 +207,28 @@ export default function CreateRoomModal() {
                 />
               </div>
               <div>
-                <label className="text-sm font-semibold text-white">{SandboxModeLabelText}</label>
+                <label htmlFor="create-room-sandbox" className="text-sm font-semibold text-white">{SandboxModeLabelText}</label>
                 <p className="text-xs text-gray-400">Enable free-form sandbox play, or disable it for a regular match.</p>
               </div>
             </div>
 
             {/* Error Display */}
-            {error && (
-              <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-4">
-                <div className="flex items-center space-x-2">
-                  <AppIcon name="error" className="text-red-400 flex-shrink-0" size={20} />
-                  <p className="text-red-300 text-sm font-medium">{error}</p>
-                </div>
-              </div>
-            )}
+            {error && <InlineStatus variant="error">{error}</InlineStatus>}
 
             {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-              disabled={loading}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center gap-3">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Creating Game...</span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center gap-2">
-                  <AppIcon name="create" size={20} />
-                  <span>{CreateGameBtnText}</span>
-                </div>
-              )}
-            </Button>
+            <PublicFormSubmitButton loading={loading} loadingLabel="Creating game…" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+              <span>{CreateGameBtnText}</span>
+            </PublicFormSubmitButton>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+    </PublicModalForm>
   );
 
   return (
     <Modal
       open={createRoomModalOpen}
-      closeModal={() => {
-        dispatch(setCreateRoomModalOpen(false));
-        setRoomName("");
-        setSandboxMode(true);
-        setDeckId("");
-        setLoading(false);
-      }}
-      modalHeader={
-        <div className="flex items-center justify-between max-w-2xl p-6 pb-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <AppIcon name="create" className="text-white" size={20} />
-            </div>
-            <span className="text-xl font-bold text-white">{CreateGameBtnText}</span>
-          </div>
-          <button
-            onClick={() => dispatch(setCreateRoomModalOpen(false))}
-            className="text-gray-400 hover:text-white transition-colors duration-200 p-2 hover:bg-white/10 rounded-lg"
-          >
-            <AppIcon name="close" size={24} />
-          </button>
-        </div>
-      }
-      modalContent={loading ? renderLoading() : renderModalContent()}
+      closeModal={handleClose}
+      modalHeader={<PublicModalHeader title={CreateGameBtnText} icon="create" onClose={handleClose} closeLabel="Close create game" />}
+      modalContent={loading ? <LoadingState label={LoadingText} className="min-h-64 border-white/20 bg-white/10" /> : renderModalContent()}
     />
   )
 }

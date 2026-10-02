@@ -15,6 +15,8 @@ import { decodeHTMLEntities } from "@/client/utils/string.util";
 import LoadingState from "@/app/components/LoadingState";
 import Modal from "@/app/components/Modals/Modal";
 import AppIcon from "@/app/components/AppIcon";
+import { EmptyState } from "@/client/ui/empty-state";
+import { InlineStatus } from "@/client/ui/inline-status";
 
 export default function SearchPane({
   setHoveredCard,
@@ -51,6 +53,7 @@ export default function SearchPane({
   const [srlStatus, setSrlStatus] = useState<string[]>([]);
   const [banlist, setBanlist] = useState<BanlistItem[]>([]);
   const [loadingCards, setLoadingCards] = useState(true);
+  const [cardLoadError, setCardLoadError] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const horizontalScrollRef = useRef<HTMLDivElement | null>(null);
@@ -73,16 +76,6 @@ export default function SearchPane({
   }, [query]);
 
   useEffect(() => {
-    if (deckLegion) {
-      if (deckLegion === "Bounty" || deckLegion === "bounty") {
-        setLegion([LEGIONS.BOUNTY]);
-      } else {
-        setLegion([deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), LEGIONS.BOUNTY]);
-      }
-    }
-  }, [deckLegion]);
-
-  useEffect(() => {
     const getCards = async () => {
       const requestId = ++cardRequestIdRef.current;
       const fetchCardsObject = {
@@ -96,6 +89,7 @@ export default function SearchPane({
         srlStatus,
       }
       setLoadingCards(true);
+      setCardLoadError("");
       try {
         const res: { cards?: CardDocument[]; total?: number } = await fetchCards(fetchCardsObject);
         if (requestId !== cardRequestIdRef.current) return;
@@ -108,6 +102,7 @@ export default function SearchPane({
       } catch (error) {
         if (requestId === cardRequestIdRef.current) {
           console.warn("[SearchPane] Card request failed:", error);
+          setCardLoadError("Could not load cards. Please try again.");
         }
       } finally {
         if (requestId === cardRequestIdRef.current) {
@@ -355,7 +350,7 @@ export default function SearchPane({
           onChange={key === 'legion' ? handleLegionSelect : key === 'type' ? handleTypeSelect : key === 'rarity' ? handleRaritySelect : key === 'set' ? handleSetSelect : handleSrlStatusSelect}
           placeholder={key === 'srlStatus' ? 'S/R/L Status' : `${key.charAt(0).toUpperCase() + key.slice(1)}`}
           menuPlacement={menuPlacement}
-          className="cursor-pointer text-xs [&_button]:min-h-10 [&_button]:bg-slate-200 [&_button]:px-3"
+          className="cursor-pointer text-xs [&_button]:min-h-10 [&_button]:bg-secondary [&_button]:px-3"
         />
       ))}
       {hasActiveCriteria && <Button onClick={clearFilters} type="button" variant="ghost" className="min-h-10 px-2 text-sm text-cyan-100 hover:bg-white/10 hover:text-white">Clear all</Button>}
@@ -369,10 +364,10 @@ export default function SearchPane({
           {onAddTargetChange && (
             <div className="flex items-center gap-1 text-xs text-white/80">
               <span className="mr-1">Add to:</span>
-              <Button type="button" size="sm" onClick={() => onAddTargetChange("main")} className={`h-6 px-2 text-xs ${addTarget === "main" ? "bg-blue-600 hover:bg-blue-500" : "bg-white/10 hover:bg-white/20"}`}>
+              <Button type="button" size="sm" onClick={() => onAddTargetChange("main")} className={`h-6 px-2 text-xs text-white ${addTarget === "main" ? "bg-blue-600 hover:bg-blue-500" : "bg-white/10 hover:bg-white/20"}`}>
                 Main Deck
               </Button>
-              <Button type="button" size="sm" onClick={() => onAddTargetChange("side")} className={`h-6 px-2 text-xs ${addTarget === "side" ? "bg-purple-600 hover:bg-purple-500" : "bg-white/10 hover:bg-white/20"}`}>
+              <Button type="button" size="sm" onClick={() => onAddTargetChange("side")} className={`h-6 px-2 text-xs text-white ${addTarget === "side" ? "bg-purple-600 hover:bg-purple-500" : "bg-white/10 hover:bg-white/20"}`}>
                 Side Deck
               </Button>
             </div>
@@ -402,7 +397,7 @@ export default function SearchPane({
                     options={filterOptionsForDeckLegion[key].map((option) => ({ value: option, label: key === 'srlStatus' ? option.charAt(0).toUpperCase() + option.slice(1) : option }))}
                     value={key === 'legion' ? legion : key === 'type' ? type : key === 'rarity' ? rarity : key === 'set' ? set : srlStatus}
                     onChange={key === 'legion' ? handleLegionSelect : key === 'type' ? handleTypeSelect : key === 'rarity' ? handleRaritySelect : key === 'set' ? handleSetSelect : handleSrlStatusSelect}
-                    placeholder={key === 'srlStatus' ? 'S/R/L Status' : `${key.charAt(0).toUpperCase() + key.slice(1)}`}
+                    placeholder={key === 'srlStatus' ? 'S/R/L' : `${key.charAt(0).toUpperCase() + key.slice(1)}`}
                     className="cursor-pointer text-xs"
                   />
                 ))}
@@ -436,15 +431,15 @@ export default function SearchPane({
             gallery ? <div aria-label="Loading cards" className="grid grid-cols-2 gap-2 p-1 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:gap-4 xl:grid-cols-5 2xl:grid-cols-6">
               {Array.from({ length: 12 }, (_, index) => <div key={index} className="aspect-[3/4] animate-pulse rounded-xl border border-white/5 bg-slate-800/80" />)}
             </div> : <LoadingState label="Loading cards…" className="h-full" />
+          ) : cardLoadError ? (
+            <div className="flex h-full items-center justify-center"><InlineStatus variant="error">{cardLoadError}</InlineStatus></div>
           ) : cards.length === 0 ? (
-            <div className="text-center py-2 h-full flex flex-col items-center justify-center">
-              <div className="w-6 h-6 bg-gray-700/50 rounded-full flex items-center justify-center mb-1">
-                <AppIcon name="search" className="text-gray-400" size={12} />
-              </div>
-              <p className="text-gray-400 text-xs">No cards found</p>
-              <p className="text-gray-500 text-xs mt-1">Try adjusting your search criteria</p>
-              {gallery && hasActiveCriteria && <Button type="button" onClick={clearFilters} variant="outline" className="mt-4 min-h-10 border-white/15 bg-white/5 text-slate-100 hover:bg-white/10">Clear all filters</Button>}
-            </div>
+            <EmptyState
+              icon={<AppIcon name="search" size={20} />}
+              title="No cards found"
+              description="Try adjusting your search criteria."
+              action={gallery && hasActiveCriteria ? <Button type="button" onClick={clearFilters} variant="outline" className="min-h-10 border-white/15 bg-white/5 text-slate-100 hover:bg-white/10">Clear all filters</Button> : undefined}
+            />
           ) : (
             <div
             >

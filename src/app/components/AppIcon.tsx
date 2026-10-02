@@ -7,11 +7,9 @@ import {
   Circle,
   CircleHelp,
   CircleX,
-  CloudUpload,
   Dice6,
   DoorOpen,
   Hand,
-  LibraryBig,
   LockKeyhole,
   LogIn,
   MoreHorizontal,
@@ -24,7 +22,11 @@ import {
   Shuffle,
   SquarePen,
   Users,
-  X
+  X,
+  PlayingCardsFan,
+  WalletCards,
+  FolderSearch,
+  Import
 } from "lucide-react";
 
 const iconMap = {
@@ -39,9 +41,10 @@ const iconMap = {
   "edit-deck": SquarePen,
   "reset-game": RefreshCcw,
   create: Plus,
-  import: CloudUpload,
-  "card-gallery": LibraryBig,
-  browse: LibraryBig,
+  import: Import,
+  decks: WalletCards,
+  "card-gallery": PlayingCardsFan,
+  browse: FolderSearch,
   search: Search,
   close: X,
   error: CircleX,
@@ -54,7 +57,7 @@ const iconMap = {
   more: MoreHorizontal,
   rock: Circle,
   paper: ScrollText,
-  scissors: Scissors
+  scissors: Scissors,
 } as const;
 
 export type AppIconName = keyof typeof iconMap;

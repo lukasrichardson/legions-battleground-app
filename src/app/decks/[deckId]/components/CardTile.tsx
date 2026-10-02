@@ -114,7 +114,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
         onMouseEnter={handleOnMouseEnter}
         onMouseLeave={handleOnMouseLeave}
       >
-        <div ref={(node) => { drag(node); }}>
+        <div ref={(node) => { drag(node); }} className={readOnly ? undefined : "cursor-grab active:cursor-grabbing"}>
           {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck)}
           <div key={card._id.toString() + index}>
             {suspendedCards[card.title] && (
@@ -143,7 +143,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
         onMouseEnter={handleOnMouseEnter}
         onMouseLeave={handleOnMouseLeave}
       >
-        <div ref={(node) => { drag(node); }}>
+        <div ref={(node) => { drag(node); }} className={readOnly ? undefined : "cursor-grab active:cursor-grabbing"}>
           {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck)}
           <div onContextMenu={(e) => removeCardFromDeck(e, card)} key={card._id.toString() + index} onMouseLeave={handleOnMouseLeave}>
             {suspendedCards[card.title] && (
@@ -201,7 +201,7 @@ export const SearchCardTile = ({ card, index, onContextMenu, onMouseEnter, eager
     }),
   }), [card]);
   return (
-    <div ref={(node) => { drag(node); }} onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
+    <div ref={(node) => { drag(node); }} className="cursor-grab active:cursor-grabbing" onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
       {!isDragging && renderCardTile(card, index, handleOnMouseEnter, !eagerImage)}
     </div>
   )

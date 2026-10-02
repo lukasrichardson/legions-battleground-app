@@ -10,6 +10,7 @@ import { useDrop } from "react-dnd";
 import { getMainDeckCards, getOrdinaryMainDeckCards, getSideDeckCards, getSpecialMainDeckCards } from "@/shared/deckComposition";
 import LoadingState from "@/app/components/LoadingState";
 import AppIcon from "@/app/components/AppIcon";
+import { EmptyState } from "@/client/ui/empty-state";
 
 const renderSectionStructure = (name: string, cards: HydratedDeckCard[], renderSubSection: (cards: HydratedDeckCard[]) => JSX.Element) => (
   cards && cards.length > 0 && (
@@ -144,28 +145,34 @@ export default function DeckGrid({
               {renderSectionStructure(CARD_TYPE.UNIFIED, unifieds, renderSection)}
               {renderSectionStructure(CARD_TYPE.FORTIFIED, fortifieds, renderSection)}
 
-              {/* Empty State */}
               {allMainDeckCards.length === 0 && (
-                <div className="text-center py-8">
-                  <div className="w-8 h-8 bg-gray-700/50 rounded-full flex items-center justify-center mb-2">
-                    <AppIcon name="create" className="text-gray-400" size={16} />
-                  </div>
-                  <p className="text-gray-400 text-sm">No cards in deck</p>
-                  <p className="text-gray-500 text-xs mt-1">Use the search pane to add cards</p>
-                </div>
+                <EmptyState
+                  icon={<AppIcon name="create" size={20} />}
+                  title="No cards in deck"
+                  description="Use the search pane to add cards."
+                />
               )}
             </div>
           ) : (
-            <>
-            <div className="rounded bg-white/20 relative min-h-1/12">
-              <span className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 italic z-50 pointer-events-none bg-black/20">LEFT SIDE and tokens</span>
-              {renderSection([...warlords, ...veilRealms, ...synergies, ...guardians, ...tokens])}
-            </div>
-            <div className="rounded bg-white/20 relative mt-2 min-h-1/2">
-              <span className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 italic z-50 pointer-events-none bg-black/20">MAIN DECK</span>
-              {renderSection(mainDeck)}
-            </div>
-            </>
+            allMainDeckCards.length === 0 ? (
+              <EmptyState
+                icon={<AppIcon name="create" size={20} />}
+                title="No cards in deck"
+                description="Use the search pane to add cards."
+                className="h-full"
+              />
+            ) : (
+              <>
+                <div className="rounded bg-white/20 relative min-h-1/12">
+                  <span className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 italic z-50 pointer-events-none bg-black/20">LEFT SIDE and tokens</span>
+                  {renderSection([...warlords, ...veilRealms, ...synergies, ...guardians, ...tokens])}
+                </div>
+                <div className="rounded bg-white/20 relative mt-2 min-h-1/2">
+                  <span className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 italic z-50 pointer-events-none bg-black/20">MAIN DECK</span>
+                  {renderSection(mainDeck)}
+                </div>
+              </>
+            )
           )}
         </div>
       </CardContent>
