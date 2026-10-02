@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { fetchBanlist, fetchCards, fetchFilterOptions, postBanlistUpdate } from "@/client/utils/api.utils";
 import { Input } from "@/client/ui/input";
@@ -13,6 +13,8 @@ import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mong
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
 import LoadingState from "@/app/components/LoadingState";
+import Modal from "@/app/components/Modals/Modal";
+import AppIcon from "@/app/components/AppIcon";
 
 export default function SearchPane({
   setHoveredCard,
@@ -21,13 +23,19 @@ export default function SearchPane({
   gallery = false,
   addTarget = "main",
   onAddTargetChange,
+  onSelectCard,
+  onClearSelectedCard,
+  selectedCardId = null,
 }: {
-  setHoveredCard: (card: CardDocument | null) => void,
+  setHoveredCard: (card: CardDocument | null, banlistItem?: BanlistItem | null) => void,
   handleAddCardToDeck: (card: CardDocument) => void,
   deckLegion: string | null,
   gallery?: boolean,
   addTarget?: "main" | "side",
   onAddTargetChange?: (target: "main" | "side") => void,
+  onSelectCard?: (card: CardDocument, banlistItem: BanlistItem | null) => void,
+  onClearSelectedCard?: () => void,
+  selectedCardId?: string | null,
 }) {
   const [legion, setLegion] = useState<string[]>([]);
   const [query, setQuery] = useState("");
@@ -43,8 +51,15 @@ export default function SearchPane({
   const [srlStatus, setSrlStatus] = useState<string[]>([]);
   const [banlist, setBanlist] = useState<BanlistItem[]>([]);
   const [loadingCards, setLoadingCards] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const horizontalScrollRef = useRef<HTMLDivElement | null>(null);
+  const isScrollingRef = useRef(false);
+  const scrollStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const preloadedPageKeyRef = useRef<string | null>(null);
+  const cardRequestIdRef = useRef(0);
+  const setHoveredCardRef = useRef(setHoveredCard);
+  setHoveredCardRef.current = setHoveredCard;
 
   useEffect(() => {
     void fetchBanlist().then(setBanlist).catch((error) => console.warn("[SearchPane] Banlist request failed:", error));
@@ -69,6 +84,7 @@ export default function SearchPane({
 
   useEffect(() => {
     const getCards = async () => {
+      const requestId = ++cardRequestIdRef.current;
       const fetchCardsObject = {
         legion: deckLegion && legion.length === 0 ? (deckLegion === "Bounty" || deckLegion === "bounty" ? [LEGIONS.BOUNTY] : [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), LEGIONS.BOUNTY]) : legion,
         query: debouncedQuery,
@@ -82,6 +98,7 @@ export default function SearchPane({
       setLoadingCards(true);
       try {
         const res: { cards?: CardDocument[]; total?: number } = await fetchCards(fetchCardsObject);
+        if (requestId !== cardRequestIdRef.current) return;
         if (res?.cards) {
           setCards(res.cards);
         }
@@ -89,13 +106,19 @@ export default function SearchPane({
           setTotal(res.total);
         }
       } catch (error) {
-        console.warn("[SearchPane] Card request failed:", error);
+        if (requestId === cardRequestIdRef.current) {
+          console.warn("[SearchPane] Card request failed:", error);
+        }
       } finally {
-        setLoadingCards(false);
+        if (requestId === cardRequestIdRef.current) {
+          setLoadingCards(false);
+        }
       }
     }
-    getCards();
-    getFilterOptions();
+    void getCards();
+    return () => {
+      cardRequestIdRef.current += 1;
+    };
   }, [legion, debouncedQuery, page, pageSize, type, rarity, set, srlStatus, deckLegion]);
 
   const handleLegionSelect = (legionVal: string[]) => {
@@ -133,9 +156,17 @@ export default function SearchPane({
     handleAddCardToDeck(card);
   }
 
-  const getFilterOptions = async () => {
-    setFilterOptions(await fetchFilterOptions());
-  }
+  useEffect(() => {
+    let active = true;
+    void fetchFilterOptions()
+      .then((options) => {
+        if (active) setFilterOptions(options);
+      })
+      .catch((error) => console.warn("[SearchPane] Filter options request failed:", error));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const nextPage = () => {
     setPageAndScrollTop(page + 1);
@@ -167,7 +198,20 @@ export default function SearchPane({
     };
   }, [filterOptions, deckLegion]);
 
+  const criteriaKey = useMemo(
+    () => [debouncedQuery, page, legion.join("|"), type.join("|"), rarity.join("|"), set.join("|"), srlStatus.join("|")].join("\u0000"),
+    [debouncedQuery, legion, page, rarity, set, srlStatus, type],
+  );
+  const previewCriteriaKey = useMemo(
+    () => [debouncedQuery, legion.join("|"), type.join("|"), rarity.join("|"), set.join("|"), srlStatus.join("|")].join("\u0000"),
+    [debouncedQuery, legion, rarity, set, srlStatus, type],
+  );
+
   const preloadNextPage = () => {
+    if (preloadedPageKeyRef.current === criteriaKey || total <= pageSize * page) {
+      return;
+    }
+    preloadedPageKeyRef.current = criteriaKey;
     fetchCards({
       legion: deckLegion && legion.length === 0 ? (deckLegion === "Bounty" || deckLegion === "bounty" ? [LEGIONS.BOUNTY] : [deckLegion.charAt(0).toUpperCase() + deckLegion.slice(1), LEGIONS.BOUNTY]) : legion,
       query: debouncedQuery,
@@ -179,11 +223,14 @@ export default function SearchPane({
       srlStatus,
     }).then(res => {
       if (res?.cards) {
-        preloadSearchResults(res.cards);
+        void preloadSearchResults(res.cards);
       } else {
         console.warn('[SearchPane] Scroll-triggered preload returned no cards');
       }
     }).catch(error => {
+      if (preloadedPageKeyRef.current === criteriaKey) {
+        preloadedPageKeyRef.current = null;
+      }
       console.warn('[SearchPane] Scroll-triggered preload failed:', error);
     });
   }
@@ -199,6 +246,14 @@ export default function SearchPane({
   }
 
   const handleVerticalScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    isScrollingRef.current = true;
+    if (scrollStopTimeoutRef.current) {
+      clearTimeout(scrollStopTimeoutRef.current);
+    }
+    scrollStopTimeoutRef.current = setTimeout(() => {
+      isScrollingRef.current = false;
+    }, 120);
+
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     const scrollPercent = scrollTop / (scrollHeight - clientHeight);
     // Trigger next page preload when user scrolls 80% down
@@ -220,19 +275,13 @@ export default function SearchPane({
 
   useEffect(() => {
     return () => {
-      setLegion([]);
-      setType([]);
-      setRarity([]);
-      setSet([]);
-      setSrlStatus([]);
-      setCards([]);
-      setHoveredCard(null);
-      setTotal(0);
-      setPage(1);
-      setQuery("");
-      setDebouncedQuery("");
+      if (scrollStopTimeoutRef.current) {
+        clearTimeout(scrollStopTimeoutRef.current);
+      }
+      cardRequestIdRef.current += 1;
+      setHoveredCardRef.current(null);
     }
-  }, [setHoveredCard]);
+  }, []);
 
   const handleCardSrlClick = async (card, status) => {
     setBanlist(await postBanlistUpdate({
@@ -271,11 +320,52 @@ export default function SearchPane({
     return limited;
   }, [banlist]);
 
+  const banlistByName = useMemo(() => new Map(banlist.map((item) => [item.name, item])), [banlist]);
+  const handleGalleryCardHover = useCallback((card: CardDocument) => {
+    if (!isScrollingRef.current) {
+      setHoveredCard(card, banlistByName.get(card.title) ?? null);
+    }
+  }, [banlistByName, setHoveredCard]);
+  const activeFilterCount = legion.length + type.length + rarity.length + set.length + srlStatus.length;
+  const hasActiveCriteria = Boolean(query || activeFilterCount);
+  const resultStart = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const resultEnd = Math.min(page * pageSize, total);
+  const getBanlistItem = (card: CardDocument) => banlistByName.get(card.title) ?? null;
+  const previousPreviewCriteriaKey = useRef(previewCriteriaKey);
+
+  useEffect(() => {
+    if (previousPreviewCriteriaKey.current !== previewCriteriaKey) {
+      previousPreviewCriteriaKey.current = previewCriteriaKey;
+      if (gallery) {
+        setHoveredCard(null);
+        if (selectedCardId) {
+          onClearSelectedCard?.();
+        }
+      }
+    }
+  }, [gallery, onClearSelectedCard, previewCriteriaKey, selectedCardId, setHoveredCard]);
+
+  const galleryFilters = (className = "", menuPlacement: "popover" | "viewport" | "inline" = "popover") => (
+    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+      {Object.keys(filterOptionsForDeckLegion).map((key) => (
+        <MultiSelect
+          key={key}
+          options={filterOptionsForDeckLegion[key].map((option) => ({ value: option, label: key === 'srlStatus' ? option.charAt(0).toUpperCase() + option.slice(1) : option }))}
+          value={key === 'legion' ? legion : key === 'type' ? type : key === 'rarity' ? rarity : key === 'set' ? set : srlStatus}
+          onChange={key === 'legion' ? handleLegionSelect : key === 'type' ? handleTypeSelect : key === 'rarity' ? handleRaritySelect : key === 'set' ? handleSetSelect : handleSrlStatusSelect}
+          placeholder={key === 'srlStatus' ? 'S/R/L Status' : `${key.charAt(0).toUpperCase() + key.slice(1)}`}
+          menuPlacement={menuPlacement}
+          className="cursor-pointer text-xs [&_button]:min-h-10 [&_button]:bg-slate-200 [&_button]:px-3"
+        />
+      ))}
+      {hasActiveCriteria && <Button onClick={clearFilters} type="button" variant="ghost" className="min-h-10 px-2 text-sm text-cyan-100 hover:bg-white/10 hover:text-white">Clear all</Button>}
+    </div>
+  );
+
   return (
-    <Card className="bg-white/10 border-white/20 text-white h-full flex flex-col">
-      <CardContent className="p-2 pt-0 h-full flex flex-col overflow-hidden">
-        {/* Search and Filters - Compact for mobile */}
-        <div className="space-y-1 mb-2">
+    <Card className={gallery ? "h-full border-white/10 bg-slate-900/75 text-white shadow-xl shadow-black/20" : "bg-white/10 border-white/20 text-white h-full flex flex-col"}>
+      <CardContent className={gallery ? "flex h-full flex-col overflow-hidden p-3 sm:p-4" : "p-2 pt-0 h-full flex flex-col overflow-hidden"}>
+        <div className={gallery ? "mb-2 space-y-3" : "space-y-1 mb-2"}>
           {onAddTargetChange && (
             <div className="flex items-center gap-1 text-xs text-white/80">
               <span className="mr-1">Add to:</span>
@@ -287,18 +377,23 @@ export default function SearchPane({
               </Button>
             </div>
           )}
-          {/* <label htmlFor="search-input" className="text-xs">Search</label> */}
           <Input
             id="search-input"
             value={query}
             onChange={handleSearchChange}
             placeholder="Search cards..."
-            className="bg-white/10 border-white/20 text-white h-6 text-xs placeholder:text-white/50"
+            aria-label="Search cards"
+            className={gallery ? "h-11 border-white/15 bg-slate-950/60 px-3 text-sm text-white placeholder:text-slate-500 focus-visible:ring-cyan-300" : "bg-white/10 border-white/20 text-white h-6 text-xs placeholder:text-white/50"}
           />
 
-          {/* Only show filters on larger screens to save space on mobile */}
-          {/* <div className="hidden lg:block"> */}
-          <div className="block">
+          {gallery ? <>
+            <div className="flex items-center justify-between gap-2 lg:hidden">
+              <Button type="button" onClick={() => setFiltersOpen(true)} variant="outline" className="min-h-11 border-cyan-200/25 bg-cyan-300/10 px-4 text-cyan-50 hover:bg-cyan-300/20">
+                Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+              </Button>
+            </div>
+            <div className="hidden lg:block">{galleryFilters()}</div>
+          </> : <div className="block">
             {(Object.keys(filterOptionsForDeckLegion).length > 0) && (
               <div className="md:space-y-0.5">
                 {Object.keys(filterOptionsForDeckLegion).map((key) => (
@@ -316,20 +411,19 @@ export default function SearchPane({
                 </Button>
               </div>
             )}
-          </div>
+          </div>}
 
-          {/* Pagination Controls - Compact */}
-          <div className="flex justify-center gap-1">
+          <div className={gallery ? "flex items-center justify-between gap-2 border-white/10" : "flex justify-center gap-1"}>
             {page > 1 && (
-              <Button onClick={prevPage} size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs">
+              <Button onClick={prevPage} size="sm" variant="outline" className={gallery ? "min-h-10 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
                 Prev
               </Button>
             )}
-            <div className="text-center text-xs text-gray-300">
-              Page {page} of {total / pageSize > 0 ? Math.ceil(total / pageSize) : 1} ({total} cards)
+            <div className={gallery ? "text-center text-xs text-slate-400" : "text-center text-xs text-gray-300"}>
+              {gallery ? `Showing ${resultStart}–${resultEnd} of ${total.toLocaleString()}` : `Page ${page} of ${total / pageSize > 0 ? Math.ceil(total / pageSize) : 1} (${total} cards)`}
             </div>
             {total / pageSize > page && (
-              <Button onClick={nextPage} size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs">
+              <Button onClick={nextPage} size="sm" variant="outline" className={gallery ? "min-h-10 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
                 Next
               </Button>
             )}
@@ -339,26 +433,36 @@ export default function SearchPane({
         {/* Cards List - Scrollable with smaller card sizes to match deck */}
         <div ref={scrollRef} onScroll={handleVerticalScroll} className="grow overflow-auto shadow-black shadow-2xl">
           {loadingCards ? (
-            <LoadingState label="Loading cards…" className="h-full" />
+            gallery ? <div aria-label="Loading cards" className="grid grid-cols-2 gap-2 p-1 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:gap-4 xl:grid-cols-5 2xl:grid-cols-6">
+              {Array.from({ length: 12 }, (_, index) => <div key={index} className="aspect-[3/4] animate-pulse rounded-xl border border-white/5 bg-slate-800/80" />)}
+            </div> : <LoadingState label="Loading cards…" className="h-full" />
           ) : cards.length === 0 ? (
             <div className="text-center py-2 h-full flex flex-col items-center justify-center">
               <div className="w-6 h-6 bg-gray-700/50 rounded-full flex items-center justify-center mb-1">
-                <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <AppIcon name="search" className="text-gray-400" size={12} />
               </div>
               <p className="text-gray-400 text-xs">No cards found</p>
               <p className="text-gray-500 text-xs mt-1">Try adjusting your search criteria</p>
+              {gallery && hasActiveCriteria && <Button type="button" onClick={clearFilters} variant="outline" className="mt-4 min-h-10 border-white/15 bg-white/5 text-slate-100 hover:bg-white/10">Clear all filters</Button>}
             </div>
           ) : (
             <div
             >
-              {gallery ? <div onWheel={handleVerticalScroll} className="flex flex-wrap overflow-x-hidden overflow-y-auto">
+              {gallery ? <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:gap-4 xl:grid-cols-5 2xl:grid-cols-6">
                 {cards.map((card, index) => (
                   <div
-                    key={card.toString() + index}
-                    className="w-full xs:w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/10 cursor-pointer max-h-full inline-block box-border relative"
-                    onClick={(e) => handleSearchedCardClick(e, card)}
+                    key={card._id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Inspect ${decodeHTMLEntities(card.title)}${selectedCardId === card._id ? ", selected" : ""}`}
+                    className={`group relative box-border max-h-full cursor-pointer rounded-xl p-0.5 outline-none transition focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${selectedCardId === card._id ? "bg-cyan-300 shadow-lg shadow-cyan-950/50" : "hover:bg-white/10"}`}
+                    onClick={() => onSelectCard?.(card, getBanlistItem(card))}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onSelectCard?.(card, getBanlistItem(card));
+                      }
+                    }}
                   >
                     {process.env.NODE_ENV === "development" && <div className="absolute opacity-0 hover:opacity-100 w-1/2 h-full bg-white/50 z-1 flex flex-col items-center justify-center gap-1 cursor-default">
                       <div className="bg-gray-500 cursor-pointer" onClick={() => handleCardSrlClick(card, BanlistStatus.SUSPENDED)}>0</div>
@@ -381,7 +485,7 @@ export default function SearchPane({
                         2
                       </div>
                     )}
-                    <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
+                    <SearchCardTile card={card} index={index} eagerImage={index < 6} onContextMenu={handleSearchedCardClick} onMouseEnter={handleGalleryCardHover} />
                   </div>
                 ))}
               </div> : <div ref={horizontalScrollRef} onWheel={handleOnScroll} className="lg:flex lg:items-start lg:justify-start lg:flex-wrap h-full overflow-x-scroll overflow-y-hidden lg:overflow-x-hidden lg:overflow-y-auto whitespace-nowrap">
@@ -408,7 +512,7 @@ export default function SearchPane({
                           2
                         </div>
                       )}
-                      <SearchCardTile card={card} index={index} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
+                      <SearchCardTile card={card} index={index} eagerImage={index < 6} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
                     </div>
                     <div className="hidden w-6/7 lg:flex flex-col xl:w-7/8 h-full justify-between" onClick={() => setHoveredCard(card)}>
                       <span className="text-md underline truncate">{decodeHTMLEntities(card.title)}</span>
@@ -429,6 +533,16 @@ export default function SearchPane({
             </div>
           )}
         </div>
+        {gallery && <div className="lg:hidden">
+          <Modal
+            open={filtersOpen}
+            closeModal={() => setFiltersOpen(false)}
+            variant="bottom-sheet"
+            ariaLabel="Card filters"
+            modalHeader={<div className="flex items-center justify-between py-3"><span className="text-base font-semibold text-white">Filters</span><button type="button" aria-label="Close filters" onClick={() => setFiltersOpen(false)} className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"><AppIcon name="close" size={18} /></button></div>}
+            modalContent={<div className="w-full pb-2">{galleryFilters("flex-col items-stretch [&_.relative]:w-full [&_button]:w-full", "viewport")}</div>}
+          />
+        </div>}
       </CardContent>
     </Card>
   )

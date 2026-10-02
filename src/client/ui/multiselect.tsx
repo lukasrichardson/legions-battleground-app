@@ -1,4 +1,5 @@
-import React, { useEffect, useId, useRef, useState } from "react"
+import React, { CSSProperties, useEffect, useId, useRef, useState } from "react"
+import AppIcon from "@/app/components/AppIcon"
 
 type Option = { value: string; label: string }
 
@@ -9,6 +10,7 @@ type MultiSelectProps = {
   placeholder?: string
   className?: string
   disabled?: boolean
+  menuPlacement?: "popover" | "viewport" | "inline"
 }
 
 export function MultiSelect({
@@ -18,11 +20,53 @@ export function MultiSelect({
   placeholder = "Select...",
   className = "",
   disabled = false,
+  menuPlacement = "popover",
 }: MultiSelectProps) {
   const [open, setOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement | null>(null)
   const menuRef = useRef<HTMLDivElement | null>(null)
   const listboxId = useId()
+  const [menuStyle, setMenuStyle] = useState<CSSProperties>()
+
+  useEffect(() => {
+    if (!open || menuPlacement !== "viewport") return
+
+    const updateMenuPosition = () => {
+      const button = buttonRef.current
+      if (!button) return
+
+      const rect = button.getBoundingClientRect()
+      const viewportPadding = 12
+      const gap = 8
+      const preferredMenuHeight = 280
+      const spaceBelow = window.innerHeight - rect.bottom - viewportPadding
+      const spaceAbove = rect.top - viewportPadding
+      const openAbove = spaceBelow < preferredMenuHeight && spaceAbove > 0
+      const availableHeight = Math.max(120, Math.min(preferredMenuHeight, openAbove ? spaceAbove : spaceBelow))
+      const width = Math.min(rect.width, window.innerWidth - viewportPadding * 2)
+
+      setMenuStyle({
+        width,
+        maxHeight: availableHeight,
+        left: Math.max(viewportPadding, Math.min(rect.left, window.innerWidth - width - viewportPadding)),
+        top: openAbove ? Math.max(viewportPadding, rect.top - availableHeight - gap) : rect.bottom + gap,
+      })
+    }
+
+    updateMenuPosition()
+    window.addEventListener("resize", updateMenuPosition)
+    window.addEventListener("scroll", updateMenuPosition, true)
+    return () => {
+      window.removeEventListener("resize", updateMenuPosition)
+      window.removeEventListener("scroll", updateMenuPosition, true)
+    }
+  }, [menuPlacement, open])
+
+  useEffect(() => {
+    if (open && menuPlacement === "inline") {
+      buttonRef.current?.scrollIntoView({ block: "start" })
+    }
+  }, [menuPlacement, open])
 
   // Close on outside click / Escape
   useEffect(() => {
@@ -91,20 +135,18 @@ export function MultiSelect({
         <span className={"text-black"}>
           {summary}
         </span>
-        <svg
-          className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" />
-        </svg>
+        <AppIcon name="chevron-down" className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
         <div
           ref={menuRef}
-          className="fixed z-50 mt-2 rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5 overflow-auto"
+          style={menuPlacement === "viewport" ? menuStyle : undefined}
+          className={menuPlacement === "viewport"
+            ? "fixed z-[60] flex flex-col overflow-hidden rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5"
+            : menuPlacement === "inline"
+            ? "relative z-50 mt-2 flex w-full flex-col overflow-hidden rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5"
+            : "absolute z-50 mt-2 rounded-xl border bg-gray-400 shadow-lg ring-1 ring-black/5 overflow-auto"}
         >
           <div className="flex items-center justify-between px-2 py-1 border-b">
             <button
@@ -128,7 +170,7 @@ export function MultiSelect({
             id={listboxId}
             role="listbox"
             aria-multiselectable="true"
-            className="max-h-56 overflow-auto py-1"
+            className={menuPlacement === "viewport" || menuPlacement === "inline" ? "max-h-56 min-h-0 flex-1 overflow-auto py-1" : "max-h-56 overflow-auto py-1"}
           >
             {options.map(opt => {
               const isSelected = value.includes(opt.value)
@@ -146,11 +188,7 @@ export function MultiSelect({
                     <div className={`w-4 h-4 border rounded flex items-center justify-center ${
                       isSelected ? "bg-indigo-600 border-indigo-600" : "border-gray-300"
                     }`}>
-                      {isSelected && (
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
+                      {isSelected && <AppIcon name="check" className="text-white" size={12} />}
                     </div>
                     {opt.label}
                   </div>

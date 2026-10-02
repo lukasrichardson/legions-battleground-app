@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/client/ui/card";
+import AppIcon from "../AppIcon";
 
 type AliasResponse = { alias: string | null; error?: string };
 
@@ -112,9 +113,7 @@ export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
           </div>
         </div>
         <button type="button" onClick={onClose} className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-white/10 hover:text-white" aria-label="Close username editor">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <AppIcon name="close" size={16} />
         </button>
       </CardHeader>
       <CardContent className="p-4 pt-4">

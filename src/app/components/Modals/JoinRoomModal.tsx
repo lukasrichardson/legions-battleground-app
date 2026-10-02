@@ -12,6 +12,7 @@ import { signIn } from "next-auth/react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/client/ui/select";
 import { useDeckPickerOptions } from "@/client/hooks/useDeckPickerOptions";
 import { refreshSocketConnection } from "@/client/socket";
+import AppIcon from "../AppIcon";
 
 const ModalConstants = {
   LoadingText: "Loading...",
@@ -101,9 +102,7 @@ export default function JoinRoomModal() {
   const renderAuthRequired = () => (
     <div className="w-full max-w-md mx-auto text-center">
       <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl mb-4 shadow-lg">
-        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-        </svg>
+        <AppIcon name="sign-in-required" className="text-white" size={32} />
       </div>
       <h2 className="text-2xl font-bold text-white mb-3">Sign In Required</h2>
       <p className="text-gray-300 mb-6">You need to be signed in to join a room.</p>
@@ -229,9 +228,7 @@ export default function JoinRoomModal() {
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
+                  <AppIcon name="join-room" size={20} />
                   <span>{JoinRoomBtnText}</span>
                 </div>
               )}
@@ -255,9 +252,7 @@ export default function JoinRoomModal() {
         <div className="flex items-center justify-between w-full p-6 pb-0">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
-              </svg>
+              <AppIcon name="join-room" className="text-white" size={20} />
             </div>
             <span className="text-xl font-bold text-white">{JoinRoomBtnText}</span>
           </div>
@@ -265,9 +260,7 @@ export default function JoinRoomModal() {
             onClick={() => dispatch(setJoinRoomModalOpen(null))}
             className="text-gray-400 hover:text-white transition-colors duration-200 p-2 hover:bg-white/10 rounded-lg"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <AppIcon name="close" size={24} />
           </button>
         </div>
       }

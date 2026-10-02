@@ -9,6 +9,7 @@ import useIsMobile from "@/client/hooks/useIsMobile";
 import { useDrop } from "react-dnd";
 import { getMainDeckCards, getOrdinaryMainDeckCards, getSideDeckCards, getSpecialMainDeckCards } from "@/shared/deckComposition";
 import LoadingState from "@/app/components/LoadingState";
+import AppIcon from "@/app/components/AppIcon";
 
 const renderSectionStructure = (name: string, cards: HydratedDeckCard[], renderSubSection: (cards: HydratedDeckCard[]) => JSX.Element) => (
   cards && cards.length > 0 && (
@@ -147,9 +148,7 @@ export default function DeckGrid({
               {allMainDeckCards.length === 0 && (
                 <div className="text-center py-8">
                   <div className="w-8 h-8 bg-gray-700/50 rounded-full flex items-center justify-center mb-2">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
+                    <AppIcon name="create" className="text-gray-400" size={16} />
                   </div>
                   <p className="text-gray-400 text-sm">No cards in deck</p>
                   <p className="text-gray-500 text-xs mt-1">Use the search pane to add cards</p>

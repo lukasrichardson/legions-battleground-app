@@ -7,12 +7,16 @@ interface CardImageProps {
   src: string | StaticImageData;
   alt: string;
   className?: string;
+  loading?: "eager" | "lazy";
+  priority?: boolean;
 }
 
 export default function CardImage({
   src,
   alt,
-  className
+  className,
+  loading = "eager",
+  priority = true,
 }: CardImageProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const loadStartTime = useRef(Date.now());
@@ -60,8 +64,8 @@ export default function CardImage({
         unoptimized
         onLoad={handleLoad}
         onError={handleError}
-        loading="eager"
-        priority={true}
+        loading={loading}
+        priority={priority}
       />
       {!imageLoaded && (
         <div 

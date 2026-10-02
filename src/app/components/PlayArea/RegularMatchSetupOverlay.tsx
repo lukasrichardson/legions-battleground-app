@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { Circle, Hand, Scissors, ScrollText } from "lucide-react";
+import AppIcon from "../AppIcon";
 import { useAppSelector } from "@/client/redux/hooks";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
@@ -57,9 +57,9 @@ export default function RegularMatchSetupOverlay() {
       {myChoice ? <WaitingMessage message={`Choice locked: ${myChoice}. Waiting for your opponent.`} /> : <>
         {game.rpsTieCount > 0 ? <div role="status" aria-live="assertive" className="mt-4 rounded-xl border border-amber-300/25 bg-amber-300/10 p-3 text-sm text-amber-100">That round was a tie. Choose again.</div> : null}
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <RpsChoice label="Rock" icon={<Circle size={25} />} onClick={() => emitGameEvent({ type: GAME_EVENT.setRpsChoice, data: "Rock" })} />
-          <RpsChoice label="Paper" icon={<ScrollText size={25} />} onClick={() => emitGameEvent({ type: GAME_EVENT.setRpsChoice, data: "Paper" })} />
-          <RpsChoice label="Scissors" icon={<Scissors size={25} />} onClick={() => emitGameEvent({ type: GAME_EVENT.setRpsChoice, data: "Scissors" })} />
+          <RpsChoice label="Rock" icon={<AppIcon name="rock" size={25} />} onClick={() => emitGameEvent({ type: GAME_EVENT.setRpsChoice, data: "Rock" })} />
+          <RpsChoice label="Paper" icon={<AppIcon name="paper" size={25} />} onClick={() => emitGameEvent({ type: GAME_EVENT.setRpsChoice, data: "Paper" })} />
+          <RpsChoice label="Scissors" icon={<AppIcon name="scissors" size={25} />} onClick={() => emitGameEvent({ type: GAME_EVENT.setRpsChoice, data: "Scissors" })} />
         </div>
       </>}
     </BlockingPanel>;
@@ -81,7 +81,7 @@ export default function RegularMatchSetupOverlay() {
 
   if (game.matchStatus === MatchStatus.Mulligans) {
     return <aside role="status" aria-live="polite" className="absolute left-1/2 top-1/2 z-40 w-[min(26rem,calc(100%-2.5rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-cyan-300/25 bg-slate-950/95 p-5 shadow-2xl backdrop-blur">
-      <div className="mb-3 flex items-center gap-2 text-cyan-200"><Hand size={20} /><span className="font-semibold">Mulligan</span></div>
+      <div className="mb-3 flex items-center gap-2 text-cyan-200"><AppIcon name="mulligan-hand" size={20} /><span className="font-semibold">Mulligan</span></div>
       {isMyMulligan ? <>
         <p className="text-sm text-slate-200">Review your hand, then choose whether to mulligan or keep.</p>
         <div className="mt-4 grid grid-cols-2 gap-3">

@@ -6,6 +6,7 @@ import { Input } from "@/client/ui/input";
 import { Card, CardContent } from "@/client/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
 import { createDeck, fetchFilterOptions } from "@/client/utils/api.utils";
+import AppIcon from "../AppIcon";
 
 const ModalConstants = {
   LoadingText: "Creating your deck...",
@@ -168,9 +169,7 @@ export default function CreateDeckModal({
             {error && (
               <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-4">
                 <div className="flex items-center space-x-2">
-                  <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
+                  <AppIcon name="error" className="text-red-400 flex-shrink-0" size={20} />
                   <p className="text-red-300 text-sm font-medium">{error}</p>
                 </div>
               </div>
@@ -189,9 +188,7 @@ export default function CreateDeckModal({
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
+                  <AppIcon name="create" size={20} />
                   <span>{CreateDeckBtnText}</span>
                 </div>
               )}
@@ -210,9 +207,7 @@ export default function CreateDeckModal({
         <div className="flex items-center justify-between w-full p-6 pb-0">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
+              <AppIcon name="create" className="text-white" size={20} />
             </div>
             <span className="text-xl font-bold text-white">{CreateDeckBtnText}</span>
           </div>
@@ -221,9 +216,7 @@ export default function CreateDeckModal({
             className="text-gray-400 hover:text-white transition-colors duration-200 p-2 hover:bg-white/10 rounded-lg"
             disabled={loading}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <AppIcon name="close" size={24} />
           </button>
         </div>
       }

@@ -11,5 +11,6 @@ This directory contains the implementation detail intentionally kept out of the 
 - [Testing and quality](./testing-and-quality.md)
 - [Security notes](./security.md)
 - [UI change log](./ui-changelog.md)
+- [Icon system consolidation plan](./icon-system-implementation.md)
 
 Detailed reference material is stored alongside these focused guides so the repository root remains a concise project entry point.

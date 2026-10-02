@@ -28,7 +28,7 @@ export const PLACEHOLDER =
 
 type DeckTileCard = Pick<HydratedDeckCard, "_id" | "title" | "featured_image">;
 
-export const renderCardTile = (card: DeckTileCard, index: number, onMouseEnter: (card: DeckTileCard) => void) => {
+export const renderCardTile = (card: DeckTileCard, index: number, onMouseEnter: (card: DeckTileCard) => void, lazyImage = false) => {
   return (<div
     key={card?._id.toString() + index}
     onMouseEnter={() => onMouseEnter(card)}
@@ -40,6 +40,8 @@ export const renderCardTile = (card: DeckTileCard, index: number, onMouseEnter: 
         src={card?.featured_image}
         alt={card?.title || "DECK IMAGE"}
         className="object-contain transition-transform duration-200 group-hover:scale-[1.03]"
+        loading={lazyImage ? "lazy" : "eager"}
+        priority={!lazyImage}
       />
     </div>
   </div>)
@@ -168,7 +170,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
   )
 }
 
-export const SearchCardTile = ({ card, index, onContextMenu, onMouseEnter }: { card: CardDocument, index: number, onContextMenu: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void }) => {
+export const SearchCardTile = ({ card, index, onContextMenu, onMouseEnter, eagerImage = false }: { card: CardDocument, index: number, onContextMenu: (e: React.MouseEvent, card: CardDocument) => void, onMouseEnter: (card: CardDocument) => void, eagerImage?: boolean }) => {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const handleOnMouseEnter = () => {
     const timeoutId = setTimeout(() => {
@@ -200,7 +202,7 @@ export const SearchCardTile = ({ card, index, onContextMenu, onMouseEnter }: { c
   }), [card]);
   return (
     <div ref={(node) => { drag(node); }} onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
-      {!isDragging && renderCardTile(card, index, handleOnMouseEnter)}
+      {!isDragging && renderCardTile(card, index, handleOnMouseEnter, !eagerImage)}
     </div>
   )
 }
