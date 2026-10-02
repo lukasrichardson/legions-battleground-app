@@ -3,6 +3,8 @@ import AppIcon from "@/app/components/AppIcon";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
 import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 import { CardDocument } from "@/shared/interfaces/Card.mongo";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 const statusLabel: Partial<Record<BanlistStatus, string>> = {
   [BanlistStatus.SUSPENDED]: "Suspended",
@@ -31,6 +33,27 @@ export default function CardGalleryInspector({
   isPinned?: boolean;
   onClearPinned?: () => void;
 }) {
+  const [imageExpanded, setImageExpanded] = useState(false);
+  const closeImageButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!imageExpanded) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.stopImmediatePropagation();
+      setImageExpanded(false);
+    };
+
+    document.addEventListener("keydown", handleKeyDown, true);
+    closeImageButtonRef.current?.focus();
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, [imageExpanded]);
+
+  useEffect(() => {
+    setImageExpanded(false);
+  }, [card?._id]);
+
   if (!card) {
     return (
       <div className="flex h-full min-h-56 flex-col items-center justify-center rounded-2xl border border-white/10 bg-slate-950/40 px-6 text-center text-sm text-slate-400">
@@ -61,9 +84,14 @@ export default function CardGalleryInspector({
         </button>
       )}
       <div className={compact ? "mx-auto w-full max-w-[80%] sm:max-w-[60%] md:max-w-[40%]" : "mx-auto w-full max-w-72"}>
-        <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-slate-950 shadow-xl">
+        <button
+          type="button"
+          onClick={() => setImageExpanded(true)}
+          aria-label={`View ${decodeHTMLEntities(card.title)} image full screen`}
+          className="relative block aspect-[3/4] w-full cursor-zoom-in overflow-hidden rounded-xl border border-white/10 bg-slate-950 shadow-xl transition hover:border-cyan-300/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+        >
           <CardImage src={card.featured_image} alt={decodeHTMLEntities(card.title)} className="object-contain" />
-        </div>
+        </button>
       </div>
       <div className="min-h-0 flex-1 pt-2 flex flex-col">
         <h2 className="pr-10 text-lg font-semibold leading-6 text-white">{decodeHTMLEntities(card.title)}</h2>
@@ -83,6 +111,34 @@ export default function CardGalleryInspector({
         {keywords.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{keywords.map((keyword) => <span key={keyword} className="rounded-md bg-cyan-300/10 px-2 py-1 text-xs text-cyan-100">{keyword}</span>)}</div>}
         {card.text && <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300 overflow-y-scroll">{decodeHTMLEntities(card.text)}</p>}
       </div>
+      {imageExpanded && createPortal(
+        <div
+          className="fixed inset-0 z-[10000] flex cursor-zoom-out items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${decodeHTMLEntities(card.title)} full screen image`}
+          onClick={(event) => {
+            event.stopPropagation();
+            setImageExpanded(false);
+          }}
+        >
+          <div className="relative h-full w-full max-w-5xl cursor-default" onClick={(event) => event.stopPropagation()}>
+            <button
+              ref={closeImageButtonRef}
+              type="button"
+              onClick={() => setImageExpanded(false)}
+              aria-label="Close full screen image"
+              className="absolute right-2 top-2 z-10 inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-white shadow-lg transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+            >
+              <AppIcon name="close" size={24} />
+            </button>
+            <div className="relative h-full w-full">
+              <CardImage src={card.featured_image} alt={decodeHTMLEntities(card.title)} className="object-contain" priority />
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
     </section>
   );
 }

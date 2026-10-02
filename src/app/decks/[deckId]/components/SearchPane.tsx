@@ -360,7 +360,9 @@ export default function SearchPane({
   return (
     <Card className={gallery ? "h-full border-white/10 bg-slate-900/75 text-white shadow-xl shadow-black/20" : "bg-white/10 border-white/20 text-white h-full flex flex-col"}>
       <CardContent className={gallery ? "flex h-full flex-col overflow-hidden p-3 sm:p-4" : "p-2 pt-0 h-full flex flex-col overflow-hidden"}>
-        <div className={gallery ? "mb-2 space-y-3" : "space-y-1 mb-2"}>
+        <div className={gallery ? "mb-2 space-y-1" : "space-y-1 mb-2"}>
+          <div className="flex">
+
           {onAddTargetChange && (
             <div className="flex items-center gap-1 text-xs text-white/80">
               <span className="mr-1">Add to:</span>
@@ -378,7 +380,7 @@ export default function SearchPane({
             onChange={handleSearchChange}
             placeholder="Search cards..."
             aria-label="Search cards"
-            className={gallery ? "h-11 border-white/15 bg-slate-950/60 px-3 text-sm text-white placeholder:text-slate-500 focus-visible:ring-cyan-300" : "bg-white/10 border-white/20 text-white h-6 text-xs placeholder:text-white/50"}
+            className={gallery ? "h-11 border-white/15 bg-slate-950/60 px-3 text-sm text-white placeholder:text-slate-500 focus-visible:ring-cyan-300 max-w-lg" : "bg-white/10 border-white/20 text-white h-6 text-xs placeholder:text-white/50"}
           />
 
           {gallery ? <>
@@ -407,18 +409,17 @@ export default function SearchPane({
               </div>
             )}
           </div>}
+          </div>
 
           <div className={gallery ? "flex items-center justify-between gap-2 border-white/10" : "flex justify-center gap-1"}>
-            {page > 1 && (
-              <Button onClick={prevPage} size="sm" variant="outline" className={gallery ? "min-h-10 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
-                Prev
-              </Button>
-            )}
+            <Button onClick={prevPage} size="sm" variant="outline" disabled={page <= 1} className={gallery ? "min-h-10 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
+              Prev
+            </Button>
             <div className={gallery ? "text-center text-xs text-slate-400" : "text-center text-xs text-gray-300"}>
               {gallery ? `Showing ${resultStart}–${resultEnd} of ${total.toLocaleString()}` : `Page ${page} of ${total / pageSize > 0 ? Math.ceil(total / pageSize) : 1} (${total} cards)`}
             </div>
             {total / pageSize > page && (
-              <Button onClick={nextPage} size="sm" variant="outline" className={gallery ? "min-h-10 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
+              <Button onClick={nextPage} size="sm" variant="outline" className={gallery ? "min-h-8 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
                 Next
               </Button>
             )}
