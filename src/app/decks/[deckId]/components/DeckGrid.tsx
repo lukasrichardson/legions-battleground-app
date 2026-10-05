@@ -59,6 +59,7 @@ export default function DeckGrid({
   const synergies = deck ? getSpecialMainDeckCards(deck, "synergies") : [];
   const guardians = deck ? getSpecialMainDeckCards(deck, "guardians") : [];
   const tokens = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.TOKEN);
+  const noLeftSide = warlords.length === 0 && veilRealms.length === 0 && synergies.length === 0 && guardians.length === 0 && tokens.length === 0;
 
   const { deckbuild_groupedView, setDeckbuildGroupedView } = useClientSettings();
 
@@ -154,7 +155,7 @@ export default function DeckGrid({
               )}
             </div>
           ) : (
-            allMainDeckCards.length === 0 ? (
+            (noLeftSide && allMainDeckCards.length === 0) ? (
               <EmptyState
                 icon={<AppIcon name="create" size={20} />}
                 title="No cards in deck"
