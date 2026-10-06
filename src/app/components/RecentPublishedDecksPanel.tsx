@@ -71,7 +71,7 @@ export default function RecentPublishedDecksPanel() {
   }, []);
 
   return (
-    <Card className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-white/20 bg-white/10 text-white">
+    <Card className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden border-white/20 bg-white/10 text-white">
       <CardHeader className="shrink-0 flex flex-row items-center justify-between p-4 pb-2">
         <CardTitle className="text-lg">Recently Published Decks</CardTitle>
         <Button

@@ -350,17 +350,17 @@ export default function SearchPane({
           onChange={key === 'legion' ? handleLegionSelect : key === 'type' ? handleTypeSelect : key === 'rarity' ? handleRaritySelect : key === 'set' ? handleSetSelect : handleSrlStatusSelect}
           placeholder={key === 'srlStatus' ? 'S/R/L Status' : `${key.charAt(0).toUpperCase() + key.slice(1)}`}
           menuPlacement={menuPlacement}
-          className="cursor-pointer text-xs [&_button]:min-h-10 [&_button]:bg-secondary [&_button]:px-3"
+          className="cursor-pointer text-xs [&_button]:min-h-10 [&_button]:border-white/25 [&_button]:bg-white/5 [&_button]:px-3 [&_button]:text-slate-100 [&_button]:transition-colors [&_button:hover]:border-blue-300 [&_button:hover]:bg-blue-400/10"
         />
       ))}
-      {hasActiveCriteria && <Button onClick={clearFilters} type="button" variant="ghost" className="min-h-10 px-2 text-sm text-cyan-100 hover:bg-white/10 hover:text-white">Clear all</Button>}
+      {hasActiveCriteria && <Button onClick={clearFilters} type="button" variant="ghost" className="min-h-10 px-2 text-sm text-blue-100 hover:bg-white/10 hover:text-white">Clear all</Button>}
     </div>
   );
 
   return (
-    <Card className={gallery ? "h-full border-white/10 bg-slate-900/75 text-white shadow-xl shadow-black/20" : "bg-white/10 border-white/20 text-white h-full flex flex-col"}>
-      <CardContent className={gallery ? "flex h-full flex-col overflow-hidden p-3 sm:p-4" : "p-2 pt-0 h-full flex flex-col overflow-hidden"}>
-        <div className={gallery ? "mb-2 space-y-1" : "space-y-1 mb-2"}>
+    <Card className={gallery ? "h-full rounded-[2px] border-white/20 bg-[rgba(4,9,14,.68)] text-white shadow-xl shadow-black/20" : "flex h-full flex-col border-white/20 bg-white/10 text-white"}>
+      <CardContent className={gallery ? "flex h-full flex-col overflow-hidden p-3 sm:p-4" : "flex h-full flex-col overflow-hidden p-2 pt-0"}>
+        <div className={gallery ? "mb-2 space-y-1 border-b border-white/15 pb-2.5" : "mb-2 space-y-1"}>
           <div className={gallery ? "flex" : "flex flex-col"}>
 
           {onAddTargetChange && (
@@ -380,12 +380,12 @@ export default function SearchPane({
             onChange={handleSearchChange}
             placeholder="Search cards..."
             aria-label="Search cards"
-            className={gallery ? "h-11 border-white/15 bg-slate-950/60 px-3 text-sm text-white placeholder:text-slate-500 focus-visible:ring-cyan-300 max-w-lg" : "bg-white/10 border-white/20 text-white h-6 text-xs placeholder:text-white/50"}
+            className={gallery ? "h-11 max-w-lg border-white/25 bg-[rgba(4,9,14,.76)] px-3 text-sm text-white placeholder:text-slate-500 focus-visible:ring-blue-300" : "h-6 border-white/20 bg-white/10 text-xs text-white placeholder:text-white/50"}
           />
 
           {gallery ? <>
             <div className="flex items-center justify-between gap-2 lg:hidden">
-              <Button type="button" onClick={() => setFiltersOpen(true)} variant="outline" className="min-h-11 border-cyan-200/25 bg-cyan-300/10 px-4 text-cyan-50 hover:bg-cyan-300/20">
+              <Button type="button" onClick={() => setFiltersOpen(true)} variant="outline" className="min-h-11 border-blue-200/25 bg-blue-300/10 px-4 text-blue-50 hover:bg-blue-300/20">
                 Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
               </Button>
             </div>
@@ -450,7 +450,7 @@ export default function SearchPane({
                     role="button"
                     tabIndex={0}
                     aria-label={`Inspect ${decodeHTMLEntities(card.title)}${selectedCardId === card._id ? ", selected" : ""}`}
-                    className={`group relative box-border max-h-full cursor-pointer rounded-xl p-0.5 outline-none transition focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${selectedCardId === card._id ? "bg-cyan-300 shadow-lg shadow-cyan-950/50" : "hover:bg-white/10"}`}
+                    className={`group relative box-border max-h-full cursor-pointer rounded-xl p-0.5 outline-none transition focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${selectedCardId === card._id ? "bg-blue-300 shadow-lg shadow-blue-950/50" : "hover:bg-white/10"}`}
                     onClick={() => onSelectCard?.(card, getBanlistItem(card))}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {

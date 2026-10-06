@@ -14,7 +14,7 @@ export default function BasePage() {
     <Suspense>
       <SessionProvider>
         <DndProvider backend={HTML5Backend}>
-          <FullPage showBreadcrumbs={true}>
+          <FullPage showBreadcrumbs={false}>
             <DecksPageHeader />
             <DecksList />
           </FullPage>

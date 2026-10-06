@@ -43,9 +43,9 @@ export const CardGallery = () => {
   }, []);
 
   return (
-    <FullPage showBreadcrumbs={true}>
-      <div className="mx-auto flex h-full min-h-0 w-full gap-4">
-        <div className="min-w-0 flex-1">
+    <FullPage showBreadcrumbs={false}>
+      <div className="mx-auto flex h-full min-h-0 w-full flex-1 gap-4 overflow-hidden bg-[rgba(4,9,14,.5)] p-3 backdrop-blur-[8px] sm:p-4">
+        <div className="min-h-0 min-w-0 flex-1">
           <SearchPane
             setHoveredCard={handleHoveredCard}
             onSelectCard={handleSelectCard}
@@ -57,7 +57,7 @@ export const CardGallery = () => {
           />
         </div>
         <aside className="hidden w-80 shrink-0 xl:block">
-          <div className="sticky top-0 h-full overflow-y-auto rounded-2xl border border-white/10 bg-slate-900/70 p-4 shadow-xl shadow-black/20">
+          <div className="sticky top-0 h-full overflow-y-auto rounded-[2px] border border-white/20 bg-[rgba(4,9,14,.78)] p-4 shadow-xl shadow-black/20">
             <CardGalleryInspector
               card={preview?.card ?? null}
               banlistItem={preview?.banlistItem ?? null}

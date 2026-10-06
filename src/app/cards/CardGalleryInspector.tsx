@@ -56,8 +56,10 @@ export default function CardGalleryInspector({
 
   if (!card) {
     return (
-      <div className="flex h-full min-h-56 flex-col items-center justify-center rounded-2xl border border-white/10 bg-slate-950/40 px-6 text-center text-sm text-slate-400">
-        <p className="font-medium text-slate-200">Hover or Select a card to inspect it</p>
+      <div className="flex h-full min-h-56 flex-col items-center justify-center rounded-[2px] border border-white/10 bg-slate-950/40 px-6 text-center text-sm text-slate-400">
+        <span className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">Card inspector</span>
+        <p className="font-medium text-slate-100">Preview cards as you browse</p>
+        <p className="mt-2 max-w-52 text-xs leading-5 text-slate-400">Hover a card to inspect it here. Select one to keep its details pinned while you continue searching.</p>
       </div>
     );
   }
@@ -74,12 +76,12 @@ export default function CardGalleryInspector({
   return (
     <section aria-label={`${decodeHTMLEntities(card.title)} details`} className="relative flex h-full min-h-0 flex-col text-slate-100">
       {isPinned && onClearPinned && (
-        <button type="button" aria-label="Clear pinned card" onClick={onClearPinned} className="absolute left-2 top-2 z-10 inline-flex cursor-pointer items-center gap-1 rounded-full border border-white bg-cyan-300/70 px-2 py-1 text-xs font-medium text-black hover:text-cyan-50 shadow-sm backdrop-blur transition hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
+        <button type="button" aria-label="Clear pinned card" onClick={onClearPinned} className="absolute left-2 top-2 z-10 inline-flex cursor-pointer items-center gap-1 rounded-full border border-white bg-blue-300/70 px-2 py-1 text-xs font-medium text-black shadow-sm backdrop-blur transition hover:bg-slate-900 hover:text-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300">
           Pinned <AppIcon name="close" size={12} />
         </button>
       )}
       {onClose && (
-        <button type="button" aria-label="Close card details" onClick={onClose} className="sticky right-3 top-4 ml-auto z-10 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-slate-950/80 text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
+        <button type="button" aria-label="Close card details" onClick={onClose} className="sticky right-3 top-4 ml-auto z-10 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-slate-950/80 text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300">
           <AppIcon name="close" size={18} />
         </button>
       )}
@@ -88,12 +90,12 @@ export default function CardGalleryInspector({
           type="button"
           onClick={() => setImageExpanded(true)}
           aria-label={`View ${decodeHTMLEntities(card.title)} image full screen`}
-          className="relative block aspect-[3/4] w-full cursor-zoom-in overflow-hidden rounded-xl border border-white/10 bg-slate-950 shadow-xl transition hover:border-cyan-300/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          className="relative block aspect-[3/4] w-full cursor-zoom-in overflow-hidden rounded-xl border border-white/10 bg-slate-950 shadow-xl transition hover:border-blue-300/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
         >
           <CardImage src={card.featured_image} alt={decodeHTMLEntities(card.title)} className="object-contain" />
         </button>
       </div>
-      <div className="min-h-0 flex-1 pt-2 flex flex-col">
+      <div className="flex min-h-0 flex-1 flex-col pt-2">
         <h2 className="pr-10 text-lg font-semibold leading-6 text-white">{decodeHTMLEntities(card.title)}</h2>
         <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
           {[type, subtype, legion, rarity].filter(Boolean).map((item) => <span key={item} className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-slate-200">{item}</span>)}
@@ -128,7 +130,7 @@ export default function CardGalleryInspector({
               type="button"
               onClick={() => setImageExpanded(false)}
               aria-label="Close full screen image"
-              className="absolute right-2 top-2 z-10 inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-white shadow-lg transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+              className="absolute right-2 top-2 z-10 inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-white shadow-lg transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
             >
               <AppIcon name="close" size={24} />
             </button>

@@ -1,11 +1,11 @@
 "use client";
 import FullPage from "@/app/components/FullPage";
-import DeckGrid from "../../[deckId]/components/DeckGrid";
+import DeckGrid from "../../decks/[deckId]/components/DeckGrid";
 import { useEffect, useState } from "react";
 import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import { fetchPublishedDeckById, copyPublishedDeck } from "@/client/utils/api.utils";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import Preview from "../../[deckId]/Preview";
+import Preview from "../../decks/[deckId]/Preview";
 import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { signIn, useSession } from "next-auth/react";
 import { Button } from "@/client/ui/button";
@@ -39,8 +39,8 @@ export default function PublishedDeckViewer() {
   }
   return (
     <FullPage showBreadcrumbs={true}>
-      {deck && <div>
-        <div className="w-full flex justify-center items-center gap-x-3 gap-y-1 flex-wrap text-sm sm:text-lg">
+      {deck && <div className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-2.5">
+        <div className="flex w-full shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm sm:text-lg">
           <span className="text-white font-medium">{deck.name}</span>
           <span className="text-white/70">{deck.legion}</span>
           <span className="text-white/50">By {deck.author}</span>
@@ -62,11 +62,11 @@ export default function PublishedDeckViewer() {
             </span>
           )}
         </div>
-        <div className="flex-1 min-h-0 flex flex-col-reverse lg:flex-row gap-2">
-          <div className="flex-2 lg:flex-3 min-h-0 order-1 lg:order-1">
+        <div className="flex min-h-0 flex-1 flex-col-reverse gap-2 overflow-y-auto border-t border-white/20 pt-2 lg:flex-row lg:overflow-hidden">
+          <div className="order-1 min-h-[320px] min-w-0 flex-[2] lg:min-h-0 lg:flex-[3]">
             <DeckGrid deck={deck} setHoveredCard={setHoveredCard} handleRemoveCardFromDeck={() => null} handleSortClick={() => null} saving={false} handleAddCardToDeck={() => null} readOnly={true} />
           </div>
-          <div className="flex flex-1 lg:flex-1 flex-col gap-2 order-2 lg:order-2 lg:w-80 xl:w-96">
+          <div className="order-2 flex min-w-0 flex-1 flex-col gap-2 lg:w-80 xl:w-96">
             {/* Preview Pane - Only show on large screens */}
             <div className="hidden lg:block h-1/2">
               <Preview hoveredCard={hoveredCard} />
