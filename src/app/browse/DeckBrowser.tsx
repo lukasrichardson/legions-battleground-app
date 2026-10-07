@@ -72,7 +72,7 @@ export default function DeckBrowser() {
   }
   return (
     <FullPage showBreadcrumbs={false}>
-      <PageHeader variant={variant} title="Published Decks" description="Browse community decklists and copy a starting point for your next deck." />
+      <PageHeader variant={variant} className="hidden md:block" title="Published Decks" description="Browse community decklists and copy a starting point for your next deck." />
       <div className="min-h-0 flex-1">
         <DeckCollectionPanel
           variant={variant}

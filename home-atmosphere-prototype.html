@@ -1,0 +1,141 @@
+<!doctype html>
+<!-- THROWAWAY VISUAL PROTOTYPE — tests an original, Arena-adjacent home atmosphere. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Legions Battleground — Home atmosphere prototype</title>
+  <style>
+    :root {
+      --ink: #070b14;
+      --ink-raised: rgba(17, 24, 39, .72);
+      --line: rgba(232, 205, 137, .20);
+      --line-strong: rgba(244, 211, 126, .54);
+      --gold: #e8c76f;
+      --gold-light: #fff1bd;
+      --mist: #aebbd0;
+      --text: #f6f4ee;
+      --blue: #72b8ff;
+      --green: #9fda9c;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--ink); }
+    body {
+      min-height: 100%; margin: 0; overflow-x: hidden; color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(900px 520px at 82% -8%, rgba(74, 115, 190, .22), transparent 62%),
+        radial-gradient(600px 480px at 4% 90%, rgba(100, 80, 136, .14), transparent 67%),
+        linear-gradient(135deg, #070b14 15%, #0c1525 55%, #080d17);
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .22;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.52'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+    }
+    .site-shell { width: min(1440px, calc(100% - 48px)); margin: 0 auto; }
+    .topbar { height: 80px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .brand { display: flex; gap: 12px; align-items: center; letter-spacing: .13em; font-size: .76rem; font-weight: 780; text-transform: uppercase; }
+    .brand-mark { width: 33px; height: 33px; display: grid; place-items: center; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--gold); font-family: Georgia, serif; font-size: 1.4rem; box-shadow: 0 0 28px rgba(232,199,111,.18), inset 0 0 15px rgba(232,199,111,.08); }
+    nav { display: flex; align-items: center; gap: 4px; }
+    nav a { color: var(--mist); padding: 10px 13px; border-radius: 8px; text-decoration: none; font-size: .88rem; transition: .2s ease; }
+    nav a:hover, nav a.active { color: var(--gold-light); background: rgba(255,255,255,.05); }
+    .account { color: var(--text); border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.04); border-radius: 8px; padding: 9px 12px; font-size: .85rem; }
+    .eyebrow { color: var(--gold); font-size: .72rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+    .hero { position: relative; display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(30px, 5vw, 86px); min-height: 394px; padding: 72px 0 44px; align-items: center; }
+    .hero::after { content: ""; position: absolute; width: 480px; height: 480px; right: 3%; top: 5%; z-index: -1; border-radius: 50%; border: 1px solid rgba(232,199,111,.10); box-shadow: 0 0 0 42px rgba(232,199,111,.025), 0 0 0 105px rgba(109,154,226,.018); }
+    h1 { max-width: 690px; margin: 11px 0 18px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2.8rem, 5.3vw, 5.3rem); line-height: .97; letter-spacing: -.055em; font-weight: 500; }
+    h1 em { color: var(--gold-light); font-style: normal; text-shadow: 0 0 34px rgba(232,199,111,.15); }
+    .hero-copy { max-width: 530px; color: var(--mist); font-size: 1.05rem; line-height: 1.62; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+    button { font: inherit; cursor: pointer; }
+    .button-primary { border: 1px solid #f9db84; color: #201908; background: linear-gradient(135deg, #f8dea0, #dba945); box-shadow: 0 10px 34px rgba(210,157,47,.20); padding: 13px 19px; border-radius: 8px; font-weight: 800; }
+    .button-secondary { border: 1px solid rgba(255,255,255,.18); color: var(--text); background: rgba(255,255,255,.045); padding: 13px 19px; border-radius: 8px; font-weight: 650; }
+    .hero-status { margin-top: 20px; color: #a7caa4; font-size: .82rem; }
+    .hero-status::before { content: ""; display: inline-block; width: 7px; height: 7px; margin: 0 8px 1px 0; border-radius: 50%; background: #86d980; box-shadow: 0 0 12px #86d980; }
+    .focus-card { position: relative; isolation: isolate; min-height: 300px; display: grid; place-items: center; }
+    .card-ghost { position: absolute; width: 192px; height: 267px; border: 1px solid rgba(255,255,255,.15); border-radius: 12px; background: linear-gradient(165deg, rgba(255,255,255,.11), rgba(255,255,255,.015)); box-shadow: 0 28px 55px rgba(0,0,0,.43); }
+    .card-ghost:first-child { transform: translateX(-104px) rotate(-13deg); opacity: .48; }
+    .card-ghost:last-child { transform: translateX(104px) rotate(13deg); opacity: .48; }
+    .card-hero { position: relative; width: 214px; height: 299px; overflow: hidden; border: 1px solid rgba(247,220,143,.67); border-radius: 13px; background: linear-gradient(145deg, #21365d, #101828 56%, #59492d); box-shadow: 0 25px 70px rgba(0,0,0,.58), 0 0 34px rgba(224,186,92,.17); }
+    .card-hero::before { content:""; position:absolute; inset: 13px; border: 1px solid rgba(255,236,180,.36); border-radius: 7px; background: radial-gradient(circle at 35% 35%, #93b5ff 0 4%, transparent 5%), radial-gradient(circle at 66% 45%, #e7c373 0 3%, transparent 4%), linear-gradient(140deg, #234570, #122f55 52%, #332f45); }
+    .card-hero::after { content: "Dawn\A Warlord"; white-space: pre; position:absolute; left: 25px; bottom: 22px; color: #fff0be; font-family: Georgia, serif; font-size: 1.25rem; line-height: 1.08; text-shadow: 0 2px 4px #000; }
+    .page-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(320px, .9fr); gap: 20px; padding-bottom: 48px; }
+    .panel { border: 1px solid rgba(255,255,255,.11); border-radius: var(--radius); background: linear-gradient(145deg, rgba(26,35,55,.78), rgba(12,18,31,.68)); box-shadow: 0 16px 44px rgba(0,0,0,.18); backdrop-filter: blur(10px); }
+    .panel-heading { display:flex; align-items: center; justify-content: space-between; padding: 19px 20px 15px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .panel-heading h2 { margin: 0; font-family: Georgia, serif; font-size: 1.32rem; font-weight: 500; }
+    .panel-heading a { color: var(--gold); font-size: .82rem; text-decoration: none; }
+    .rooms { padding: 5px 12px 13px; }
+    .room { display:grid; grid-template-columns: minmax(150px, 1fr) 100px 86px auto; align-items:center; gap: 12px; padding: 14px 8px; border-bottom: 1px solid rgba(255,255,255,.07); font-size: .88rem; }
+    .room:last-child { border: 0; }
+    .room-name { display:flex; align-items:center; gap: 9px; color: var(--text); font-weight: 650; }
+    .dot { width: 7px; height: 7px; border-radius:50%; background: var(--green); box-shadow: 0 0 10px rgba(159,218,156,.65); }
+    .muted { color: var(--mist); font-size: .8rem; }
+    .join { color: #d8e9ff; border: 1px solid rgba(114,184,255,.35); border-radius:6px; background: rgba(76,128,208,.12); padding: 7px 10px; font-size: .76rem; }
+    .deck-list { display: grid; gap: 1px; padding: 10px; }
+    .deck { display: grid; grid-template-columns: 46px 1fr auto; align-items:center; gap: 11px; padding: 9px; border-radius: 9px; }
+    .deck:hover { background: rgba(255,255,255,.045); }
+    .deck-art { width: 46px; height: 49px; border: 1px solid rgba(232,199,111,.28); border-radius: 6px; background: linear-gradient(140deg, #51416a, #152b45 58%, #847149); }
+    .deck:nth-child(2) .deck-art { background: linear-gradient(140deg, #193b37, #396c50 48%, #b79a58); }
+    .deck:nth-child(3) .deck-art { background: linear-gradient(140deg, #552b39, #242c59 55%, #b8806b); }
+    .deck-title { font-size: .91rem; font-weight: 670; }
+    .deck-meta { margin-top: 3px; color: var(--mist); font-size: .76rem; }
+    .deck-count { color: var(--gold); font-size: .75rem; }
+    .principle { margin: 0 0 30px; color: rgba(230,236,246,.53); text-align: center; font-size: .77rem; }
+    @media (max-width: 780px) {
+      .site-shell { width: min(100% - 32px, 560px); }
+      .topbar { height: 65px; } nav { display: none; } .brand { font-size: .68rem; }
+      .account { padding: 7px 9px; font-size: .76rem; }
+      .hero { grid-template-columns: 1fr; padding: 54px 0 21px; }
+      h1 { font-size: clamp(2.7rem, 14vw, 4.2rem); } .hero-copy { font-size: .96rem; }
+      .focus-card { order: -1; min-height: 235px; transform: scale(.78); margin: -38px 0 -25px; }
+      .page-grid { grid-template-columns: 1fr; gap: 14px; padding-bottom: 24px; }
+      .room { grid-template-columns: 1fr auto; gap: 7px; } .room > :nth-child(2), .room > :nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">L</span> Legions Battleground</div>
+      <nav><a class="active" href="#">Home</a><a href="#">My Decks</a><a href="#">Browse Decks</a><a href="#">Card Gallery</a></nav>
+      <button class="account">Warlord profile</button>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Legions: Realms at War</div>
+          <h1>Your next battle<br><em>starts here.</em></h1>
+          <p class="hero-copy">Play live matches, refine your decks, and find the next strategy worth bringing to the battlefield.</p>
+          <div class="hero-actions"><button class="button-primary">Enter a game</button><button class="button-secondary">Build a deck</button></div>
+          <div class="hero-status">12 warlords are looking for a match</div>
+        </div>
+        <div class="focus-card" aria-hidden="true"><div class="card-ghost"></div><div class="card-hero"></div><div class="card-ghost"></div></div>
+      </section>
+
+      <p class="principle">The atmosphere comes from light, depth, fine gold detail, and card art—not a busy fantasy background.</p>
+      <section class="page-grid">
+        <article class="panel">
+          <div class="panel-heading"><h2>Open battles</h2><a href="#">View all rooms →</a></div>
+          <div class="rooms">
+            <div class="room"><div class="room-name"><span class="dot"></span>Cambridge game night</div><span class="muted">Hosted by Lyra</span><span class="muted">1 / 2</span><button class="join">Join room</button></div>
+            <div class="room"><div class="room-name"><span class="dot"></span>Testing new builds</div><span class="muted">Hosted by Rook</span><span class="muted">1 / 2</span><button class="join">Join room</button></div>
+            <div class="room"><div class="room-name"><span class="dot"></span>Casual sandbox</div><span class="muted">Hosted by Mica</span><span class="muted">2 / 4</span><button class="join">Spectate</button></div>
+          </div>
+        </article>
+        <aside class="panel">
+          <div class="panel-heading"><h2>Continue building</h2><a href="#">My decks →</a></div>
+          <div class="deck-list">
+            <div class="deck"><div class="deck-art"></div><div><div class="deck-title">Dawn Vanguard</div><div class="deck-meta">Edited 2 hours ago</div></div><span class="deck-count">60 / 60</span></div>
+            <div class="deck"><div class="deck-art"></div><div><div class="deck-title">Verdant Reclaim</div><div class="deck-meta">Edited yesterday</div></div><span class="deck-count">57 / 60</span></div>
+            <div class="deck"><div class="deck-art"></div><div><div class="deck-title">Empress Control</div><div class="deck-meta">Edited Sep 30</div></div><span class="deck-count">60 / 60</span></div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -28,7 +28,7 @@ export default function DecksPageHeader() {
 
   return (
     <div className="mb-3">
-      <PageHeader variant={variant} title="Your Decks" description="Create, import, and manage the decks you bring to the battleground." />
+      <PageHeader variant={variant} className="hidden md:block" title="Your Decks" description="Create, import, and manage the decks you bring to the battleground." />
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         <ActionCard compact variant={variant} title="Create deck" description="Start a deck from scratch" icon={<AppIcon name="create" size={18}  />} iconClassName="bg-emerald-500/20 text-emerald-200" onClick={handleCreateDeck} />
         <ActionCard compact variant={variant} title="Import deck" description="Bring one in from Toolbox" icon={<AppIcon name="import" size={18} />} iconClassName="bg-orange-500/20 text-orange-200" onClick={handleImportDeck} />

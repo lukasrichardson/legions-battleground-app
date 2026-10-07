@@ -64,7 +64,7 @@ export default function NewHome() {
               </>}
             </div>
             <div className="pt-2 shrink min-h-0 overflow-y-scroll my-2 w-full border-b border-white/20 bg-[rgba(4,9,13,.66)] shadow-[0_15px_40px_rgba(0,0,0,.32)] backdrop-blur-[8px]">
-              <header className="flex items-center justify-between border-b border-white/15 p-3 sm:px-[17px] sm:py-[13px]">
+              <header className="flex items-center justify-between border-b border-white/15 p-2 sm:px-[17px] sm:py-[13px]">
                 <div>
                   <p className="m-0 text-[11px] font-bold uppercase tracking-[.16em] text-[#eef4fa]">Active Games</p>
                 </div>
@@ -79,7 +79,7 @@ export default function NewHome() {
                     {isMobile ? <span className="text-[11px] text-[#87bce9]">N/A on mobile</span> : <button className="cursor-pointer border border-[#4fa9ff] bg-[#246fb8] px-2 py-1.5 font-serif text-sm text-[#eaf5ff] shadow-[0_0_10px_rgba(79,169,255,.25)] transition-colors hover:bg-[#338de0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" type="button" onClick={() => session ? dispatch(setJoinRoomModalOpen(room.id)) : signIn()}>Join</button>}
                   </div>
                 )}
-              </div> : <div className="p-[29px_18px] text-sm text-[#e1e8ee]">No active games right now. Create one when you are ready to play.</div>}
+              </div> : <div className="p-2 text-sm text-[#e1e8ee]">No active games right now. Create one when you are ready to play.</div>}
             </div>
             {session && <RecentDecksPanel />}
           </div>

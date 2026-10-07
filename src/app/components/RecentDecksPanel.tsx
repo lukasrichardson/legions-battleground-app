@@ -103,8 +103,8 @@ export default function RecentDecksPanel() {
 
   return (
     <Card className="flex w-auto max-w-full mx-auto min-w-0 flex-col overflow-hidden border-white/20 bg-white/10 text-white">
-      <CardHeader className="shrink-0 flex flex-row items-center justify-between p-4 pb-2">
-        <CardTitle id="recent-decks-title" className="text-lg">Your Recent Decks</CardTitle>
+      <CardHeader className="shrink-0 flex flex-row items-center justify-between p-2 pb-1 md:p-4 md:pb-2">
+        <CardTitle id="recent-decks-title" className="text-md md:text-lg">Your Recent Decks</CardTitle>
         <Button
           variant="link"
           size="sm"

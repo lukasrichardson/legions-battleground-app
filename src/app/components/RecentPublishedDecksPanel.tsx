@@ -86,8 +86,8 @@ export default function RecentPublishedDecksPanel() {
 
   return (
     <Card className="flex h-full min-h-0 w-auto mx-auto min-w-0 flex-col border-white/20 bg-white/10 text-white">
-      <CardHeader className="shrink-0 flex flex-row items-center justify-between p-4 pb-2">
-        <CardTitle className="text-lg">Recently Published Decks</CardTitle>
+      <CardHeader className="shrink-0 flex flex-row items-center justify-between p-2 pb-1 md:p-4 md:pb-2">
+        <CardTitle className="text-md md:text-lg">Recently Published Decks</CardTitle>
         <Button
           variant="link"
           size="sm"
