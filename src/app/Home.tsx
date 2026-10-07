@@ -64,7 +64,7 @@ export default function Home() {
   }
 
   const handleBrowseDecksClick = () => {
-    router.push("decks/browse");
+    router.push("/browse");
   }
 
   const {

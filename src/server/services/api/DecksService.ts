@@ -6,7 +6,7 @@ import { ObjectId } from "mongodb";
 import { normalizeDeck } from "@/shared/deckComposition";
 import { getHydratedDeck, hydrateDecks } from "./DeckHydrationService";
 import { getDeckListSummaries } from "./DeckListSummaryService";
-import { DeckListItem } from "@/shared/interfaces/DeckListItem";
+import { DeckListItem, RecentDeckListItem } from "@/shared/interfaces/DeckListItem";
 
 export const insertOneDeck = async (deck: Omit<DeckResponse, "_id">): Promise<DeckResponse> => {
   const db = getDatabase();
@@ -39,6 +39,14 @@ export const getDeckListSummariesForPlayer = async (user, legion): Promise<DeckL
   }
   return getDeckListSummaries("decks", query, {sort: {_id: -1}}) as Promise<DeckListItem[]>;
 };
+
+/** Compact, bounded Home data. The edited timestamp is included only for this recency surface. */
+export const getRecentDeckListSummariesForPlayer = async (user): Promise<RecentDeckListItem[]> =>
+  getDeckListSummaries(
+    "decks",
+    { userId: user?.id },
+    { sort: { updated_at: -1, _id: -1 }, limit: 3, includeUpdatedAt: true },
+  ) as Promise<RecentDeckListItem[]>;
 
 export const getFilterOptionsForPlayerDecks = async (user): Promise<string[]> => {
   const db = getDatabase();

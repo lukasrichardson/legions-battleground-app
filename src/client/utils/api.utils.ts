@@ -3,7 +3,7 @@ import { appendQueryParams } from "./string.util";
 import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { DeckPatchOperation } from "@/shared/interfaces/DeckPatch";
-import { DeckListItem, PublishedDeckListItem, PublishedDeckListResponse } from "@/shared/interfaces/DeckListItem";
+import { DeckListItem, PublishedDeckListItem, PublishedDeckListResponse, RecentDeckListItem } from "@/shared/interfaces/DeckListItem";
 import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 const publishedDecksPath = "/api/published_decks";
 
@@ -31,6 +31,9 @@ export const fetchDeckListSummaries = async (legion: string[] | null): Promise<D
   });
   return res.data;
 }
+
+export const fetchRecentDecks = async (): Promise<RecentDeckListItem[]> =>
+  (await axios.get<RecentDeckListItem[]>("/api/decks", { params: { view: "recent" } })).data;
 
 export const fetchDeckPickerOptions = async (): Promise<Array<{ _id: string; name: string; legion: string }>> => {
   const decks = await fetchDeckListSummaries([]);

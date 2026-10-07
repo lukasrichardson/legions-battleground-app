@@ -23,7 +23,7 @@ export default function DecksPageHeader() {
   }
 
   const handleBrowseDecks = () => {
-    router.push("/decks/browse");
+    router.push("/browse");
   }
 
   return (

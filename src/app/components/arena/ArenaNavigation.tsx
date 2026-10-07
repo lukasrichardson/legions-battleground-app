@@ -14,7 +14,7 @@ import { useUiVariant, variantHref } from "./uiVariant";
 const navItems = [
   { href: "/", label: "Home", icon: Shield },
   { href: "/decks", label: "Decks", icon: Boxes },
-  { href: "/decks/browse", label: "Browse", icon: BookOpen },
+  { href: "/browse", label: "Browse", icon: BookOpen },
   { href: "/cards", label: "Cards", icon: BookOpen },
 ];
 
@@ -65,23 +65,28 @@ export default function ArenaNavigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
-    if (href === "/decks/browse") return pathname === href || pathname.startsWith(`${href}/`);
-    if (href === "/decks") return pathname === href || /^\/decks\/(?!browse(?:\/|$))[^/]+$/.test(pathname);
+    if (href === "/browse") return pathname === href || pathname.startsWith(`${href}/`);
+    if (href === "/decks") return pathname === href || /^\/decks\/[^/]+$/.test(pathname);
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
-  return <header className="arena-navigation sticky top-0 z-20 flex h-16 shrink-0 border-b border-white/20 bg-slate-950/20 shadow-lg backdrop-blur md:h-[76px]">
-    <Link href={variantHref("/", variant)} className="grid w-16 place-items-center md:border-r border-white/20 md:w-[82px]" aria-label="Legions Battleground home">
+  return <header className="arena-navigation sticky top-0 z-20 flex items-center md:items-stretch h-16 shrink-0 border-b border-white/20 bg-slate-950/20 shadow-lg backdrop-blur md:h-[76px]">
+    <Link href={variantHref("/", variant)} className="grid w-16 place-items-center md:border-r border-white/20 md:w-[102px]" aria-label="Legions Battleground home">
       <Image className="size-14 object-contain md:h-[42px] md:w-20" src="/logo.svg" alt="Legions Battleground" width={42} height={38} priority />
     </Link>
+    <span className="sm:hidden ml-4 font-serif text-[16px] xs:text-[20px] ">Legions Battleground</span>
     <nav className="hidden md:flex" aria-label="Primary navigation">
       {navItems.map(({ href, label, icon: Icon }) => <Link key={href} href={variantHref(href, variant)}
       className={`relative grid min-w-[86px] place-items-center content-center gap-1 border-r border-white/20 font-serif text-[15px] text-slate-100 no-underline transition hover:bg-blue-400/10 hover:!text-sky-300 ${isActive(href) ? "bg-blue-400/10 !text-blue-300 shadow-[inset_0_-3px_0_#4fa9ff,0_0_14px_rgba(79,169,255,.45)]" : ""}`}>
         <Icon size={18} /><span>{label}</span></Link>)}
     </nav>
-    <div className="ml-auto hidden items-center border-l border-white/20 px-5 md:flex"><AccountMenu /></div>
+    <div className="ml-auto hidden items-center border-l border-white/20 px-5 md:flex"><AccountMenu /> <a className="mx-6 my-5 block text-sm text-slate-100" href="https://buymeacoffee.com/lukasrichardson" target="_blank" rel="noopener noreferrer">Support Battleground</a></div>
     <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}>
-      <Dialog.Trigger asChild><button type="button" className={`ml-auto border-l border-white/20 px-5 md:hidden ${mobileIconButtonClass}`} aria-label="Open navigation"><Menu size={24} /></button></Dialog.Trigger>
+      <Dialog.Trigger asChild>
+        <button type="button" className={`ml-auto h-full border-l border-white/20 px-5 md:hidden ${mobileIconButtonClass}`} aria-label="Open navigation">
+        <Menu size={24} />
+        </button>
+        </Dialog.Trigger>
       <Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm" /><Dialog.Content className="fixed inset-y-0 right-0 z-[81] w-[min(86vw,355px)] border-l border-white/25 bg-slate-950 p-0 shadow-2xl" aria-describedby={undefined}>
         <div className="flex h-[70px] items-center justify-between border-b border-white/20 px-5"><Dialog.Title className="font-serif text-xl">Legions Battleground</Dialog.Title><Dialog.Close asChild><button type="button" className={mobileIconButtonClass} aria-label="Close navigation"><X size={22} /></button></Dialog.Close></div>
         <nav className="grid gap-1 p-3" aria-label="Mobile navigation">{navItems.map(({ href, label, icon: Icon }) => <Link key={href} href={variantHref(href, variant)} onClick={() => setMobileOpen(false)} className={`flex items-center gap-3 px-3 py-3.5 font-serif text-[17px] text-slate-100 no-underline ${isActive(href) ? "border-l-[3px] border-blue-400 bg-blue-400/10 text-blue-300" : ""}`}><Icon size={18} />{label}</Link>)}</nav>

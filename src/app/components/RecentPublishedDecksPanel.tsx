@@ -5,7 +5,7 @@ import { LEGIONS } from "@/client/constants/legions.constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { type WheelEvent, useEffect, useState } from "react";
 import LoadingState from "./LoadingState";
 import { PublishedDeckListItem } from "@/shared/interfaces/DeckListItem";
 import { EmptyState } from "@/client/ui/empty-state";
@@ -52,6 +52,20 @@ export default function RecentPublishedDecksPanel() {
   const [decks, setDecks] = useState<PublishedDeckListItem[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 
+  const handleHorizontalWheel = (event: WheelEvent<HTMLDivElement>) => {
+    if (
+      !window.matchMedia("(max-width: 767px)").matches
+      || event.deltaX !== 0
+      || event.deltaY === 0
+    ) return;
+
+    const panel = event.currentTarget;
+    if (panel.scrollWidth <= panel.clientWidth) return;
+
+    event.preventDefault();
+    panel.scrollLeft += event.deltaY;
+  };
+
   useEffect(() => {
     let isActive = true;
 
@@ -71,20 +85,23 @@ export default function RecentPublishedDecksPanel() {
   }, []);
 
   return (
-    <Card className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden border-white/20 bg-white/10 text-white">
+    <Card className="flex h-full min-h-0 w-auto mx-auto min-w-0 flex-col border-white/20 bg-white/10 text-white">
       <CardHeader className="shrink-0 flex flex-row items-center justify-between p-4 pb-2">
         <CardTitle className="text-lg">Recently Published Decks</CardTitle>
         <Button
           variant="link"
           size="sm"
           className="px-0 text-blue-300 hover:text-blue-200"
-          onClick={() => router.push("/decks/browse")}
+          onClick={() => router.push("/browse")}
         >
           Browse all
         </Button>
       </CardHeader>
 
-      <CardContent className="min-h-0 flex-1 overflow-y-auto p-4 pt-0">
+      <CardContent
+        className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden p-4 pt-0 md:overflow-x-hidden md:overflow-y-auto"
+        onWheel={handleHorizontalWheel}
+      >
         {status === "loading" && (
           <LoadingState label="Loading published decks…" className="h-full border-0" />
         )}
@@ -96,7 +113,7 @@ export default function RecentPublishedDecksPanel() {
         {status === "ready" && decks.length === 0 && <EmptyState icon="♜" title="No published decks yet" description="Community decklists will appear here." />}
 
         {status === "ready" && decks.length > 0 && (
-          <ul className="divide-y divide-white/10" aria-label="Five most recently published decks">
+          <ul className="flex md:flex-col divide-x md:divide-y divide-white/10" aria-label="Five most recently published decks">
             {decks.slice(0, 10).map((deck) => {
               const coverImage = getDeckCoverImage(deck);
               const deckId = deck._id.toString();
@@ -106,7 +123,7 @@ export default function RecentPublishedDecksPanel() {
                   <button
                     type="button"
                     className="flex w-full cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-                    onClick={() => deckId && router.push(`/decks/browse/${deckId}`)}
+                    onClick={() => deckId && router.push(`/browse/${deckId}`)}
                     aria-label={`Open published deck ${deck.name}`}
                   >
                     {coverImage ? (

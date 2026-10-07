@@ -68,7 +68,7 @@ export default function DeckBrowser() {
   };
   const handleDeckSelect = (deckId) => () => {
     if (!deckId) return;
-    router.push("/decks/browse/" + deckId);
+    router.push("/browse/" + deckId);
   }
   return (
     <FullPage showBreadcrumbs={false}>

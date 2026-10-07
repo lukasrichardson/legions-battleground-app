@@ -15,6 +15,10 @@ export type DeckListItem = {
   coverCard: DeckListCoverCard | null;
 };
 
+export type RecentDeckListItem = DeckListItem & {
+  updated_at: Date | string;
+};
+
 export type PublishedDeckListItem = DeckListItem & {
   author: string;
   published_date: Date | string;
