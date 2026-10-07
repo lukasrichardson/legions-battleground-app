@@ -51,7 +51,7 @@ export default function NewHome() {
         <div className="w-full md:w-1/2">
           <h1 className="m-0 font-serif text-[27px] leading-[.98] tracking-[-.04em] sm:my-2.5 sm:text-[clamp(36px,5vw,66px)]">Legions Battleground</h1>
           <span className="hidden text-base leading-[1.55] sm:block">
-            Build decks, practice in sandbox mode, and challenge other players.
+            Play and practice LRAW online - <span className="text-green-500"><a href="https://legionstoolbox.com" target="_blank" rel="noopener noreferrer">Powered By <span className="!underline">LegionsToolbox.com</span></a></span>
           </span>
         </div>
       </section>

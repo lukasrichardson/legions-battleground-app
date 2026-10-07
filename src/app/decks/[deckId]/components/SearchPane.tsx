@@ -534,7 +534,7 @@ export default function SearchPane({
             closeModal={() => setFiltersOpen(false)}
             variant="bottom-sheet"
             ariaLabel="Card filters"
-            modalHeader={<div className="flex items-center justify-between py-3"><span className="text-base font-semibold text-white">Filters</span><button type="button" aria-label="Close filters" onClick={() => setFiltersOpen(false)} className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"><AppIcon name="close" size={18} /></button></div>}
+            modalHeader={<div className="flex items-center justify-between py-4"><span className="text-base font-semibold tracking-wide text-white">Filters</span><button type="button" aria-label="Close filters" onClick={() => setFiltersOpen(false)} className="inline-flex h-10 w-10 items-center justify-center border border-transparent text-slate-300 transition hover:border-sky-200/35 hover:bg-blue-400/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"><AppIcon name="close" size={18} /></button></div>}
             modalContent={<div className="w-full pb-2">{galleryFilters("flex-col items-stretch [&_.relative]:w-full [&_button]:w-full", "viewport")}</div>}
           />
         </div>}

@@ -76,12 +76,12 @@ export default function CardGalleryInspector({
   return (
     <section aria-label={`${decodeHTMLEntities(card.title)} details`} className="relative flex h-full min-h-0 flex-col text-slate-100">
       {isPinned && onClearPinned && (
-        <button type="button" aria-label="Clear pinned card" onClick={onClearPinned} className="absolute left-2 top-2 z-10 inline-flex cursor-pointer items-center gap-1 rounded-full border border-white bg-blue-300/70 px-2 py-1 text-xs font-medium text-black shadow-sm backdrop-blur transition hover:bg-slate-900 hover:text-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300">
+        <button type="button" aria-label="Clear pinned card" onClick={onClearPinned} className="absolute left-2 top-2 z-10 inline-flex cursor-pointer items-center gap-1 border border-sky-200/45 bg-[#246fb8] px-2 py-1 text-xs font-medium text-white shadow-[0_0_12px_rgba(79,169,255,.2)] backdrop-blur transition hover:bg-[#338de0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
           Pinned <AppIcon name="close" size={12} />
         </button>
       )}
       {onClose && (
-        <button type="button" aria-label="Close card details" onClick={onClose} className="sticky right-3 top-4 ml-auto z-10 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-slate-950/80 text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300">
+        <button type="button" aria-label="Close card details" onClick={onClose} className="sticky right-3 top-4 ml-auto z-10 inline-flex h-10 w-10 cursor-pointer items-center justify-center border border-sky-200/30 bg-slate-950/80 text-slate-300 transition hover:border-sky-200/60 hover:bg-blue-400/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
           <AppIcon name="close" size={18} />
         </button>
       )}
@@ -115,7 +115,7 @@ export default function CardGalleryInspector({
       </div>
       {imageExpanded && createPortal(
         <div
-          className="fixed inset-0 z-[10000] flex cursor-zoom-out items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[10000] flex cursor-zoom-out items-center justify-center bg-[radial-gradient(circle_at_top,rgba(52,136,205,.2),transparent_42%),rgba(1,5,10,.88)] p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-label={`${decodeHTMLEntities(card.title)} full screen image`}
@@ -130,7 +130,7 @@ export default function CardGalleryInspector({
               type="button"
               onClick={() => setImageExpanded(false)}
               aria-label="Close full screen image"
-              className="absolute right-2 top-2 z-10 inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-white shadow-lg transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+              className="absolute right-2 top-2 z-10 inline-flex h-11 w-11 cursor-pointer items-center justify-center border border-sky-200/40 bg-slate-950/85 text-white shadow-[0_0_16px_rgba(79,169,255,.2)] transition hover:border-sky-200/70 hover:bg-blue-400/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
             >
               <AppIcon name="close" size={24} />
             </button>

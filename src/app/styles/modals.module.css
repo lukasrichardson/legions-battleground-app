@@ -29,6 +29,13 @@
   cursor: pointer;
   position: absolute;
   right: 0;
+  border: 1px solid rgba(186, 230, 253, .35);
+  background: rgba(36, 111, 184, .18);
+  color: #eaf5ff;
+  padding: .35rem .65rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-size: .7rem;
 }
 .modalShuffleButton {
   cursor: pointer;

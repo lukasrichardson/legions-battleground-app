@@ -124,7 +124,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
     <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-2">
         <button
-          className="px-3 py-1.5 text-xs font-medium uppercase tracking-wide rounded-md border border-white/20 bg-white/5 hover:bg-white/10 text-white/90"
+          className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10"
           onClick={shuffle as MouseEventHandler<HTMLButtonElement>}
         >
           {ShuffleBtnText}
@@ -138,16 +138,16 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
           placeholder="Search..."
           onChange={handleSearchChange}
           value={search}
-          className="w-44 sm:w-56 px-3 py-2 text-sm rounded-md bg-white/5 border border-white/15 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-white/30"
+          className="w-44 border border-sky-200/20 bg-slate-950/45 px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-sky-300/70 focus:ring-2 focus:ring-sky-300/15 sm:w-56"
         />
         <button
-          className="px-3 py-1.5 text-xs font-medium uppercase tracking-wide rounded-md border border-white/20 bg-white/5 hover:bg-white/10 text-white/90"
+          className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10"
           onClick={closeAndShuffle as MouseEventHandler<HTMLButtonElement>}
         >
           {CloseShuffleBtnText}
         </button>
         <button
-          className="px-3 py-1.5 text-xs font-medium uppercase tracking-wide rounded-md border border-white/20 bg-white/5 hover:bg-white/10 text-white/90"
+          className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10"
           onClick={handleCloseModal as MouseEventHandler<HTMLButtonElement>}
         >
           {CloseBtnText}
@@ -239,7 +239,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
     const renderTab = (name: string) => {
       return (
         <button
-          className={"px-3 py-1.5 text-xs font-medium uppercase tracking-wide rounded-md border border-white/20 bg-white/5 hover:bg-white/10 cursor-pointer " + (tab === name ? " bg-white/70 text-blue-950" : "text-white/90")}
+          className={"cursor-pointer border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition " + (tab === name ? "border-sky-200/55 bg-blue-400/20 text-sky-100 shadow-[inset_2px_0_0_#4fa9ff]" : "border-sky-200/20 bg-slate-950/35 text-slate-200 hover:border-sky-200/45 hover:bg-blue-400/10")}
           onClick={() => setTab(name)}
         >
           {name}
@@ -296,7 +296,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
                   {canConfirm && (
                     <button
                       onClick={handleConfirmSelected}
-                      className="px-4 py-2 text-sm font-medium rounded-md border border-white/15 bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30"
+                      className="border border-sky-200/45 bg-[#246fb8] px-4 py-2 text-sm font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0]"
                     >
                       Confirm
                     </button>

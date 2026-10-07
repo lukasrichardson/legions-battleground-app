@@ -85,8 +85,8 @@ export default function RegularMatchSetupOverlay() {
       {isMyMulligan ? <>
         <p className="text-sm text-slate-200">Review your hand, then choose whether to mulligan or keep.</p>
         <div className="mt-4 grid grid-cols-2 gap-3">
-          <button type="button" onClick={() => emitGameEvent({ type: GAME_EVENT.mulligan, data: {} })} className="flex min-h-12 items-center justify-center rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-100 focus:ring-offset-2 focus:ring-offset-slate-950">Mulligan</button>
-          <button type="button" onClick={() => emitGameEvent({ type: GAME_EVENT.keepHand, data: {} })} className="flex min-h-12 items-center justify-center rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-300">Keep hand</button>
+          <button type="button" onClick={() => emitGameEvent({ type: GAME_EVENT.mulligan, data: {} })} className="flex min-h-12 items-center justify-center border border-sky-200/45 bg-[#246fb8] px-4 py-3 text-sm font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0] focus:outline-none focus:ring-2 focus:ring-sky-200 focus:ring-offset-2 focus:ring-offset-slate-950">Mulligan</button>
+          <button type="button" onClick={() => emitGameEvent({ type: GAME_EVENT.keepHand, data: {} })} className="flex min-h-12 items-center justify-center border border-sky-200/25 bg-slate-950/35 px-4 py-3 text-sm font-semibold text-white transition hover:border-sky-200/60 hover:bg-blue-400/10 focus:outline-none focus:ring-2 focus:ring-sky-200">Keep hand</button>
         </div>
       </> : <WaitingMessage message={iGoFirst
         ? "You will go first. Your opponent is deciding whether to mulligan."
@@ -99,33 +99,33 @@ export default function RegularMatchSetupOverlay() {
 }
 
 function BlockingPanel({ children }: { children: ReactNode }) {
-  return <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm">
-    <section role="dialog" aria-modal="true" aria-label="Regular match setup" className="w-full max-w-xl rounded-2xl border border-cyan-200/20 bg-gradient-to-br from-slate-900 via-slate-900 to-cyan-950 p-6 shadow-2xl">
+  return <div className="absolute inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.82)] p-4 backdrop-blur-sm">
+    <section role="dialog" aria-modal="true" aria-label="Regular match setup" className="w-full max-w-xl border border-sky-200/35 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] p-6 shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_28px_rgba(79,169,255,.16)]">
       {children}
     </section>
   </div>;
 }
 
 function PanelHeading({ icon, title }: { icon: ReactNode; title: string }) {
-  return <div className="flex items-center gap-3 text-white">{icon &&<span className="rounded-xl bg-cyan-400/15 p-2 text-cyan-200">{icon}</span>}<h2 className="text-xl font-bold">{title}</h2></div>;
+  return <div className="flex items-center gap-3 border-b border-sky-200/20 pb-4 text-white">{icon &&<span className="border border-sky-200/40 bg-sky-300/15 p-2 text-sky-100">{icon}</span>}<h2 className="text-lg font-semibold tracking-wide">{title}</h2></div>;
 }
 
 function Seat({ label, ready }: { label: string; ready: boolean }) {
-  return <div className="rounded-xl border border-white/10 bg-white/5 p-3"><div className="font-semibold text-white">{label}</div><div className={ready ? "mt-1 text-xs text-emerald-300" : "mt-1 text-xs text-slate-400"}>{ready ? "Ready" : "Not ready"}</div></div>;
+  return <div className="border border-sky-200/15 bg-slate-950/35 p-3"><div className="font-semibold text-white">{label}</div><div className={ready ? "mt-1 text-xs text-emerald-300" : "mt-1 text-xs text-slate-400"}>{ready ? "Ready" : "Not ready"}</div></div>;
 }
 
 function WaitingMessage({ message }: { message: string }) {
-  return <div className="mt-5 rounded-xl border border-cyan-300/15 bg-cyan-400/5 p-4 text-sm text-cyan-100" role="status">{message}</div>;
+  return <div className="mt-5 border border-sky-200/20 bg-sky-300/10 p-4 text-sm text-sky-100" role="status">{message}</div>;
 }
 
 function PrimaryButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="mt-5 w-full rounded-xl bg-cyan-400 px-4 py-3 font-bold text-slate-950 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-100 focus:ring-offset-2 focus:ring-offset-slate-950">{children}</button>;
+  return <button type="button" onClick={onClick} className="mt-5 w-full border border-sky-200/45 bg-[#246fb8] px-4 py-3 font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0] focus:outline-none focus:ring-2 focus:ring-sky-200 focus:ring-offset-2 focus:ring-offset-slate-950">{children}</button>;
 }
 
 function ChoiceButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="min-h-12 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-bold text-white transition hover:border-cyan-200/60 hover:bg-cyan-300/10 focus:outline-none focus:ring-2 focus:ring-cyan-200">{children}</button>;
+  return <button type="button" onClick={onClick} className="min-h-12 border border-sky-200/25 bg-slate-950/35 px-4 py-3 text-sm font-semibold text-white transition hover:border-sky-200/60 hover:bg-blue-400/10 focus:outline-none focus:ring-2 focus:ring-sky-200">{children}</button>;
 }
 
 function RpsChoice({ label, icon, onClick }: { label: string; icon: ReactNode; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="group rounded-xl border border-white/15 bg-white/5 p-4 text-left transition hover:border-cyan-200/60 hover:bg-cyan-300/10 focus:outline-none focus:ring-2 focus:ring-cyan-200"><span className="mb-3 block text-cyan-200">{icon}</span><span className="font-semibold text-white">{label}</span></button>;
+  return <button type="button" onClick={onClick} className="group border border-sky-200/25 bg-slate-950/35 p-4 text-left transition hover:border-sky-200/60 hover:bg-blue-400/10 focus:outline-none focus:ring-2 focus:ring-sky-200"><span className="mb-3 block text-sky-200">{icon}</span><span className="font-semibold text-white">{label}</span></button>;
 }

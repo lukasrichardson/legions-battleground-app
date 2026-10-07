@@ -216,7 +216,7 @@ export default function CreateRoomModal() {
             {error && <InlineStatus variant="error">{error}</InlineStatus>}
 
             {/* Submit Button */}
-            <PublicFormSubmitButton loading={loading} loadingLabel="Creating game…" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+            <PublicFormSubmitButton loading={loading} loadingLabel="Creating game…">
               <span>{CreateGameBtnText}</span>
             </PublicFormSubmitButton>
           </form>

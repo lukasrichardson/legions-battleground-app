@@ -121,7 +121,7 @@ export default function Modal({
   if (!open) return null;
 
   return (
-      <div ref={setDropRef} className={isBottomSheet ? "fixed inset-0 z-50 flex items-end bg-black/50" : isConstrainedDialog ? "fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" : "absolute left-0 top-0 z-50 h-full w-full bg-black/20 p-4" + (!isDragging ? " pointer-events-none" : "")}>
+      <div ref={setDropRef} className={isBottomSheet ? "fixed inset-0 z-50 flex items-end bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.78)] backdrop-blur-sm" : isConstrainedDialog ? "fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.78)] p-4 backdrop-blur-sm" : "absolute left-0 top-0 z-50 h-full w-full bg-[radial-gradient(circle_at_top,rgba(52,136,205,.16),transparent_42%),rgba(1,5,10,.42)] p-4" + (!isDragging ? " pointer-events-none" : "")}>
           <div
             ref={setDragRef}
             role="dialog"
@@ -129,10 +129,10 @@ export default function Modal({
             aria-label={ariaLabel}
             tabIndex={-1}
             className={[isBottomSheet
-              ? "relative max-h-[95vh] w-full overflow-hidden rounded-t-2xl border border-white/15 border-b-0 shadow-2xl"
+              ? "relative max-h-[95vh] w-full overflow-hidden rounded-t-sm border border-sky-200/35 border-b-0 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] shadow-[0_-18px_45px_rgba(0,0,0,.5),0_0_28px_rgba(79,169,255,.16)]"
               : isConstrainedDialog
-                ? "relative flex max-h-[85dvh] w-full max-w-2xl overflow-hidden rounded-2xl border border-white/15 shadow-2xl"
-              : "relative max-h-[85%] w-fit max-w-[75%] transform overflow-hidden rounded-2xl border border-white/50 shadow-2xl top-1/4 left-1/2",
+                ? "relative flex max-h-[85dvh] w-full max-w-2xl overflow-hidden rounded-sm border border-sky-200/35 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_28px_rgba(79,169,255,.16)]"
+              : "relative max-h-[85%] w-fit max-w-[75%] transform overflow-hidden rounded-sm border border-sky-200/35 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_28px_rgba(79,169,255,.16)] top-1/4 left-1/2",
               "flex flex-col pointer-events-auto",
               transparentOnBlur ? "bg-white/25" : ""
             ].join(" ")}
@@ -141,11 +141,11 @@ export default function Modal({
             }}
           >
             {!isDragging && <>
-              <div className={`border-b border-white/10 bg-slate-900 ${isDraggable ? "px-6 hover:cursor-grab active:cursor-grabbing" : "px-4 sm:px-6"}`}>
+              <div className={`border-b border-sky-200/20 bg-[linear-gradient(90deg,rgba(79,169,255,.13),transparent_60%)] ${isDraggable ? "px-6 hover:cursor-grab active:cursor-grabbing" : "px-4 sm:px-6"}`}>
                 {modalHeader}
               </div>
 
-              <div className={["flex-1 min-h-0 overflow-x-hidden overflow-y-auto bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-slate-900/95", transparentOnBlur ? "opacity-5 hover:opacity-100" : ""].join(" ")}>
+              <div className={["flex-1 min-h-0 overflow-x-hidden overflow-y-auto bg-[linear-gradient(145deg,rgba(8,21,33,.96),rgba(3,10,18,.98))]", transparentOnBlur ? "opacity-5 hover:opacity-100" : ""].join(" ")}>
                 <div className={isDraggable ? "p-6" : "p-4 sm:p-6"}>
                   {modalContent}
                 </div>

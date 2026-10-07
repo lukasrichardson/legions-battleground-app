@@ -38,42 +38,43 @@ export default function PublishedDeckViewer() {
     if (copiedDeck._id) router.push(`/decks/${copiedDeck._id}`);
   }
   return (
-    <FullPage showBreadcrumbs={true}>
-      {deck && <div className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-2.5">
-        <div className="flex w-full shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm sm:text-lg">
-          <span className="text-white font-medium">{deck.name}</span>
-          <span className="text-white/70">{deck.legion}</span>
-          <span className="text-white/50">By {deck.author}</span>
-          <span className="text-white/50">Published {new Date(deck.published_date).toLocaleDateString()}</span>
-          <span className="text-white/50">{getMainDeckCards(deck).length} main cards</span>
-          <span className="text-white/50">{(deck.side_deck ?? []).length}/15 side cards</span>
-          <Button
-            onClick={handleCopyDeck}
-            disabled={status === "loading"}
-            variant="outline"
-            size="sm"
-            className="border-white/50 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-          >
-            {status === "loading" ? "Checking sign-in…" : session ? "Copy to My Decks" : "Sign in to copy this deck"}
-          </Button>
-          {!session && status !== "loading" && (
-            <span className="w-full text-center text-xs text-white/60">
-              You can browse public decks without an account. Sign in only to save a copy.
-            </span>
-          )}
-        </div>
-        <div className="flex min-h-0 flex-1 flex-col-reverse gap-2 overflow-y-auto border-t border-white/20 pt-2 lg:flex-row lg:overflow-hidden">
-          <div className="order-1 min-h-[320px] min-w-0 flex-[2] lg:min-h-0 lg:flex-[3]">
-            <DeckGrid deck={deck} setHoveredCard={setHoveredCard} handleRemoveCardFromDeck={() => null} handleSortClick={() => null} saving={false} handleAddCardToDeck={() => null} readOnly={true} />
+    <FullPage showBreadcrumbs={false}>
+      {deck && (
+        <div className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-2.5">
+          <div className="flex w-full shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-sm sm:text-lg">
+            <span className="text-white font-medium">{deck.name}</span>
+            <span className="text-white/70">{deck.legion}</span>
+            <span className="text-white/50">By {deck.author}</span>
+            <span className="text-white/50">Published {new Date(deck.published_date).toLocaleDateString()}</span>
+            <span className="text-white/50">{getMainDeckCards(deck).length} main cards</span>
+            <span className="text-white/50">{(deck.side_deck ?? []).length}/15 side cards</span>
+            <Button
+              onClick={handleCopyDeck}
+              disabled={status === "loading"}
+              variant="outline"
+              size="sm"
+              className="border-white/50 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
+              {status === "loading" ? "Checking sign-in…" : session ? "Copy to My Decks" : "Sign in to copy this deck"}
+            </Button>
+            {!session && status !== "loading" && (
+              <span className="w-full text-center text-xs text-white/60">
+                You can browse public decks without an account. Sign in only to save a copy.
+              </span>
+            )}
           </div>
-          <div className="order-2 flex min-w-0 flex-1 flex-col gap-2 lg:w-80 xl:w-96">
-            {/* Preview Pane - Only show on large screens */}
-            <div className="hidden lg:block h-1/2">
-              <Preview hoveredCard={hoveredCard} />
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto border-t border-white/20 pt-2 lg:flex-row lg:overflow-hidden">
+            <div className="order-1 min-h-[320px] h-full min-w-0 flex-[2] lg:min-h-0 lg:flex-[3]">
+              <DeckGrid deck={deck} setHoveredCard={setHoveredCard} handleRemoveCardFromDeck={() => null} handleSortClick={() => null} saving={false} handleAddCardToDeck={() => null} readOnly={true} />
+            </div>
+            <div className="hidden order-2 lg:flex min-w-0 flex-1 flex-col gap-2 lg:w-80 xl:w-96">
+              {/* Preview Pane - Only show on large screens */}
+              <div className=" h-1/2">
+                <Preview hoveredCard={hoveredCard} />
+              </div>
             </div>
           </div>
-        </div>
-      </div>}
+        </div>)}
     </FullPage>
   )
 }

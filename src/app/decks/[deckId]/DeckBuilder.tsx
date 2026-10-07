@@ -287,12 +287,12 @@ export default function DeckBuilder() {
   };
   const isMobile = useIsMobile();
   return (
-    <FullPage showBreadcrumbs={true}>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-2.5">
+    <FullPage showBreadcrumbs={false}>
+      <div className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-2">
       {isMobile && (
         <div className="w-full h-6"></div>
       )}
-      <div className="h-auto mb-1">
+      <div className="h-auto">
         <DeckEditorHeader
           deck={deck}
           isEditingName={isEditingName}
@@ -309,7 +309,7 @@ export default function DeckBuilder() {
       {saveError && <InlineStatus variant="error" className="mb-2 text-center">{saveError}</InlineStatus>}
 
       {/* Main Content Area - Takes remaining space */}
-      <div className="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto gap-2 border-t border-white/20 pt-2 lg:flex-row lg:overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto gap-2 lg:flex-row lg:overflow-hidden">
         {/* Deck Grid Pane - Full width on mobile, left side on large screens */}
         <div ref={attachDeckDropTarget} className="relative order-1 min-h-[320px] min-w-0 flex-[2] border border-white/15 bg-[rgba(4,9,14,.56)] p-1.5 shadow-[0_14px_32px_rgba(0,0,0,.2)] sm:p-2 lg:min-h-0 lg:flex-[3]">
             {canDropDeck && (

@@ -110,15 +110,15 @@ export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
           onClose();
         }
       }}
-      className="absolute right-0 top-full mt-2 w-[min(22rem,calc(100vw-1rem))] overflow-hidden border-white/20 bg-slate-900/95 text-white shadow-2xl backdrop-blur-sm"
+      className="absolute right-0 top-full mt-3 w-[min(22rem,calc(100vw-1rem))] overflow-hidden rounded-sm border border-sky-200/40 bg-[linear-gradient(145deg,rgba(15,31,48,.98),rgba(3,10,18,.98))] text-white shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_25px_rgba(79,169,255,.18)] backdrop-blur-xl"
     >
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 border-b border-white/10 p-4 pb-3">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 border-b border-sky-200/20 bg-[linear-gradient(90deg,rgba(79,169,255,.12),transparent_65%)] p-4">
         <div className="flex items-center gap-3">
           <div>
-            <CardTitle className="text-base text-white">Battleground username</CardTitle>
+          <CardTitle className="text-base font-semibold tracking-wide text-white">Battleground username</CardTitle>
           </div>
         </div>
-        <button type="button" onClick={onClose} className="cursor-pointer rounded-lg p-1 text-gray-400 transition-colors hover:bg-white/10 hover:text-white" aria-label="Close username editor">
+        <button type="button" onClick={onClose} className="cursor-pointer border border-transparent p-1 text-slate-400 transition-colors hover:border-sky-200/35 hover:bg-blue-400/10 hover:text-white" aria-label="Close username editor">
           <AppIcon name="close" size={16} />
         </button>
       </CardHeader>
@@ -133,28 +133,28 @@ export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
             maxLength={24}
             autoComplete="nickname"
             placeholder="Choose your public name"
-            className="mt-2 h-10 border-white/20 bg-white/10 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500/20"
+            className="mt-2 h-10 border-sky-200/20 bg-slate-950/45 text-white placeholder:text-slate-500 focus:border-sky-300/70 focus:ring-sky-300/20"
           />
           </label>
           <p className="text-xs leading-relaxed text-gray-400">3–24 letters, numbers, hyphens, or underscores. Usernames are case-insensitively unique.</p>
           {error && <InlineStatus variant="error">{error}</InlineStatus>}
-          <Button type="submit" disabled={loading || saving || !alias.trim()} className="h-10 w-full bg-gradient-to-r from-blue-600 to-blue-700 font-semibold text-white hover:from-blue-700 hover:to-blue-800">
+          <Button type="submit" disabled={loading || saving || !alias.trim()} className="h-10 w-full border border-sky-200/45 bg-[#246fb8] font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] hover:bg-[#338de0]">
             {saving ? "Saving…" : savedAlias ? "Update username" : "Set username"}
           </Button>
         </form>}
       </CardContent>
       {savedAlias && (
-        <CardFooter className="block border-t border-white/10 p-4 pt-3">
+        <CardFooter className="block border-t border-sky-200/15 p-4 pt-3">
           {confirmingDelete ? (
             <div className="rounded-lg border border-red-400/30 bg-red-950/40 p-3 text-xs">
               <p className="text-red-100">Remove this username and use your provider name instead?</p>
               <div className="mt-2 flex justify-end gap-2">
-                <Button type="button" size="sm" variant="ghost" disabled={saving} onClick={() => setConfirmingDelete(false)}>Cancel</Button>
-                <Button type="button" size="sm" variant="destructive" disabled={saving} onClick={deleteAlias}>Remove username</Button>
+                <Button type="button" size="sm" variant="ghost" disabled={saving} onClick={() => setConfirmingDelete(false)} className="border border-sky-200/30 bg-slate-950/35 text-slate-100 hover:border-sky-200/60 hover:bg-blue-400/10 hover:text-white">Cancel</Button>
+                <Button type="button" size="sm" variant="destructive" disabled={saving} onClick={deleteAlias} className="border border-rose-200/35 bg-rose-500/80 text-white hover:bg-rose-500">Remove username</Button>
               </div>
             </div>
           ) : (
-            <Button type="button" size="sm" variant="ghost" disabled={saving} onClick={() => setConfirmingDelete(true)} className="w-full text-red-300 hover:bg-red-950/40 hover:text-red-100">
+            <Button type="button" size="sm" variant="ghost" disabled={saving} onClick={() => setConfirmingDelete(true)} className="w-full border border-rose-200/25 bg-rose-500/5 text-rose-200 hover:border-rose-200/45 hover:bg-rose-500/15 hover:text-rose-100">
               Remove username
             </Button>
           )}

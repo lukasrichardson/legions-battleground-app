@@ -121,7 +121,7 @@ export default function JoinRoomModal() {
       <p className="text-gray-300 mb-6">You need to be signed in to join a room.</p>
       <Button 
         onClick={() => signIn()}
-        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 shadow-lg"
+        className="w-full border border-sky-200/45 bg-[#246fb8] px-6 py-3 font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0]"
       >
         Sign In
       </Button>
@@ -194,7 +194,7 @@ export default function JoinRoomModal() {
             {error && <InlineStatus variant="error">{error}</InlineStatus>}
 
             {/* Submit Button */}
-            <PublicFormSubmitButton loading={loading} loadingLabel="Joining room…" className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800">
+            <PublicFormSubmitButton loading={loading} loadingLabel="Joining room…">
               <AppIcon name="join-room" size={20} />
               <span>{JoinRoomBtnText}</span>
             </PublicFormSubmitButton>
