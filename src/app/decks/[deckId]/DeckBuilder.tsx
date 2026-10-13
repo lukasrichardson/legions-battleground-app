@@ -18,6 +18,7 @@ import { getDeckCards, getOrdinaryMainDeckCards, isCardAllowedForDeckLegion, isS
 import { DeckPatchOperation } from "@/shared/interfaces/DeckPatch";
 import { createDeckPatchQueue } from "@/client/utils/deckPatchQueue";
 import { InlineStatus } from "@/client/ui/inline-status";
+import { DeckCardListKey, DeckDragItem } from "./components/CardTile";
 
 export default function DeckBuilder() {
   const params = useParams<{ deckId: string }>()
@@ -146,26 +147,64 @@ export default function DeckBuilder() {
     );
   };
 
+  const getSideDeckMoveError = (card: HydratedDeckCard, currentDeck = deckRef.current): string | null => {
+    if (!currentDeck) return "Unable to update deck.";
+    const sideDeck = currentDeck.side_deck ?? [];
+    if (sideDeck.length >= SIDE_DECK_MAX_SIZE) return `A side deck can contain at most ${SIDE_DECK_MAX_SIZE} cards.`;
+    if (!isSideDeckCardTypeAllowed(card)) return `${card.title} cannot be placed in a side deck.`;
+    if (!isCardAllowedForDeckLegion(card, currentDeck.legion)) return `${card.title} is not valid for the ${currentDeck.legion} legion.`;
+    return null;
+  };
+
   const handleAddCardToSideDeck = (card) => {
     const currentDeck = deckRef.current;
     if (!currentDeck || !card) return;
+    const error = getSideDeckMoveError(card, currentDeck);
+    if (error) {
+      setSaveError(error);
+      return;
+    }
     const sideDeck = currentDeck.side_deck ?? [];
-    if (sideDeck.length >= SIDE_DECK_MAX_SIZE) {
-      setSaveError(`A side deck can contain at most ${SIDE_DECK_MAX_SIZE} cards.`);
-      return;
-    }
-    if (!isSideDeckCardTypeAllowed(card)) {
-      setSaveError(`${card.title} cannot be placed in a side deck.`);
-      return;
-    }
-    if (!isCardAllowedForDeckLegion(card, currentDeck.legion)) {
-      setSaveError(`${card.title} is not valid for the ${currentDeck.legion} legion.`);
-      return;
-    }
 
     saveDeckPatch(
       [{ op: "add", path: "/side_deck/-", value: card._id.toString() }],
       { ...currentDeck, side_deck: [...sideDeck, card._id], cards: includeCardMetadata(currentDeck, card) },
+    );
+  };
+
+  const moveDeckCard = (item: DeckDragItem, destination: "main" | "side") => {
+    const currentDeck = deckRef.current;
+    if (!currentDeck) return;
+
+    const { card, sourceList } = item;
+    const destinationList: DeckCardListKey = destination === "side"
+      ? "side_deck"
+      : specialMainDeckFieldForCardType(card.card_type?.names?.[0]) ?? "cards_in_deck";
+    if (sourceList === destinationList) return;
+
+    if (destination === "side") {
+      const error = getSideDeckMoveError(card, currentDeck);
+      if (error) {
+        setSaveError(error);
+        return;
+      }
+    }
+
+    const sourceCards = currentDeck[sourceList] ?? [];
+    const sourceIndex = lastCardIndexById(sourceCards, card._id);
+    if (sourceIndex < 0) return;
+    const destinationCards = currentDeck[destinationList] ?? [];
+
+    saveDeckPatch(
+      [
+        { op: "remove", path: `/${sourceList}/${sourceIndex}` },
+        { op: "add", path: `/${destinationList}/-`, value: card._id.toString() },
+      ],
+      {
+        ...currentDeck,
+        [sourceList]: sourceCards.filter((_, index) => index !== sourceIndex),
+        [destinationList]: [...destinationCards, card._id],
+      },
     );
   };
 
@@ -243,7 +282,7 @@ export default function DeckBuilder() {
       const itemType = monitor.getItemType();
       
       if (itemType === 'cardFromDeck') {
-        // Handle card dropped from deck (e.g., reordering within deck)
+        moveDeckCard(item as unknown as DeckDragItem, "main");
       } else if (itemType === 'cardFromSearch') {
         if (addTarget === "side") handleAddCardToSideDeck(item);
         else handleAddCardToDeck(item);
@@ -251,25 +290,31 @@ export default function DeckBuilder() {
     },
     canDrop: (item, monitor) => {
       const itemType = monitor.getItemType();
-      return itemType === 'cardFromSearch';
+      return itemType === "cardFromSearch"
+        || (itemType === "cardFromDeck" && (item as unknown as DeckDragItem).sourceList === "side_deck");
     },
     collect: (monitor) => ({
-      isOverDeck: monitor.isOver() && monitor.getItemType() === 'cardFromSearch',
+      isOverDeck: monitor.isOver() && (monitor.getItemType() === "cardFromSearch" || monitor.getItemType() === "cardFromDeck"),
       canDropDeck: monitor.canDrop()
     })
-  }), [addTarget, handleAddCardToDeck, handleAddCardToSideDeck]);
+  }), [addTarget, handleAddCardToDeck, handleAddCardToSideDeck, moveDeckCard]);
 
   const [{ isOverSearchPane, canDropSearch }, searchPaneDrop] = useDrop(() => ({
     accept: ["cardFromDeck", "cardFromSearch"],
     canDrop: (item, monitor) => {
       const itemType = monitor.getItemType();
-      return itemType === 'cardFromDeck';
+      return itemType === "cardFromDeck";
     },
     drop: (item: CardDocument, monitor) => {
       const itemType = monitor.getItemType();
       
       if (itemType === 'cardFromDeck') {
-        handleRemoveCardFromDeck(item);
+        const deckItem = item as unknown as DeckDragItem;
+        if (deckItem.sourceList === "side_deck") {
+          handleRemoveCardFromSideDeck(deckItem.card);
+        } else {
+          handleRemoveCardFromDeck(deckItem.card);
+        }
       } else if (itemType === 'cardFromSearch') {
         // Handle card dropped within search results (no action needed)
       }
@@ -278,7 +323,7 @@ export default function DeckBuilder() {
       isOverSearchPane: monitor.isOver() && monitor.getItemType() === 'cardFromDeck',
       canDropSearch: monitor.canDrop()
     })
-  }), [handleRemoveCardFromDeck]);
+  }), [handleRemoveCardFromDeck, handleRemoveCardFromSideDeck]);
   const attachDeckDropTarget = (node: HTMLDivElement | null) => {
     deckDrop(node);
   };
@@ -323,6 +368,8 @@ export default function DeckBuilder() {
               handleAddCardToDeck={handleAddCardToDeck}
               handleRemoveCardFromSideDeck={handleRemoveCardFromSideDeck}
               handleAddCardToSideDeck={handleAddCardToSideDeck}
+              getSideDeckMoveError={getSideDeckMoveError}
+              onMoveCardToSideDeck={(item) => moveDeckCard(item, "side")}
             />
         </div>
 

@@ -7,10 +7,11 @@ import useClientSettings from "@/client/hooks/useClientSettings";
 import DeckSection from "./DeckSection";
 import useIsMobile from "@/client/hooks/useIsMobile";
 import { useDrop } from "react-dnd";
-import { getMainDeckCards, getOrdinaryMainDeckCards, getSideDeckCards, getSpecialMainDeckCards } from "@/shared/deckComposition";
+import { getMainDeckCards, getOrdinaryMainDeckCards, getSideDeckCards, getSpecialMainDeckCards, specialMainDeckFieldForCardType } from "@/shared/deckComposition";
 import LoadingState from "@/app/components/LoadingState";
 import AppIcon from "@/app/components/AppIcon";
 import { EmptyState } from "@/client/ui/empty-state";
+import { DeckCardListKey, DeckDragItem } from "./CardTile";
 
 const renderSectionStructure = (name: string, cards: HydratedDeckCard[], renderSubSection: (cards: HydratedDeckCard[]) => JSX.Element) => (
   cards && cards.length > 0 && (
@@ -35,6 +36,8 @@ export default function DeckGrid({
   handleAddCardToDeck,
   handleRemoveCardFromSideDeck = () => null,
   handleAddCardToSideDeck = () => null,
+  getSideDeckMoveError = () => null,
+  onMoveCardToSideDeck = () => null,
   readOnly = false
 }: {
   deck: DeckResponse | null,
@@ -45,6 +48,8 @@ export default function DeckGrid({
   handleAddCardToDeck: (card: HydratedDeckCard) => void,
   handleRemoveCardFromSideDeck?: (card: HydratedDeckCard) => void,
   handleAddCardToSideDeck?: (card: HydratedDeckCard) => void,
+  getSideDeckMoveError?: (card: HydratedDeckCard) => string | null,
+  onMoveCardToSideDeck?: (item: DeckDragItem) => void,
   readOnly?: boolean
 }) {
 
@@ -68,7 +73,10 @@ export default function DeckGrid({
     handleRemoveCardFromDeck(card);
   }
 
-  const renderSection = (cards, removeCard = handleDeckCardClick, addCard = handleAddCardToDeck) => (
+  const mainSourceListForCard = (card: HydratedDeckCard): DeckCardListKey =>
+    specialMainDeckFieldForCardType(card.card_type?.names?.[0]) ?? "cards_in_deck";
+
+  const renderSection = (cards, removeCard = handleDeckCardClick, addCard = handleAddCardToDeck, sourceListForCard = mainSourceListForCard) => (
     <DeckSection
       cards={cards}
       removeCardFromDeck={removeCard}
@@ -76,6 +84,7 @@ export default function DeckGrid({
       useGroupedView={deckbuild_groupedView}
       addCardToDeck={addCard}
       readOnly={readOnly}
+      sourceListForCard={sourceListForCard}
     />
   )
 
@@ -89,10 +98,19 @@ export default function DeckGrid({
     handleRemoveCardFromSideDeck(card);
   }
   const [{ isOverSideDeck, canDropSideDeck }, sideDeckDrop] = useDrop(() => ({
-    accept: "cardFromSearch",
-    canDrop: () => !readOnly,
-    drop: (card: CardDocument) => {
-      handleAddCardToSideDeck(card);
+    accept: ["cardFromSearch", "cardFromDeck"],
+    canDrop: (item, monitor) => {
+      if (readOnly) return false;
+      if (monitor.getItemType() === "cardFromSearch") return getSideDeckMoveError(item as CardDocument) === null;
+      const deckItem = item as DeckDragItem;
+      return deckItem.sourceList !== "side_deck" && getSideDeckMoveError(deckItem.card) === null;
+    },
+    drop: (item, monitor) => {
+      if (monitor.getItemType() === "cardFromSearch") {
+        handleAddCardToSideDeck(item as CardDocument);
+      } else {
+        onMoveCardToSideDeck(item as DeckDragItem);
+      }
       return { target: "side-deck" };
     },
     collect: (monitor) => ({
@@ -190,7 +208,7 @@ export default function DeckGrid({
         <CardContent className="max-h-40 overflow-y-auto p-2 pt-0">
           {sideDeck.length ? (
             <div className="flex flex-wrap">
-              {renderSection(sideDeck, handleSideDeckCardClick, handleAddCardToSideDeck)}
+              {renderSection(sideDeck, handleSideDeckCardClick, handleAddCardToSideDeck, () => "side_deck")}
             </div>
           ) : (
             <p className="py-2 text-center text-xs text-white/55">Add up to 15 eligible cards for match preparation.</p>

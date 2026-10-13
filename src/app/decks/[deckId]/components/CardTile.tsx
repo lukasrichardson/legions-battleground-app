@@ -5,6 +5,19 @@ import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { useEffect, useMemo, useState } from "react";
 import { useDrag } from "react-dnd";
 
+export type DeckCardListKey =
+  | "cards_in_deck"
+  | "side_deck"
+  | "warlords"
+  | "synergies"
+  | "veilRealms"
+  | "guardians";
+
+export type DeckDragItem = {
+  card: HydratedDeckCard;
+  sourceList: DeckCardListKey;
+};
+
 const renderHoverContent = (card, removeCardFromDeck, addCardToDeck, countInDeck) => (
   <div className="absolute w-full h-full opacity-0 hover:opacity-100 bg-white/20 z-50 flex items-center justify-around">
     <div className="bg-red-800 hover:bg-red-500 px-1 cursor-pointer rounded w-3/12 text-center" onClick={(e) => removeCardFromDeck(e, card)}>-</div>
@@ -47,7 +60,7 @@ export const renderCardTile = (card: DeckTileCard, index: number, onMouseEnter: 
   </div>)
 }
 
-export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped, readOnly = false, banlist, countInDeck }: { card: HydratedDeckCard, index: number, removeCardFromDeck: (e: React.MouseEvent, card: HydratedDeckCard) => void, onMouseEnter: (card: HydratedDeckCard) => void, addCardToDeck: (card: HydratedDeckCard) => void, grouped: boolean, readOnly?: boolean, banlist: BanlistItem[], countInDeck: number }) => {
+export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped, readOnly = false, banlist, countInDeck, sourceList }: { card: HydratedDeckCard, index: number, removeCardFromDeck: (e: React.MouseEvent, card: HydratedDeckCard) => void, onMouseEnter: (card: HydratedDeckCard) => void, addCardToDeck: (card: HydratedDeckCard) => void, grouped: boolean, readOnly?: boolean, banlist: BanlistItem[], countInDeck: number, sourceList: DeckCardListKey }) => {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const handleOnMouseEnter = () => {
     const timeoutId = setTimeout(() => {
@@ -100,11 +113,12 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
   }, [banlist]);
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "cardFromDeck",
-    item: card,
+    item: { card, sourceList } satisfies DeckDragItem,
+    canDrag: !readOnly,
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-  }), [card]);
+  }), [card, readOnly, sourceList]);
   return (
     grouped ? (
       <div
