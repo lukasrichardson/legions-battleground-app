@@ -5,6 +5,7 @@ import { InlineStatus } from "@/client/ui/inline-status";
 import { createPublishedDeck } from "@/client/utils/api.utils";
 import { useDeckPickerOptions } from "@/client/hooks/useDeckPickerOptions";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
+import { downloadDeckMarkdown } from "@/client/utils/deckMarkdown";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -99,6 +100,17 @@ export default function DeckEditorHeader({
       setActionPending(null);
     }
   };
+
+  const handleExportMarkdownClick = () => {
+    if (!deck) return;
+    setActionError("");
+    try {
+      downloadDeckMarkdown(deck);
+    } catch (error) {
+      console.error("Error exporting deck:", error);
+      setActionError("Could not download this deck. Please try again.");
+    }
+  };
   const isMobile = useIsMobile();
   const actionsDisabled = saving || actionPending !== null;
   return (
@@ -165,6 +177,9 @@ export default function DeckEditorHeader({
             )}
             <Button type="button" variant="outline" onClick={handleCreateDuplicateClick} className={actionButtonClass} disabled={actionsDisabled}>
               {actionPending === "copy" ? "Copying…" : "Copy"}
+            </Button>
+            <Button type="button" variant="outline" onClick={handleExportMarkdownClick} className={actionButtonClass} disabled={actionsDisabled || !deck}>
+              Export
             </Button>
             <Button type="button" variant="destructive" onClick={handleDeleteDeckClick} className="h-9" disabled={actionsDisabled}>
               Delete
