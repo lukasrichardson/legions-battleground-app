@@ -7,7 +7,7 @@ import useClientSettings from "@/client/hooks/useClientSettings";
 import DeckSection from "./DeckSection";
 import useIsMobile from "@/client/hooks/useIsMobile";
 import { useDrop } from "react-dnd";
-import { getMainDeckCards, getOrdinaryMainDeckCards, getSideDeckCards, getSpecialMainDeckCards, specialMainDeckFieldForCardType } from "@/shared/deckComposition";
+import { getMainDeckCards, getOrdinaryMainDeckCards, getSideDeckCards, getSpecialDeckCards, specialDeckFieldForCardType } from "@/shared/deckComposition";
 import LoadingState from "@/app/components/LoadingState";
 import AppIcon from "@/app/components/AppIcon";
 import { EmptyState } from "@/client/ui/empty-state";
@@ -59,11 +59,11 @@ export default function DeckGrid({
   const warriors = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.WARRIOR);
   const unifieds = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.UNIFIED);
   const fortifieds = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.FORTIFIED);
-  const warlords = deck ? getSpecialMainDeckCards(deck, "warlords") : [];
-  const veilRealms = deck ? getSpecialMainDeckCards(deck, "veilRealms") : [];
-  const synergies = deck ? getSpecialMainDeckCards(deck, "synergies") : [];
-  const guardians = deck ? getSpecialMainDeckCards(deck, "guardians") : [];
-  const tokens = deckCards.filter(item => item?.card_type?.names?.[0] === CARD_TYPE.TOKEN);
+  const warlords = deck ? getSpecialDeckCards(deck, "warlords") : [];
+  const veilRealms = deck ? getSpecialDeckCards(deck, "veilRealms") : [];
+  const synergies = deck ? getSpecialDeckCards(deck, "synergies") : [];
+  const guardians = deck ? getSpecialDeckCards(deck, "guardians") : [];
+  const tokens = deck ? getSpecialDeckCards(deck, "tokens") : [];
   const noLeftSide = warlords.length === 0 && veilRealms.length === 0 && synergies.length === 0 && guardians.length === 0 && tokens.length === 0;
 
   const { deckbuild_groupedView, setDeckbuildGroupedView } = useClientSettings();
@@ -74,7 +74,7 @@ export default function DeckGrid({
   }
 
   const mainSourceListForCard = (card: HydratedDeckCard): DeckCardListKey =>
-    specialMainDeckFieldForCardType(card.card_type?.names?.[0]) ?? "cards_in_deck";
+    specialDeckFieldForCardType(card.card_type?.names?.[0]) ?? "cards_in_deck";
 
   const renderSection = (cards, removeCard = handleDeckCardClick, addCard = handleAddCardToDeck, sourceListForCard = mainSourceListForCard) => (
     <DeckSection
@@ -131,6 +131,7 @@ export default function DeckGrid({
             {!isMobile &&(<><span>|  Warriors: {warriors?.length}</span>
             <span>|  Unified: {unifieds?.length}</span>
             <span>|  Fortified: {fortifieds?.length}</span>
+            <span>| Tokens: {tokens.length}</span>
             <span>|  Side: {sideDeck?.length}</span></>)}
           </span>
           <div className="flex items-center gap-2">
@@ -183,7 +184,7 @@ export default function DeckGrid({
             ) : (
               <>
                 <div className="rounded bg-white/20 relative min-h-1/12">
-                  <span className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 italic z-50 pointer-events-none bg-black/20">LEFT SIDE and tokens</span>
+                  <span className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 italic z-50 pointer-events-none bg-black/20">SPECIAL DECK CARDS</span>
                   {renderSection([...warlords, ...veilRealms, ...synergies, ...guardians, ...tokens])}
                 </div>
                 <div className="rounded bg-white/20 relative mt-2 min-h-1/2">

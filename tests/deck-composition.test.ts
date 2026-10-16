@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { DeckResponse, HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
-import { getCombinedCardCounts, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, normalizeDeck, SIDE_DECK_MAX_SIZE } from "@/shared/deckComposition";
+import { getCombinedCardCounts, getMainDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, normalizeDeck, SIDE_DECK_MAX_SIZE } from "@/shared/deckComposition";
 import { DeckValidationError, validateDeckComposition } from "@/server/services/api/DeckValidationService";
 
 const card = (title: string, type = CARD_TYPE.WARRIOR, legion = "Angels"): HydratedDeckCard => ({
@@ -25,6 +25,7 @@ const deckWith = (main: HydratedDeckCard[] = [], side: HydratedDeckCard[] = []):
   synergies: [],
   veilRealms: [],
   guardians: [],
+  tokens: [],
   cards: [...new Map([...main, ...side].map((item) => [item._id, item])).values()],
   created_at: new Date(),
   updated_at: new Date(),
@@ -40,6 +41,14 @@ describe("deck composition", () => {
   it("counts matching cards across the main and side decks", () => {
     const deck = deckWith([card("Same Card")], [card("Same Card")]);
     expect(getCombinedCardCounts(deck).get("same card")).toBe(2);
+  });
+
+  it("keeps tokens outside the draw deck and its main-deck count", () => {
+    const token = card("Angel Token", CARD_TYPE.TOKEN);
+    const deck = { ...deckWith([card("Vanguard")]), tokens: [token._id], cards: [card("Vanguard"), token] };
+
+    expect(getMainDeckCards(deck)).toHaveLength(1);
+    expect(normalizeDeck(deck).tokens).toEqual([token._id]);
   });
 
   it("includes dedicated special arrays in main-deck copy-limit checks without imposing a new cap", () => {

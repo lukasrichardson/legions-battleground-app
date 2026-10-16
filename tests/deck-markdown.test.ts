@@ -30,6 +30,7 @@ describe("deckToMarkdown", () => {
       synergies: [],
       veilRealms: [],
       guardians: [],
+      tokens: [],
       cards: [card(vanguard, "Vanguard"), card(strike, "Radiant Strike"), card(warlord, "Aurelia"), card(sideboard, "Counterspell")],
       created_at: new Date(),
       updated_at: new Date(),
@@ -41,12 +42,23 @@ describe("deckToMarkdown", () => {
   it("omits empty sections and creates safe filenames", () => {
     const deck: DeckResponse = {
       _id: new ObjectId(), name: "  My / Deck!  ", subtitle: "", legion: "Angels",
-      cards_in_deck: [], side_deck: [], warlords: [], synergies: [], veilRealms: [], guardians: [], cards: [],
+      cards_in_deck: [], side_deck: [], warlords: [], synergies: [], veilRealms: [], guardians: [], tokens: [], cards: [],
       created_at: new Date(), updated_at: new Date(),
     };
 
     expect(deckToMarkdown(deck)).toBe("# My / Deck!\n\n**Legion:** Angels\n");
     expect(deckMarkdownFilename(deck.name)).toBe("my-deck.md");
     expect(deckMarkdownFilename("***")).toBe("deck.md");
+  });
+
+  it("exports tokens as a separate section", () => {
+    const token = new ObjectId();
+    const deck: DeckResponse = {
+      _id: new ObjectId(), name: "Tokens", subtitle: "", legion: "Angels",
+      cards_in_deck: [], side_deck: [], warlords: [], synergies: [], veilRealms: [], guardians: [], tokens: [token],
+      cards: [card(token, "Angel Token")], created_at: new Date(), updated_at: new Date(),
+    };
+
+    expect(deckToMarkdown(deck)).toContain("## Tokens (1)\n\n- 1x Angel Token");
   });
 });

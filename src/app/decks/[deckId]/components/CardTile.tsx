@@ -11,7 +11,8 @@ export type DeckCardListKey =
   | "warlords"
   | "synergies"
   | "veilRealms"
-  | "guardians";
+  | "guardians"
+  | "tokens";
 
 export type DeckDragItem = {
   card: HydratedDeckCard;

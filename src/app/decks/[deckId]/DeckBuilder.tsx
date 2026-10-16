@@ -14,7 +14,7 @@ import FullPage from "@/app/components/FullPage";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { useDrop } from "react-dnd";
 import useIsMobile from "@/client/hooks/useIsMobile";
-import { getDeckCards, getOrdinaryMainDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, SIDE_DECK_MAX_SIZE, specialMainDeckFieldForCardType } from "@/shared/deckComposition";
+import { getDeckCards, getOrdinaryMainDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, SIDE_DECK_MAX_SIZE, specialDeckFieldForCardType } from "@/shared/deckComposition";
 import { DeckPatchOperation } from "@/shared/interfaces/DeckPatch";
 import { createDeckPatchQueue } from "@/client/utils/deckPatchQueue";
 import { InlineStatus } from "@/client/ui/inline-status";
@@ -108,7 +108,7 @@ export default function DeckBuilder() {
   const handleRemoveCardFromDeck = (card) => {
     const currentDeck = deckRef.current;
     if (!currentDeck) return;
-    const field = specialMainDeckFieldForCardType(card.card_type?.names?.[0]);
+    const field = specialDeckFieldForCardType(card.card_type?.names?.[0]);
     const cards = field ? currentDeck[field] : currentDeck.cards_in_deck;
     const cardIndex = lastCardIndexById(cards, card._id);
     if (cardIndex < 0) return;
@@ -124,7 +124,7 @@ export default function DeckBuilder() {
   const handleAddCardToDeck = (card) => {
     const currentDeck = deckRef.current;
     if (!currentDeck || !card) return;
-    const field = specialMainDeckFieldForCardType(card.card_type?.names?.[0]);
+    const field = specialDeckFieldForCardType(card.card_type?.names?.[0]);
     const cards = field ? currentDeck[field] : currentDeck.cards_in_deck;
     saveDeckPatch(
       [{ op: "add", path: `/${field ?? "cards_in_deck"}/-`, value: card._id.toString() }],
@@ -179,7 +179,7 @@ export default function DeckBuilder() {
     const { card, sourceList } = item;
     const destinationList: DeckCardListKey = destination === "side"
       ? "side_deck"
-      : specialMainDeckFieldForCardType(card.card_type?.names?.[0]) ?? "cards_in_deck";
+      : specialDeckFieldForCardType(card.card_type?.names?.[0]) ?? "cards_in_deck";
     if (sourceList === destinationList) return;
 
     if (destination === "side") {

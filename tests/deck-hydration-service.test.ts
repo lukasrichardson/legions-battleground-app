@@ -38,6 +38,7 @@ const deck = (id: ObjectId): DeckResponse => ({
   synergies: [],
   veilRealms: [],
   guardians: [],
+  tokens: [],
   created_at: new Date(),
   updated_at: new Date(),
 });

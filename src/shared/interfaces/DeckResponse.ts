@@ -46,6 +46,8 @@ export interface DeckResponse {
   synergies: DeckCardId[];
   veilRealms: DeckCardId[];
   guardians: DeckCardId[];
+  /** Cards that begin in the token zone, rather than the draw deck. */
+  tokens: DeckCardId[];
   /** Resolved catalogue cards returned for screens and game setup; never persisted in a deck. */
   cards?: HydratedDeckCard[];
   created_at: Date;

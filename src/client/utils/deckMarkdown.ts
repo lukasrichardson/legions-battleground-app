@@ -1,11 +1,12 @@
-import { normalizeDeck, SPECIAL_MAIN_DECK_FIELDS, type SpecialMainDeckField } from "@/shared/deckComposition";
+import { normalizeDeck, SPECIAL_DECK_FIELDS, type SpecialDeckField } from "@/shared/deckComposition";
 import { DeckCardId, DeckResponse, HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 
-const sectionLabels: Record<SpecialMainDeckField, string> = {
+const sectionLabels: Record<SpecialDeckField, string> = {
   warlords: "Warlord",
   synergies: "Synergy",
   veilRealms: "Veil / Realm",
   guardians: "Guardian",
+  tokens: "Tokens",
 };
 
 const cardsForIds = (ids: DeckCardId[], cards: HydratedDeckCard[] = []): HydratedDeckCard[] => {
@@ -45,7 +46,7 @@ export const deckToMarkdown = (deck: DeckResponse): string => {
     ...section("Main Deck", cardsForIds(normalizedDeck.cards_in_deck, deck.cards)),
   ];
 
-  for (const field of SPECIAL_MAIN_DECK_FIELDS) {
+  for (const field of SPECIAL_DECK_FIELDS) {
     parts.push(...section(sectionLabels[field], cardsForIds(normalizedDeck[field], deck.cards)));
   }
   parts.push(...section("Side Deck", cardsForIds(normalizedDeck.side_deck, deck.cards)));

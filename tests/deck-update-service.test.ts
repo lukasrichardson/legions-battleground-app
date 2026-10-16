@@ -36,6 +36,7 @@ describe("updateDeckById", () => {
       synergies: [],
       veilRealms: [],
       guardians: [],
+      tokens: [],
       created_at: new Date("2026-01-01"),
       updated_at: new Date("2026-01-01"),
     };

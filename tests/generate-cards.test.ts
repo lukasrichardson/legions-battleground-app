@@ -13,6 +13,8 @@ const card = (id: string): HydratedDeckCard => ({
   card_type: { names: [CARD_TYPE.WARRIOR] },
 });
 
+const token = (id: string): HydratedDeckCard => ({ ...card(id), card_type: { names: [CARD_TYPE.TOKEN] } });
+
 const deckWith = (cards: HydratedDeckCard[]): DeckResponse => ({
   _id: {} as DeckResponse["_id"],
   name: "Short deck",
@@ -24,6 +26,7 @@ const deckWith = (cards: HydratedDeckCard[]): DeckResponse => ({
   synergies: [],
   veilRealms: [],
   guardians: [],
+  tokens: [],
   cards,
   created_at: new Date(),
   updated_at: new Date(),
@@ -39,5 +42,17 @@ describe("starting-card generation", () => {
     expect(p2Deck.playerHand).toHaveLength(3);
     expect(p1Deck.playerHand.every(Boolean)).toBe(true);
     expect(p2Deck.playerHand.every(Boolean)).toBe(true);
+  });
+
+  it("loads tokens from their dedicated pile rather than the draw deck", () => {
+    const tokenCard = token("angel-token");
+    const deck = { ...deckWith([card("one")]), tokens: [tokenCard._id], cards: [card("one"), tokenCard] };
+
+    const { p1Deck } = generateStartingPlayersCards(deck, deck);
+
+    expect(p1Deck.playerDeck).toHaveLength(0);
+    expect(p1Deck.playerHand).toHaveLength(1);
+    expect(p1Deck.tokens).toHaveLength(1);
+    expect(p1Deck.tokens[0].name).toBe("angel-token");
   });
 });

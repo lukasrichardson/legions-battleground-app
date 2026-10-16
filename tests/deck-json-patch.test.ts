@@ -12,6 +12,7 @@ const deck = {
   synergies: [],
   veilRealms: [],
   guardians: [],
+  tokens: [],
 };
 
 describe("applyDeckJsonPatch", () => {
@@ -59,6 +60,14 @@ describe("applyDeckJsonPatch", () => {
       path: "/warlords/-",
       value: "507f191e810c19729de860ea",
     }])).toEqual({ ...deck, warlords: ["507f191e810c19729de860ea"] });
+  });
+
+  it("supports the dedicated token pile", () => {
+    expect(applyDeckJsonPatch(deck, [{
+      op: "add",
+      path: "/tokens/-",
+      value: "507f191e810c19729de860ea",
+    }])).toEqual({ ...deck, tokens: ["507f191e810c19729de860ea"] });
   });
 
   it("renames a deck and replaces the full list for sorting", () => {

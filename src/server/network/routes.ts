@@ -11,7 +11,7 @@ import publishedDecksController from '../controllers/publishedDecks.controller';
 import { DeckValidationError, validateDeckCompositionByIds } from "../services/api/DeckValidationService";
 import { parseCardPagination, parseCardSearch } from "../utils/queryValidation.util";
 import { AliasTakenError, AliasValidationError, deleteAliasForUser, getAliasForUser, setAliasForUser } from "../services/api/AliasService";
-import { specialMainDeckFieldForCardType } from "@/shared/deckComposition";
+import { specialDeckFieldForCardType } from "@/shared/deckComposition";
 import { RoomService } from "../services/game/RoomService";
 import { passwordOrUndefined } from "../services/game/roomPassword";
 import { issueAdmissionGrant, ROOM_ADMISSION_COOKIE, ROOM_ADMISSION_TTL_MS } from "./roomAdmissionTicket";
@@ -208,7 +208,7 @@ export const routes = (app: ExpressApp) => {
     if (!req.body.legion || typeof req.body.legion !== 'string') {
       return res.status(400).send("legion is required and must be a string");
     }
-    if (req.body.legion[0] === "mythical-beasts") {
+    if (req.body.legion.toLowerCase() === "mythical-beasts") {
       legion = "Mythical Beasts";
     } else {
       legion = req.body.legion.charAt(0).toUpperCase() + req.body.legion.slice(1).toLowerCase();
@@ -223,6 +223,7 @@ export const routes = (app: ExpressApp) => {
       synergies: [] as ObjectId[],
       veilRealms: [] as ObjectId[],
       guardians: [] as ObjectId[],
+      tokens: [] as ObjectId[],
       legion,
       subtitle: req.body.subtitle,
       userId: req.user!.id,
@@ -243,7 +244,7 @@ export const routes = (app: ExpressApp) => {
         return res.status(400).send("Card " + req.body.cards_in_deck[i].name + " code" + req.body.cards_in_deck[i].code + " not found in database");
         }
       }
-      const specialField = specialMainDeckFieldForCardType(mongoCard.card_type?.names?.[0]);
+      const specialField = specialDeckFieldForCardType(mongoCard.card_type?.names?.[0]);
       if (specialField) newDeck[specialField].push(mongoCard._id);
       else newDeck.cards_in_deck.push(mongoCard._id);
       if (i === req.body.cards_in_deck.length - 1) {

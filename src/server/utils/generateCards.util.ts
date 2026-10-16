@@ -1,6 +1,6 @@
 import { CardState } from "../../shared/interfaces/CardState";
 import { DeckResponse, HydratedDeckCard } from "../../shared/interfaces/DeckResponse";
-import { getOrdinaryMainDeckCards, getSpecialMainDeckCards } from "../../shared/deckComposition";
+import { getOrdinaryMainDeckCards, getSpecialDeckCards } from "../../shared/deckComposition";
 import { CARD_TYPE } from "../../shared/enums/CardType";
 import { shuffle } from "./shuffleDeck.util";
 import { CARD_TARGET } from "../../shared/enums/CardTarget";
@@ -22,14 +22,14 @@ export const generateStartingPlayersCards = (p2DeckFromServer: DeckResponse, p1D
 const generateStartingCards = (deckFromServer: DeckResponse, p1: boolean) => {
   const filteredDeckFromServer = getOrdinaryMainDeckCards(deckFromServer);
   //to do
-  const veilRealmsFromServer = getSpecialMainDeckCards(deckFromServer, "veilRealms");
-  const warlordsFromServer = getSpecialMainDeckCards(deckFromServer, "warlords");
-  const synergiesFromServer = getSpecialMainDeckCards(deckFromServer, "synergies");
-  const guardiansFromServer = getSpecialMainDeckCards(deckFromServer, "guardians");
+  const veilRealmsFromServer = getSpecialDeckCards(deckFromServer, "veilRealms");
+  const warlordsFromServer = getSpecialDeckCards(deckFromServer, "warlords");
+  const synergiesFromServer = getSpecialDeckCards(deckFromServer, "synergies");
+  const guardiansFromServer = getSpecialDeckCards(deckFromServer, "guardians");
   const warriorsFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.WARRIOR);
   const unnifiedsFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.UNIFIED);
   const fortifiedsFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.FORTIFIED);
-  const tokensFromServer = filteredDeckFromServer.filter(card => card.card_type.names[0] === CARD_TYPE.TOKEN);
+  const tokensFromServer = getSpecialDeckCards(deckFromServer, "tokens");
   //
   let veilRealm = [generateVeilRealm(veilRealmsFromServer)];
   veilRealm = veilRealm.map(veil => {
