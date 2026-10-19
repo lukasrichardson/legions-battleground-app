@@ -22,8 +22,9 @@ export async function createRoomFromLobby(page: Page, roomName: string, sandboxM
 
 export async function joinRoomFromLobby(page: Page, roomName: string, deckName: string) {
   await page.goto("/");
-  await expect(page.getByText(roomName, { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Join", exact: true }).click();
+  const roomRow = page.getByText(roomName, { exact: true }).locator("..");
+  await expect(roomRow).toBeVisible();
+  await roomRow.getByRole("button", { name: "Join", exact: true }).click();
   await page.getByLabel("Deck", { exact: true }).click();
   await page.getByRole("option", { name: deckName, exact: true }).click();
   await page.getByRole("button", { name: "Join Room", exact: true }).click();
