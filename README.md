@@ -117,10 +117,11 @@ npm run typecheck
 npm run typecheck:server
 npm test
 npm run test:coverage
+npm run test:e2e
 npm run build
 ```
 
-These commands lint the project, type-check client and server code, run the automated unit tests, generate a local coverage report, and produce the production bundle. Coverage output is written to `coverage/`; manual game-flow checks remain documented in the [sandbox testing guide](./docs/sandbox-mode.md).
+These commands lint the project, type-check client and server code, run the automated unit tests, generate a local coverage report, run the Docker-backed Chromium E2E smoke suite, and produce the production bundle. `npm run test:e2e` requires Docker Desktop and uses only its own disposable database. Coverage output is written to `coverage/`; manual game-flow checks remain documented in the [sandbox testing guide](./docs/sandbox-mode.md).
 
 ## Documentation
 

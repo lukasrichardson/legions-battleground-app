@@ -13,9 +13,12 @@
 # testing
 /coverage
 /.playwright-cli/
+/playwright-report/
+/test-results/
 
 # next.js
 /.next/
+/.next-e2e/
 /out/
 /dist
 /.card-image-sync

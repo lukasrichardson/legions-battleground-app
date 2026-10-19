@@ -30,7 +30,7 @@ const ModalConstants = {
 const renderToolButton = (text: string, icon: AppIconName, onClick: () => void, className = "") => (
   <button
     type="button"
-    className={`w-full text-[12px] font-bold px-2 py-1.5 cursor-pointer text-white rounded-lg border border-white/10 transition-all duration-150 ${className}`}
+    className={`w-full cursor-pointer border px-2 py-2 text-[12px] font-semibold text-white transition-all duration-150 ${className}`}
     onClick={onClick}
   >
     <Tooltip title={text} placement="top" mouseEnterDelay={0.2}>
@@ -109,18 +109,18 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-white">{ToolsSectionText}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {renderToolButton(ChangeDeckButtonText, "change-decks", () => setShowDeckSelector((prev) => !prev), "bg-gradient-to-r from-blue-600 to-cyan-700 hover:from-blue-500 hover:to-cyan-600")}
-              {renderToolButton(EditDeckButtonText, "edit-deck", handleEditDeck, "bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600")}
-              {renderToolButton(ResetGameButtonText, "reset-game", () => emitGameEvent({ type: GAME_EVENT.resetGame, data: { p2DeckId: p2DeckFromServer?.id, p1DeckId: p1DeckFromServer?.id } }), "bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-500 hover:to-orange-600")}
+              {renderToolButton(ChangeDeckButtonText, "change-decks", () => setShowDeckSelector((prev) => !prev), "border-sky-200/45 bg-[#246fb8] hover:bg-[#338de0]")}
+              {renderToolButton(EditDeckButtonText, "edit-deck", handleEditDeck, "border-sky-200/30 bg-slate-950/35 hover:border-sky-200/60 hover:bg-blue-400/10")}
+              {renderToolButton(ResetGameButtonText, "reset-game", () => emitGameEvent({ type: GAME_EVENT.resetGame, data: { p2DeckId: p2DeckFromServer?.id, p1DeckId: p1DeckFromServer?.id } }), "border-amber-200/35 bg-amber-400/10 text-amber-100 hover:bg-amber-400/20")}
             </div>
             {showDeckSelector && (
-              <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 rounded-lg border border-white/10 bg-black/30 p-2">
+              <div className="mt-2 grid grid-cols-1 gap-2 border border-sky-200/15 bg-slate-950/35 p-3 sm:grid-cols-3">
                 <div>
                   <label className="block text-xs font-semibold text-white mb-1">
                     {p1DeckLabel}
                   </label>
                   <Select value={p1DeckId || ""} onValueChange={setP1DeckId}>
-                    <SelectTrigger className="h-8 w-full text-xs bg-white/10 border-white/20 text-white">
+                    <SelectTrigger className="h-8 w-full border-sky-200/20 bg-slate-950/45 text-xs text-white">
                       <SelectValue placeholder="Select deck" />
                     </SelectTrigger>
                     <SelectContent>
@@ -139,7 +139,7 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
                     {p2DeckLabel}
                   </label>
                   <Select value={p2DeckId || ""} onValueChange={setP2DeckId}>
-                    <SelectTrigger className="h-8 w-full text-xs bg-white/10 border-white/20 text-white">
+                    <SelectTrigger className="h-8 w-full border-sky-200/20 bg-slate-950/45 text-xs text-white">
                       <SelectValue placeholder="Select deck" />
                     </SelectTrigger>
                     <SelectContent>
@@ -156,7 +156,7 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
                 <div className="flex items-end">
                   <Button
                     type="button"
-                    className="w-full h-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-xs rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="h-8 w-full border border-sky-200/45 bg-[#246fb8] text-xs font-semibold text-white transition hover:bg-[#338de0]"
                     onClick={handleSetDecks}
                   >
                     <span>{SubmitBtnText}</span>
@@ -169,19 +169,19 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-white">{SettingsSectionText}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <label className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/30 px-2 py-1.5 text-xs">
+              <label className="flex items-center justify-between gap-3 border border-sky-200/15 bg-slate-950/35 px-3 py-2 text-xs">
                 <span>{HoverMenuText}</span>
                 <input name="hoverMenu" type="checkbox" checked={hoverMenu} onChange={() => setHoverMenu(!hoverMenu)} />
               </label>
-              <label className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/30 px-2 py-1.5 text-xs">
+              <label className="flex items-center justify-between gap-3 border border-sky-200/15 bg-slate-950/35 px-3 py-2 text-xs">
                 <span>{LegacyMenuText}</span>
                 <input name="legacyMenu" type="checkbox" checked={legacyMenu} onChange={() => setLegacyMenu(!legacyMenu)} />
               </label>
-              <label className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/30 px-2 py-1.5 text-xs">
+              <label className="flex items-center justify-between gap-3 border border-sky-200/15 bg-slate-950/35 px-3 py-2 text-xs">
                 <span>{TransparentCardModalsText}</span>
                 <input name="transparentOnBlur" type="checkbox" checked={transparentOnBlur} onChange={() => setTransparentOnBlur(!transparentOnBlur)} />
               </label>
-              <label className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/30 px-2 py-1.5 text-xs">
+              <label className="flex items-center justify-between gap-3 border border-sky-200/15 bg-slate-950/35 px-3 py-2 text-xs">
                 <span>{OpenHandText}</span>
                 <input name="openHand" type="checkbox" checked={openHand} onChange={() => setOpenHand(!openHand)} />
               </label>
@@ -191,7 +191,7 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
           <div className="flex justify-end">
             <button
               type="button"
-              className="text-[12px] font-bold px-3 py-1.5 cursor-pointer bg-slate-700 hover:bg-slate-600 text-white rounded-lg border border-white/10 transition-colors"
+              className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-[12px] font-semibold text-white transition hover:border-sky-200/65 hover:bg-blue-400/10"
               onClick={closeModal}
             >
               {CloseButtonText}

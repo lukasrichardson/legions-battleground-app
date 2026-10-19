@@ -1,224 +1,35 @@
+"use client";
 
-import {
-  openHelpModal,
-  openToolsSettingsModal,
-  openConcedeModal,
-  openLeaveGameModal,
-} from "@/client/redux/modalsSlice";
+import { openConcedeModal, openHelpModal, openLeaveGameModal, openToolsSettingsModal } from "@/client/redux/modalsSlice";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
-import { GAME_EVENT } from '@/shared/enums/GameEvent';
-import { emitGameEvent, emitRoomEvent } from "@/client/utils/emitEvent";
-import { useRouter } from "next/navigation";
+import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { ROOM_EVENT } from "@/shared/enums/RoomEvent";
+import { emitGameEvent, emitRoomEvent } from "@/client/utils/emitEvent";
 import { resetState } from "@/client/redux/gameStateSlice";
-import { useEffect, useRef } from "react";
+import { socket } from "@/client/socket";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { FolderSearch, Home, LogIn, LogOut, Menu, MessageSquare, PlayingCardsFan, Settings2, UserRound, WalletCards, X } from "lucide-react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import CardPreview from "../Card/CardPreview";
 import AppIcon, { AppIconName } from "../AppIcon";
-import { Tooltip } from "antd";
-import { socket } from "@/client/socket";
 
-const ToolbarConstants = {
-  GameLogHeaderText: "Game Log",
-  ToolsSettingsButtonText: "Tools & Settings",
-  SwitchSideButtonText: "Switch to ",
-  RollDieButtonText: "Roll D6",
-  LeaveGameButtonText: "Leave Game",
-  HelpButtonText: "Help",
-  MulliganText: "Mulligan"
-}
+type Panel = "inspect" | "activity" | "menu" | null;
+const buttonClass = "grid min-h-9 w-full place-items-center border border-sky-200/20 bg-slate-950/45 px-2 text-[11px] font-semibold text-slate-100 transition hover:border-sky-200/55 hover:bg-blue-400/15 focus:outline-none focus:ring-2 focus:ring-sky-200";
+function Action({ text, icon, onClick, label, disabled, tone = "" }: { text?: string; icon?: AppIconName; onClick: () => void; label?: string; disabled?: boolean; tone?: string }) { return <button type="button" onClick={onClick} disabled={disabled} aria-label={label || text} className={`${buttonClass} ${tone} ${disabled ? "cursor-not-allowed opacity-45" : "cursor-pointer"}`}><span className="flex items-center gap-1.5">{icon && <AppIcon name={icon} size={15} />}{text && <span>{text}</span>}</span></button>; }
+function RailButton({ label, icon, active, onClick }: { label: string; icon: React.ReactNode; active: boolean; onClick: () => void }) { return <button type="button" aria-label={label} aria-pressed={active} onClick={onClick} className={`grid size-10 place-items-center border ${active ? "border-sky-200/65 bg-blue-400/20 text-sky-100" : "border-sky-200/15 bg-slate-950/45 text-slate-300 hover:bg-blue-400/10"}`}>{icon}</button>; }
 
-const renderToolbarButton = ({
-  text,
-  icon,
-  onClick,
-  className = "",
-  iconOnly = false,
-  ariaLabel,
-  disabled = false
-}: {
-  text?: string;
-  icon?: AppIconName;
-  onClick: () => void;
-  className?: string;
-  iconOnly?: boolean;
-  ariaLabel?: string;
-  disabled?: boolean;
-}) => (
-  <button
-    type="button"
-    className={[`text-[12px] font-bold px-2 py-1.5 text-white rounded-lg border border-white/10 transition-all duration-150 ${className}`, disabled ? "opacity-50 pointer-events-none cursor-not-allowed" : "cursor-pointer"].join(" ")}
-    onClick={onClick}
-    disabled={disabled}
-    aria-label={ariaLabel || text}
-  >
-    <Tooltip title={ariaLabel || text} placement="top" mouseEnterDelay={0.2}>
-      <div>
-        {iconOnly && icon ? (
-          <div className="flex items-center justify-center">
-            <AppIcon name={icon} size={16} />
-          </div>
-        ) : (
-          <div className="flex items-center justify-center gap-1.5">
-            {icon ? <AppIcon name={icon} size={14} /> : null}
-            <span>{text}</span>
-          </div>
-        )}
-      </div>
-    </Tooltip>
-  </button>
-)
-
-export default function Toolbar({ }) {
-  const router = useRouter();
-  const dispatch = useAppDispatch();
-  const gameState = useAppSelector((state) => state.gameState);
-  const clientGameState = useAppSelector((state) => state.clientGameState);
-  const gameLogRef = useRef<HTMLDivElement>(null);
-  const { side, gameHistory, undoneHistory } = clientGameState;
-  const p1 = side === "p1";
-  const { gameLog } = gameState;
-  const regularMode = !gameState.sandboxMode;
-  const hasOpponentDrawOffer = regularMode && gameState.drawOffer !== null && gameState.drawOffer.offeredBy !== side;
-
-  const onChatSubmit = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      emitGameEvent({ type: GAME_EVENT.sendChatMessage, data: { message: e.currentTarget.value, side } });
-      (e.target as HTMLTextAreaElement).value = "";
-    }
-  }
-
-  const {
-    // GameLogHeaderText,
-    ToolsSettingsButtonText,
-    SwitchSideButtonText,
-    RollDieButtonText,
-    LeaveGameButtonText,
-    HelpButtonText,
-    MulliganText
-  } = ToolbarConstants;
-
-  const handleSwitchSide = () => {
-    emitRoomEvent({ type: ROOM_EVENT.switchSide, data: null });
-  }
-
-  const handleLeaveGame = () => {
-    if (regularMode) {
-      dispatch(openLeaveGameModal());
-      return;
-    }
-    // Preserve sandbox's existing leave-and-clean-up behavior.
-    socket.disconnect();
-    router.push(`/`);
-    dispatch(resetState());
-  }
-
-  useEffect(() => {
-    gameLogRef.current?.scrollTo(0, gameLogRef.current.scrollHeight);
-  }, [gameState.gameLog.length]);
-
-  return (
-    <div className="h-[100%] w-[20%] flex flex-col items-center text-white p-[8px] bg-gradient-to-b from-slate-900/90 to-slate-950/90 backdrop-blur border-r border-white/10">
-      <CardPreview />
-
-      <div className="relative w-full h-[25%] overflow-y-auto sidebar-scrollbar bg-black/50 text-white rounded-md p-1 pt-0 mb-1 border border-white/10" ref={gameLogRef}>
-        {gameLog.length ? (
-          <>
-            <div className="text-sm text-center text-white/80 sticky top-0 bg-black/90">Logs</div>
-            {gameLog.map((log, index) => (
-              <div key={index} className="border border-white/10 rounded mb-1 p-1 flex flex-col-reverse">
-                <div key={index} className="text-[11px] text-white/80">{log}</div>
-              </div>
-            ))}
-          </>
-        ) : (
-          <div className="text-sm text-white/70">No sequences</div>
-        )}
-      </div>
-
-      <textarea
-        placeholder="Type to chat"
-        className="w-full min-h-[56px] max-h-[96px] px-3 py-2 text-sm leading-5 overflow-y-auto sidebar-scrollbar bg-black/55 text-white rounded-lg mb-1 border border-white/15 resize-none placeholder:text-white/50 focus:outline-none focus:ring-1 focus:ring-blue-400/60 focus:border-blue-400/50"
-        onKeyDown={onChatSubmit}
-      />
-      {hasOpponentDrawOffer && <div className="grid w-full grid-cols-2 gap-1 mb-1">
-        {renderToolbarButton({ text: "Accept Draw", onClick: () => emitGameEvent({ type: GAME_EVENT.acceptDrawOffer, data: null }), className: "bg-emerald-800" })}
-        {renderToolbarButton({ text: "Decline Draw", onClick: () => emitGameEvent({ type: GAME_EVENT.declineDrawOffer, data: null }), className: "bg-slate-700" })}
-      </div>}
-      <div className="mt-auto w-full space-y-0.5">
-        <div className="grid grid-cols-3 gap-1">
-          {!regularMode && renderToolbarButton({
-            icon: "tools",
-            iconOnly: true,
-            ariaLabel: ToolsSettingsButtonText,
-            onClick: () => dispatch(openToolsSettingsModal()),
-            className: "w-full h-9 px-0 bg-gradient-to-r from-violet-900/85 to-slate-800/95 hover:from-violet-800/85 hover:to-slate-700/95"
-          })}
-          {renderToolbarButton({
-            icon: "roll-d6",
-            iconOnly: true,
-            ariaLabel: RollDieButtonText,
-            onClick: () => emitGameEvent({ type: GAME_EVENT.rollDie, data: { side } }),
-            className: "w-full h-9 px-0 bg-gradient-to-r from-amber-900/85 to-slate-800/95 hover:from-amber-800/85 hover:to-slate-700/95"
-          })}
-          {renderToolbarButton({
-            icon: "help",
-            iconOnly: true,
-            ariaLabel: HelpButtonText,
-            onClick: () => dispatch(openHelpModal()),
-            className: "w-full h-9 px-0 bg-gradient-to-r from-sky-900/85 to-slate-800/95 hover:from-sky-800/85 hover:to-slate-700/95"
-          })}
-        </div>
-        <div className="grid grid-cols-2 gap-1">
-          {!regularMode && renderToolbarButton({
-            text: MulliganText,
-            icon: "mulligan",
-            onClick: () => emitGameEvent({ type: GAME_EVENT.mulligan, data: null }),
-            className: "w-full bg-gradient-to-r from-emerald-900/85 to-slate-800/95 hover:from-emerald-800/85 hover:to-slate-700/95"
-          })}
-          {!regularMode && renderToolbarButton({
-            text: `${SwitchSideButtonText}${p1 ? "P2" : "P1"}`,
-            icon: "switch-player",
-            onClick: handleSwitchSide,
-            className: "w-full bg-gradient-to-r from-indigo-900/85 to-slate-800/95 hover:from-indigo-800/85 hover:to-slate-700/95"
-          })}
-        </div>
-        <div className="grid grid-cols-2 gap-1">
-          {regularMode && renderToolbarButton({
-            text: gameState.drawOffer?.offeredBy === side ? "Rescind Draw" : "Offer Draw",
-            onClick: () => emitGameEvent({ type: gameState.drawOffer?.offeredBy === side ? GAME_EVENT.rescindDrawOffer : GAME_EVENT.offerDraw, data: null }),
-            disabled: Boolean(gameState.drawOffer && gameState.drawOffer.offeredBy !== side),
-            className: "w-full bg-gradient-to-r from-cyan-900/85 to-slate-800/95"
-          })}
-          {regularMode && renderToolbarButton({
-            text: "Concede",
-            onClick: () => dispatch(openConcedeModal()),
-            className: "w-full bg-gradient-to-r from-rose-900/90 to-slate-800/95"
-          })}
-          {renderToolbarButton({
-            text: LeaveGameButtonText,
-            icon: "leave-game",
-            onClick: handleLeaveGame,
-            className: "w-full bg-gradient-to-r from-rose-900/90 to-slate-800/95 hover:from-rose-800/90 hover:to-slate-700/95"
-          })}
-          {!regularMode && <div className="grid grid-cols-2 gap-1">
-            {renderToolbarButton({
-              text: "Undo",
-              icon: null,
-              onClick: () => emitGameEvent({ type: GAME_EVENT.undo, data: null }),
-              className: "w-full bg-gradient-to-r from-yellow-900/85 to-slate-800/95 hover:from-yellow-800/85 hover:to-slate-700/95",
-              disabled: gameHistory.length === 0
-            })}
-            {renderToolbarButton({
-              text: "Redo",
-              icon: null,
-              onClick: () => emitGameEvent({ type: GAME_EVENT.redo, data: null }),
-              className: "w-full bg-gradient-to-r from-yellow-900/85 to-slate-800/95 hover:from-yellow-800/85 hover:to-slate-700/95",
-              disabled: undoneHistory.length === 0
-            })}
-          </div>}
-        </div>
-      </div>
-    </div>
-  )
+export default function Toolbar() {
+  const dispatch = useAppDispatch(); const router = useRouter(); const { data: session } = useSession();
+  const game = useAppSelector((s) => s.gameState); const { side, gameHistory, undoneHistory } = useAppSelector((s) => s.clientGameState);
+  const [panel, setPanel] = useState<Panel>(null); const [activityCollapsed, setActivityCollapsed] = useState(false); const [detailsCollapsed, setDetailsCollapsed] = useState(false); const logRef = useRef<HTMLDivElement>(null);
+  const regular = !game.sandboxMode; const p1 = side === "p1"; const hasDraw = regular && game.drawOffer !== null && game.drawOffer.offeredBy !== side;
+  useEffect(() => { logRef.current?.scrollTo(0, logRef.current.scrollHeight); }, [game.gameLog.length]);
+  const toggle = (next: Exclude<Panel, null>) => setPanel((current) => current === next ? null : next);
+  const navigate = (href: string) => { setPanel(null); if (regular) { dispatch(openLeaveGameModal(href)); return; } socket.disconnect(); dispatch(resetState()); router.push(href); };
+  const actions = <>{!regular && <div className="grid grid-cols-2 gap-1"><Action text="Mulligan" icon="mulligan" onClick={() => emitGameEvent({ type: GAME_EVENT.mulligan, data: null })} /><Action text={`Switch to ${p1 ? "P2" : "P1"}`} icon="switch-player" onClick={() => emitRoomEvent({ type: ROOM_EVENT.switchSide, data: null })} /></div>}{regular && <div className="grid grid-cols-2 gap-1"><Action text={game.drawOffer?.offeredBy === side ? "Rescind draw" : "Offer draw"} disabled={Boolean(game.drawOffer && game.drawOffer.offeredBy !== side)} onClick={() => emitGameEvent({ type: game.drawOffer?.offeredBy === side ? GAME_EVENT.rescindDrawOffer : GAME_EVENT.offerDraw, data: null })} /><Action text="Concede" tone="text-rose-100" onClick={() => dispatch(openConcedeModal())} /></div>}{!regular && <div className="grid grid-cols-2 gap-1"><Action text="Undo" disabled={!gameHistory.length} onClick={() => emitGameEvent({ type: GAME_EVENT.undo, data: null })} /><Action text="Redo" disabled={!undoneHistory.length} onClick={() => emitGameEvent({ type: GAME_EVENT.redo, data: null })} /></div>}<Action text="Leave match" icon="leave-game" tone="text-rose-100" onClick={() => navigate("/")} /></>;
+  const activity = <><div ref={logRef} className="min-h-0 flex-1 overflow-y-auto border-x border-b border-sky-200/15 bg-[linear-gradient(180deg,rgba(7,18,29,.66),rgba(3,10,18,.42))] px-2 py-1.5 sidebar-scrollbar">{game.gameLog.length ? game.gameLog.map((entry, index) => <div key={index} className="relative border-l border-sky-300/35 py-1 pl-2.5 text-[11px] leading-snug text-slate-300 before:absolute before:-left-[3px] before:top-2.5 before:size-1 before:rounded-full before:bg-sky-300/70">{entry}</div>) : <p className="flex h-full items-center justify-center px-2 text-center text-[11px] text-slate-500">No recent match activity.</p>}</div><textarea aria-label="Match chat" placeholder="Message opponent — Enter to send" className="mt-1.5 min-h-11 max-h-[72px] w-full resize-none border border-sky-200/15 bg-slate-950/55 px-2.5 py-2 text-xs leading-4 text-white placeholder:text-slate-500 focus:border-sky-200/60 focus:outline-none" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); emitGameEvent({ type: GAME_EVENT.sendChatMessage, data: { message: e.currentTarget.value, side } }); e.currentTarget.value = ""; } }} />{hasDraw && <div className="mt-1.5 grid grid-cols-2 gap-1"><Action text="Accept draw" onClick={() => emitGameEvent({ type: GAME_EVENT.acceptDrawOffer, data: null })} /><Action text="Decline" onClick={() => emitGameEvent({ type: GAME_EVENT.declineDrawOffer, data: null })} /></div>}</>;
+  const menu = <div className="flex h-full flex-col gap-3 overflow-y-auto p-4 text-sm sidebar-scrollbar"><div className="flex items-center justify-between border-b border-sky-200/20 pb-3"><span className="font-serif text-base">Battleground</span><button type="button" aria-label="Close menu" onClick={() => setPanel(null)}><X size={18} /></button></div>{[{ href: "/", label: "Home", icon: Home }, { href: "/decks", label: "Decks", icon: WalletCards }, { href: "/browse", label: "Browse", icon: FolderSearch }, { href: "/cards", label: "Cards", icon: PlayingCardsFan }].map(({ href, label, icon: Icon }) => <button key={href} type="button" onClick={() => navigate(href)} className="flex items-center gap-3 px-3 py-2 text-left text-slate-200 hover:bg-blue-400/10"><Icon size={17} className="text-sky-300" />{label}</button>)}<div className="border-t border-sky-200/15 pt-2"><button type="button" onClick={() => dispatch(openHelpModal())} className="flex items-center gap-3 px-3 py-2 text-slate-300"><Settings2 size={17} className="text-sky-300" />Help</button>{!regular && <button type="button" onClick={() => dispatch(openToolsSettingsModal())} className="flex items-center gap-3 px-3 py-2 text-slate-300"><Settings2 size={17} className="text-sky-300" />Tools & settings</button>}</div><div className="space-y-1.5 border-t border-sky-200/15 pt-3"><div className="text-[10px] font-semibold uppercase tracking-[.14em] text-sky-100/60">Match actions</div>{actions}</div><div className="mt-auto border-t border-sky-200/15 pt-3">{session ? <button type="button" onClick={() => signOut()} className="flex items-center gap-3 px-3 py-2 text-slate-300"><LogOut size={17} />Sign out</button> : <button type="button" onClick={() => signIn()} className="flex items-center gap-3 px-3 py-2 text-slate-300"><LogIn size={17} />Sign in</button>}<div className="mt-2 flex items-center gap-2 px-3 text-xs text-slate-500"><UserRound size={14} />{session?.user?.name || session?.user?.email || "Guest"}</div></div></div>;
+  const activityHeight = activityCollapsed ? "h-8" : detailsCollapsed ? "h-[300px]" : "h-[190px]";
+  return <aside className="relative z-30 flex h-full w-[248px] shrink-0 border-r border-sky-200/15 bg-[linear-gradient(180deg,rgba(9,21,34,.97),rgba(3,10,18,.98))] p-2 text-white shadow-[12px_0_32px_rgba(0,0,0,.2)] max-[1100px]:w-14 max-[1100px]:p-1.5"><div className="flex h-full w-full flex-col gap-2 max-[1100px]:hidden"><section className="min-h-[250px] flex-1 overflow-hidden border border-sky-200/15 bg-slate-950/40"><CardPreview detailsCollapsed={detailsCollapsed} onToggleDetails={() => setDetailsCollapsed((v) => !v)} /></section><section className={`${activityHeight} shrink-0 flex flex-col overflow-hidden`}><button type="button" onClick={() => setActivityCollapsed((v) => !v)} className="flex h-8 shrink-0 items-center justify-between border border-sky-200/15 bg-slate-950/60 px-2 text-[10px] font-semibold uppercase tracking-[.12em] text-sky-100/70"><span>Activity</span><span className="flex gap-2"><span className="text-sky-200/50">{game.gameLog.length}</span><span>{activityCollapsed ? "+" : "−"}</span></span></button>{!activityCollapsed && <div className="flex min-h-0 flex-1 flex-col">{activity}</div>}</section><section className="mt-auto space-y-1.5 border-t border-sky-200/15 pt-2"><div className="grid grid-cols-4 gap-1"><Action icon="more" label="Open navigation" onClick={() => toggle("menu")} /><Action icon="roll-d6" label="Roll D6" onClick={() => emitGameEvent({ type: GAME_EVENT.rollDie, data: { side } })} /><Action icon="help" label="Help" onClick={() => dispatch(openHelpModal())} />{!regular && <Action icon="tools" label="Tools & settings" onClick={() => dispatch(openToolsSettingsModal())} />}</div>{actions}</section></div><div className="hidden h-full w-full flex-col justify-between max-[1100px]:flex"><div className="grid gap-1"><RailButton label="Inspect card" icon={<PlayingCardsFan size={18} />} active={panel === "inspect"} onClick={() => toggle("inspect")} /><RailButton label="Match log and chat" icon={<MessageSquare size={18} />} active={panel === "activity"} onClick={() => toggle("activity")} /></div><div className="grid gap-1"><RailButton label="Open navigation" icon={<Menu size={19} />} active={panel === "menu"} onClick={() => toggle("menu")} /><RailButton label="Roll D6" icon={<AppIcon name="roll-d6" size={18} />} active={false} onClick={() => emitGameEvent({ type: GAME_EVENT.rollDie, data: { side } })} /></div></div>{panel && <section className="absolute left-full top-0 h-full w-[min(320px,calc(100vw-56px))] border-r border-sky-200/25 bg-[linear-gradient(160deg,rgba(12,29,45,.99),rgba(2,8,14,.99))] shadow-[18px_0_42px_rgba(0,0,0,.48)]">{panel === "inspect" && <div className="h-full p-3"><div className="mb-2 flex justify-between text-xs font-semibold uppercase tracking-[.14em] text-sky-100/70"><span>Card inspector</span><button type="button" onClick={() => setPanel(null)} aria-label="Close card inspector"><X size={17} /></button></div><div className="h-[calc(100%-2rem)] overflow-hidden border border-sky-200/15"><CardPreview /></div></div>}{panel === "activity" && <div className="flex h-full flex-col p-3"><div className="mb-2 flex justify-between text-xs font-semibold uppercase tracking-[.14em] text-sky-100/70"><span>Activity</span><button type="button" onClick={() => setPanel(null)} aria-label="Close activity"><X size={17} /></button></div><div className="flex min-h-0 flex-1 flex-col">{activity}</div></div>}{panel === "menu" && menu}</section>}</aside>;
 }

@@ -159,7 +159,7 @@ export default function PreviewDeckModal() {
         <div className="sticky top-0 z-10 py-2">
           <Button
             onClick={handleImportDeckClick}
-            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-4 text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+            className="w-full border border-sky-200/45 bg-[#246fb8] py-4 text-base font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0]"
           >
             {ImportButtonText}
           </Button>
@@ -223,7 +223,7 @@ export default function PreviewDeckModal() {
             {/* Error Display */}
             {error && <InlineStatus variant="error">{error}</InlineStatus>}
 
-            <PublicFormSubmitButton loading={loading} loadingLabel="Generating preview…" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+            <PublicFormSubmitButton loading={loading} loadingLabel="Generating preview…">
               {GeneratePreviewText}
             </PublicFormSubmitButton>
           </form>

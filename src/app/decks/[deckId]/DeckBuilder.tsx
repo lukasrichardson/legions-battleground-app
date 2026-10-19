@@ -332,11 +332,12 @@ export default function DeckBuilder() {
   };
   const isMobile = useIsMobile();
   return (
-    <FullPage showBreadcrumbs={true}>
+    <FullPage showBreadcrumbs={false}>
+      <div className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-2">
       {isMobile && (
         <div className="w-full h-6"></div>
       )}
-      <div className="h-auto mb-1">
+      <div className="h-auto">
         <DeckEditorHeader
           deck={deck}
           isEditingName={isEditingName}
@@ -353,11 +354,11 @@ export default function DeckBuilder() {
       {saveError && <InlineStatus variant="error" className="mb-2 text-center">{saveError}</InlineStatus>}
 
       {/* Main Content Area - Takes remaining space */}
-      <div className="flex-1 min-h-0 flex flex-col-reverse lg:flex-row gap-2">
+      <div className="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto gap-2 lg:flex-row lg:overflow-hidden">
         {/* Deck Grid Pane - Full width on mobile, left side on large screens */}
-        <div ref={attachDeckDropTarget} className={["flex-2 lg:flex-3 min-h-0 order-1 lg:order-1 relative"].join(" ")}>
+        <div ref={attachDeckDropTarget} className="relative order-1 min-h-[320px] min-w-0 flex-[2] border border-white/15 bg-[rgba(4,9,14,.56)] p-1.5 shadow-[0_14px_32px_rgba(0,0,0,.2)] sm:p-2 lg:min-h-0 lg:flex-[3]">
             {canDropDeck && (
-            <div className={["pointer-events-none absolute w-full h-full z-10 border-3 border-white border-dashed", isOverDeck ? "bg-green-600/30" : "bg-green-800/30"].join(" ")}></div>
+            <div className={`pointer-events-none absolute z-10 size-full border-3 border-dashed border-white ${isOverDeck ? "bg-green-600/30" : "bg-green-800/30"}`} />
           )}
             <DeckGrid
               deck={deck}
@@ -374,9 +375,9 @@ export default function DeckBuilder() {
         </div>
 
         {/* Right Sidebar - Search and Preview on large screens */}
-        <div ref={attachSearchPaneDropTarget} className={["flex flex-1 lg:flex-1 flex-col gap-2 order-2 lg:order-2 lg:w-80 xl:w-96 relative"].join(" ")}>
+        <div ref={attachSearchPaneDropTarget} className="relative order-2 flex min-h-[320px] min-w-0 flex-1 flex-col gap-2 border border-white/15 bg-[rgba(3,8,13,.72)] p-1.5 shadow-[0_14px_32px_rgba(0,0,0,.2)] sm:p-2 lg:min-h-0 lg:w-80 xl:w-96">
           {canDropSearch && (
-            <div className={["pointer-events-none absolute w-full h-full z-10 border-3 border-white border-dashed", isOverSearchPane ? "bg-red-600/30" : "bg-red-800/30"].join(" ")}></div>
+            <div className={`pointer-events-none absolute z-10 size-full border-3 border-dashed border-white ${isOverSearchPane ? "bg-red-600/30" : "bg-red-800/30"}`} />
           )}
           {/* Preview Pane - Only show on large screens */}
           <div className="hidden lg:block h-1/3 max-h-1/3">
@@ -394,6 +395,7 @@ export default function DeckBuilder() {
             />
           </div>
         </div>
+      </div>
       </div>
     </FullPage>
   );

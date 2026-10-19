@@ -15,7 +15,7 @@ export default function PublicFormSubmitButton({ children, loading, loadingLabel
     <Button
       type="submit"
       disabled={loading}
-      className={cn("w-full rounded-xl py-4 text-base font-semibold text-white shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl focus-visible:ring-2 focus-visible:ring-blue-300 disabled:cursor-not-allowed disabled:transform-none disabled:opacity-50", className)}
+      className={cn("w-full border border-sky-200/45 bg-[#246fb8] py-4 text-base font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0] focus-visible:ring-2 focus-visible:ring-sky-200 disabled:cursor-not-allowed disabled:opacity-50", className)}
     >
       {loading ? (
         <span className="flex items-center justify-center gap-3">

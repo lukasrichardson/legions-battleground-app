@@ -103,14 +103,14 @@ export default function PlunderModal({ closeModal }: { closeModal: () => void })
           <label className="mr-2">
             {LabelBtnText}
           </label>
-          <input className="min-w-48 bg-gray-600" name="plunderinput" type={"number"} defaultValue={undefined} placeholder="enter a number to cut to" onChange={handleInputChange} value={cardToTake || undefined} min={2} max={deckSize}/>
+          <input className="min-w-48 border border-sky-200/25 bg-slate-950/45 px-2 text-white outline-none focus:border-sky-300/70" name="plunderinput" type={"number"} defaultValue={undefined} placeholder="enter a number to cut to" onChange={handleInputChange} value={cardToTake || undefined} min={2} max={deckSize}/>
           {renderDrawSuffix()}
         </div>
         <div className="flex gap-6">
-          <div><button className="cursor-pointer border-white border-2" onClick={handleRandomNumber}>{RandomBtnText}</button></div>
-          <div><button className="cursor-pointer border-white border-2" onClick={handleHalf}>Set as half the deck</button></div>
+          <div><button className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-sm text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10" onClick={handleRandomNumber}>{RandomBtnText}</button></div>
+          <div><button className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-sm text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10" onClick={handleHalf}>Set as half the deck</button></div>
         </div>
-        <button className="cursor-pointer border-white border-2 px-6" onClick={handlePlunder}>{PlunderBtnText}</button>
+        <button className="cursor-pointer border border-sky-200/45 bg-[#246fb8] px-6 py-2 font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0]" onClick={handlePlunder}>{PlunderBtnText}</button>
       </> : "not enough cards to plunder"
       }
     </div>

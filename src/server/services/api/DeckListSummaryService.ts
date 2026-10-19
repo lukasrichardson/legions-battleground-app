@@ -1,5 +1,5 @@
 import { getDatabase } from "@/server/utils/database.util";
-import { DeckListCoverCard, DeckListItem, PublishedDeckListItem } from "@/shared/interfaces/DeckListItem";
+import { DeckListCoverCard, DeckListItem, PublishedDeckListItem, RecentDeckListItem } from "@/shared/interfaces/DeckListItem";
 import { ObjectId } from "mongodb";
 
 type DeckCollectionName = "decks" | "published_decks";
@@ -7,6 +7,7 @@ type DeckSummaryRecord = Omit<DeckListItem, "coverCard"> & {
   coverCardId?: ObjectId | string;
   author?: string;
   published_date?: Date;
+  updated_at?: Date;
 };
 
 const COVER_CARD_PROJECTION = { _id: 1, title: 1, featured_image: 1 } as const;
@@ -27,12 +28,11 @@ export const parsePublishedDeckSummaryPagination = (pageValue: unknown, limitVal
 export const getDeckListSummaries = async (
   collectionName: DeckCollectionName,
   match: Record<string, unknown>,
-  options: { skip?: number; limit?: number; sort?: Record<string, 1 | -1> } = {},
-): Promise<Array<DeckListItem | PublishedDeckListItem>> => {
+  options: { skip?: number; limit?: number; sort?: Record<string, 1 | -1>; includeUpdatedAt?: boolean } = {},
+): Promise<Array<DeckListItem | PublishedDeckListItem | RecentDeckListItem>> => {
   const pipeline: Record<string, unknown>[] = [{ $match: match }];
   if (options.sort) pipeline.push({ $sort: options.sort });
-  pipeline.push({
-    $project: {
+  const projection: Record<string, unknown> = {
       _id: 1,
       name: 1,
       legion: 1,
@@ -46,8 +46,9 @@ export const getDeckListSummaries = async (
           { $arrayElemAt: [{ $ifNull: ["$cards_in_deck", []] }, 0] },
         ],
       },
-    },
-  });
+  };
+  if (options.includeUpdatedAt) projection.updated_at = 1;
+  pipeline.push({ $project: projection });
   if (options.skip) pipeline.push({ $skip: options.skip });
   if (options.limit) pipeline.push({ $limit: options.limit });
 
@@ -78,6 +79,9 @@ export const getDeckListSummaries = async (
       sideDeckSize: deck.sideDeckSize,
       coverCard,
     };
+    if (collectionName === "decks" && options.includeUpdatedAt) {
+      return { ...summary, updated_at: deck.updated_at ?? new Date(0) };
+    }
     return collectionName === "published_decks"
       ? { ...summary, author: deck.author ?? "Unknown Author", published_date: deck.published_date ?? new Date(0) }
       : summary;

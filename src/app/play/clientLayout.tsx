@@ -14,15 +14,16 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       transform: `scale(${smallestScale}, ${smallestScale})`,
       width: SCALE_WIDTH,
       height: SCALE_HEIGHT,
-      transformOrigin: "left top",
+      transformOrigin: "center center",
     }),
     [smallestScale],
   );
   return (
-    <div style={styles} className="bg-gradient-to-br from-slate-900 via-blue-900/80 to-slate-900">
-      <div className={"flex flex-col justify-center items-center relative h-full w-full overflow-hidden"}>
-      {children}
+    <div className="relative h-dvh w-dvw overflow-hidden bg-[#050a0e] bg-[radial-gradient(circle_at_70%_20%,rgba(27,90,145,.24),transparent_34%),linear-gradient(135deg,#050a0e,#10243a_50%,#050a0e)]">
+      <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+        <div style={styles} className="relative shrink-0 overflow-hidden border border-sky-200/10 shadow-[0_0_60px_rgba(0,0,0,.55)]">{children}</div>
       </div>
+      <div className="play-rotate-notice absolute inset-0 z-[100] hidden items-center justify-center bg-slate-950 p-8 text-center text-slate-100"><div><div className="mx-auto mb-4 grid size-12 place-items-center border border-sky-200/35 bg-sky-300/10 text-2xl text-sky-200">↻</div><h1 className="font-serif text-xl">Rotate your device</h1><p className="mt-2 text-sm text-slate-400">Legions Battleground is played in landscape.</p></div></div>
     </div>
   )
 }

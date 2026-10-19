@@ -1,0 +1,54 @@
+name: End-to-end tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  e2e:
+    # `ubuntu-latest` moved to a 6.19 kernel, which MongoDB deliberately
+    # refuses to start on. Keep this test service on the supported 24.04 image.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      mongodb:
+        image: mongo:8.0
+        # MongoDB's TCMalloc startup guard rejects current hosted-runner kernels
+        # unless glibc rseq is enabled. Keep this scoped to the E2E database.
+        env:
+          GLIBC_TUNABLES: glibc.pthread.rseq=1
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CI: true
+      E2E_MONGO_URL: mongodb://127.0.0.1:27017
+      E2E_MONGO_DB_NAME: legions_battleground_e2e
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: e2e-only-not-for-production
+      E2E_TEST_MODE: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - name: Upload Playwright report and failure evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14

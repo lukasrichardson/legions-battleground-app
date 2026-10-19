@@ -92,7 +92,7 @@ export default function DeckEditorHeader({
     setActionPending("publish");
     try {
       const publishedDeck = await createPublishedDeck(deck._id.toString());
-      router.push(`/decks/browse/${publishedDeck._id}`);
+      router.push(`/browse/${publishedDeck._id}`);
     } catch (err) {
       console.error("Error publishing deck:", err);
       setActionError("Could not publish this deck. Please try again.");

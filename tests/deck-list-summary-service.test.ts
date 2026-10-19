@@ -78,4 +78,25 @@ describe("deck-list summaries", () => {
       ],
     });
   });
+
+  it("includes the edit timestamp only when a recency surface requests it", async () => {
+    const updatedAt = new Date("2026-10-06T12:00:00.000Z");
+    aggregate.mockReturnValue({ toArray: vi.fn().mockResolvedValue([
+      { _id: new ObjectId(), name: "Recent", legion: "Angels", mainDeckSize: 40, sideDeckSize: 0, updated_at: updatedAt },
+    ]) });
+
+    await expect(getDeckListSummaries(
+      "decks",
+      { userId: "player-1" },
+      { sort: { updated_at: -1, _id: -1 }, limit: 3, includeUpdatedAt: true },
+    )).resolves.toEqual([
+      expect.objectContaining({ name: "Recent", updated_at: updatedAt }),
+    ]);
+
+    expect(aggregate.mock.calls[0][0]).toEqual(expect.arrayContaining([
+      { $sort: { updated_at: -1, _id: -1 } },
+      { $limit: 3 },
+      expect.objectContaining({ $project: expect.objectContaining({ updated_at: 1 }) }),
+    ]));
+  });
 });

@@ -10,6 +10,7 @@ interface ModalsState {
   importDeckModalOpen: boolean;
   concedeModalOpen: boolean;
   leaveGameModalOpen: boolean;
+  leaveGameTarget: string;
 }
 
 const initialState: ModalsState = {
@@ -22,6 +23,7 @@ const initialState: ModalsState = {
   importDeckModalOpen: false,
   concedeModalOpen: false,
   leaveGameModalOpen: false,
+  leaveGameTarget: "/",
 }
 
 const modalsSlice = createSlice({
@@ -66,8 +68,8 @@ const modalsSlice = createSlice({
     },
     openConcedeModal(state) { state.concedeModalOpen = true; },
     closeConcedeModal(state) { state.concedeModalOpen = false; },
-    openLeaveGameModal(state) { state.leaveGameModalOpen = true; },
-    closeLeaveGameModal(state) { state.leaveGameModalOpen = false; }
+    openLeaveGameModal(state, action: PayloadAction<string | undefined>) { state.leaveGameModalOpen = true; state.leaveGameTarget = action.payload || "/"; },
+    closeLeaveGameModal(state) { state.leaveGameModalOpen = false; state.leaveGameTarget = "/"; }
   },
 });
 

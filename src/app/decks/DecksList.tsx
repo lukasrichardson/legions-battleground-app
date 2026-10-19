@@ -7,9 +7,11 @@ import { MultiSelect } from "@/client/ui/multiselect";
 import { DeckListItem } from "@/shared/interfaces/DeckListItem";
 import DeckCollectionPanel from "@/app/components/DeckCollectionPanel";
 import { InlineStatus } from "@/client/ui/inline-status";
+import { useUiVariant } from "../components/arena/uiVariant";
 
 export const DecksList = () => {
   const router = useRouter();
+  const variant = useUiVariant();
   const [decks, setDecks] = useState<DeckListItem[]>([]);
   const [legion, setLegion] = useState<string[]>([]);
   const [filterOptions, setFilterOptions] = useState<{ legion: string[] }>({ legion: [] });
@@ -54,6 +56,7 @@ export const DecksList = () => {
   return (
     <div className="min-h-0 flex-1">
       <DeckCollectionPanel
+        variant={variant}
         title="Your Decks"
         count={decks.length}
         filter={<MultiSelect options={filterOptions.legion.map((option) => ({ value: option, label: option[0].toUpperCase() + option.slice(1) }))} value={legion} onChange={handleLegionSelect} placeholder="Legion" />}

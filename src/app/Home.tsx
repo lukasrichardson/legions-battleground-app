@@ -64,7 +64,7 @@ export default function Home() {
   }
 
   const handleBrowseDecksClick = () => {
-    router.push("decks/browse");
+    router.push("/browse");
   }
 
   const {
@@ -155,11 +155,7 @@ export default function Home() {
                   <CardContent className="p-4 pt-0 flex-1 min-w-0 overflow-hidden">
                     {Object.values(rooms).length === 0 ? (
                       <div className="text-center py-8 h-full flex flex-col items-center justify-center">
-                        <div className="w-12 h-12 bg-gray-700/50 rounded-full flex items-center justify-center mb-3">
-                          <AppIcon name="card-gallery" className="text-gray-400" size={24} />
-                        </div>
                         <p className="text-gray-400 text-base">No active game rooms</p>
-                        <p className="text-gray-500 text-sm mt-1">Create a new game to get started!</p>
                       </div>
                     ) : (
                       <div className="h-full overflow-x-auto overflow-y-auto">

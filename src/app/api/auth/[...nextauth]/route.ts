@@ -2,10 +2,31 @@ import NextAuth, { type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import DiscordProvider from "next-auth/providers/discord";
+import CredentialsProvider from "next-auth/providers/credentials";
+
+const e2eUsers = {
+  "e2e-player-one": { id: "e2e-player-one", name: "E2E Player One", email: "e2e-player-one@example.test" },
+  "e2e-player-two": { id: "e2e-player-two", name: "E2E Player Two", email: "e2e-player-two@example.test" },
+} as const;
+
+// This provider is deliberately unavailable to production deployments. It gives the
+// browser suite a normal NextAuth JWT without storing OAuth credentials in CI.
+const e2eProvider = process.env.E2E_TEST_MODE === "true" && process.env.NODE_ENV !== "production"
+  ? [CredentialsProvider({
+      id: "e2e",
+      name: "E2E Test User",
+      credentials: { userId: { label: "Test user", type: "text" } },
+      authorize: async (credentials) => {
+        const userId = typeof credentials?.userId === "string" ? credentials.userId : "";
+        return e2eUsers[userId as keyof typeof e2eUsers] ?? null;
+      },
+    })]
+  : [];
 
 // NextAuth v4 style for App Router
 const authOptions: NextAuthOptions = {
   providers: [
+    ...e2eProvider,
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,

@@ -8,14 +8,25 @@ npm run typecheck
 npm run typecheck:server
 npm test
 npm run test:coverage
+npm run test:e2e
 npm run build
 ```
 
 `test` runs Vitest tests in `tests/`. `test:coverage` writes text, HTML, and LCOV coverage reports to `coverage/`; the directory is generated output and must not be committed.
 
+## End-to-end smoke tests
+
+`npm run test:e2e` starts an isolated MongoDB container, seeds deterministic cards, decks, and two test players, starts the application, and runs the Chromium Playwright suite. It ignores normal `MONGO_URL` and `MONGO_DB_NAME` values, so it cannot target development, staging, or production data. Docker Desktop must be running locally.
+
+To use a different local test database, set `E2E_MONGO_URL` and `E2E_MONGO_DB_NAME`. The URL must use `mongodb://` with `localhost`, `127.0.0.1`, or `::1`; the database name must end in `_e2e`. Unsafe targets are rejected before the database is cleared.
+
+The suite signs in using a NextAuth credentials provider which is only present when `E2E_TEST_MODE=true` and `NODE_ENV` is not `production`. It exercises authenticated deck management, public-deck copying, browser-driven regular-room creation and joining, match-state synchronization and reconnecting, and sandbox entry.
+
+GitHub Actions runs this suite for pull requests targeting `master` and pushes to `master`. Failed runs retain the Playwright HTML report, traces, screenshots, and retry-only videos as artifacts.
+
 ## Current coverage scope
 
-The automated suite covers deterministic utility behavior, card selection, ordinal formatting, HTML entity decoding, socket payload validation, R2 image-key migration, R2 service-worker routing, and Toolbox deck-response parsing. It does not claim full game-engine, database, HTTP, Socket.IO, or browser coverage. Those systems still need integration and end-to-end tests with isolated MongoDB and authenticated browser fixtures.
+The automated suite covers deterministic utility behavior, card selection, ordinal formatting, HTML entity decoding, socket payload validation, R2 image-key migration, R2 service-worker routing, Toolbox deck-response parsing, and the critical Chromium user journeys above. It does not claim exhaustive card-rule, full game-engine, or cross-browser coverage.
 
 ## Manual verification
 

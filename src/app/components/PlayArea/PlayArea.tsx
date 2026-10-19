@@ -67,7 +67,7 @@ export default function PlayArea({ }) {
   // const nextPhaseMap = rpsWinner === "p1" ? NextPhaseP1Wins : NextPhaseP2Wins;
 
   return (
-    <div className={regularMode ? "relative grid h-full w-[80%] grid-rows-[60px_minmax(0,1fr)_64px_minmax(0,1fr)_60px] overflow-visible" : "relative flex h-full w-[80%] flex-col overflow-visible"}>
+    <div className={regularMode ? "relative grid h-full w-[calc(100%-248px)] max-[1100px]:w-[calc(100%-56px)] grid-rows-[60px_minmax(0,1fr)_64px_minmax(0,1fr)_60px] overflow-visible" : "relative flex h-full w-[calc(100%-248px)] max-[1100px]:w-[calc(100%-56px)] flex-col overflow-visible"}>
       <div className={regularMode ? "relative min-h-0" : "contents"}>
         {openingHandsPending ? <OpeningHandPlaceholder compact={regularMode} opponent /> : <RenderHand compact={regularMode} items={p1 ? p2PlayerHand : p1PlayerHand} cardTarget={p1 ? CARD_TARGET.P2_PLAYER_HAND : CARD_TARGET.P1_PLAYER_HAND} p1={p1} />}
       </div>

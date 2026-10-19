@@ -1,6 +1,6 @@
 "use client";
 
-import { renderCardTile } from "../[deckId]/components/CardTile";
+import { renderCardTile } from "../decks/[deckId]/components/CardTile";
 import { fetchPublishedDeckFilterOptions, fetchPublishedDeckListSummaries } from "@/client/utils/api.utils";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -10,9 +10,11 @@ import { PublishedDeckListItem } from "@/shared/interfaces/DeckListItem";
 import DeckCollectionPanel from "@/app/components/DeckCollectionPanel";
 import { Button } from "@/client/ui/button";
 import PageHeader from "@/app/components/PageHeader";
+import { useUiVariant } from "@/app/components/arena/uiVariant";
 import { InlineStatus } from "@/client/ui/inline-status";
 
 export default function DeckBrowser() {
+  const variant = useUiVariant();
   const router = useRouter();
   const [decks, setDecks] = useState<PublishedDeckListItem[]>([]);
   const [legion, setLegion] = useState<string[]>([]);
@@ -66,14 +68,15 @@ export default function DeckBrowser() {
   };
   const handleDeckSelect = (deckId) => () => {
     if (!deckId) return;
-    router.push("/decks/browse/" + deckId);
+    router.push("/browse/" + deckId);
   }
   return (
-    <FullPage showBreadcrumbs={true}>
-      <PageHeader title="Published Decks" description="Browse community decklists and copy a starting point for your next deck." />
+    <FullPage showBreadcrumbs={false}>
+      <PageHeader variant={variant} className="hidden md:block" title="Published Decks" description="Browse community decklists and copy a starting point for your next deck." />
       <div className="min-h-0 flex-1">
         <DeckCollectionPanel
-          title="Published Decks"
+          variant={variant}
+          title={undefined}
           count={total}
           filter={<MultiSelect options={filterOptions.legion.map((option) => ({ value: option, label: option[0].toUpperCase() + option.slice(1) }))} value={legion} onChange={handleLegionSelect} placeholder="Legion" />}
           loading={loading}

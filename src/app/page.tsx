@@ -3,6 +3,8 @@ import { Suspense } from 'react'
 import CreateRoomModal from "./components/Modals/CreateRoomModal";
 import JoinRoomModal from "./components/Modals/JoinRoomModal";
 import Home from "./Home";
+import NewHome from "./NewHome";
+import { useUiVariant } from "./components/arena/uiVariant";
 import HelpModal from "./components/Modals/HelpModal";
 import PreviewDeckModal from "./components/Modals/PreviewDeckModal";
 import { SessionProvider } from 'next-auth/react';
@@ -13,14 +15,15 @@ import { DndProvider } from 'react-dnd';
 
 function Page() {
   const router = useRouter();
+  const variant = useUiVariant();
   
   return (
     <div>
       <SessionProvider>
         <DndProvider backend={HTML5Backend}>
         <main className={"relative flex flex-col justify-center items-center h-screen w-screen"}>
-          <Home />
-          {process.env.NODE_ENV === "development" && <div className='dev-tools fixed flex flex-col left-0 top-1/3 bg-white'>
+          {variant === "arena" ? <div className="h-full w-full"><NewHome /></div> : <Home />}
+          {process.env.NODE_ENV === "development" && variant !== "arena" && <div className='dev-tools fixed flex flex-col left-0 top-1/3 bg-white'>
             <button
               className="cursor-pointer text-black"
               onClick={async () => {

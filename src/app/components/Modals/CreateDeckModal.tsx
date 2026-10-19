@@ -66,7 +66,9 @@ export default function CreateDeckModal({
 
     try {
       const newDeck = await createDeck({ name: deckName.trim(), legion: selectedLegion });
-      router.push(`/decks/${newDeck._id || newDeck.id}`);
+      const deckId = newDeck._id?.toString() || newDeck.id?.toString();
+      if (!deckId) throw new Error("The created deck did not include an ID.");
+      router.push(`/decks/${deckId}`);
       setDeckName("");
       setSelectedLegion("");
       setError("");
@@ -151,7 +153,7 @@ export default function CreateDeckModal({
             {error && <InlineStatus variant="error">{error}</InlineStatus>}
 
             {/* Submit Button */}
-            <PublicFormSubmitButton loading={loading} loadingLabel="Creating deck…" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+            <PublicFormSubmitButton loading={loading} loadingLabel="Creating deck…">
               <AppIcon name="create" size={20} />
               <span>{CreateDeckBtnText}</span>
             </PublicFormSubmitButton>
