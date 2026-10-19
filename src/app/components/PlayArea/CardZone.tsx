@@ -35,7 +35,7 @@ export default function CardZone({ items, cardTarget, targetIndex, zoneName }: {
         </div>
       )}
       {pileSize === 0 && (
-        <div className="opacity-30 text-white text-sm">{zoneName}</div>
+        <div className="px-1 text-center text-[11px] font-medium uppercase tracking-[0.08em] text-slate-300/60">{zoneName}</div>
       )}
       {[...items].reverse().map((item, index) => <Card card={item} cardTarget={cardTarget} zoneIndex={targetIndex} index={items.length - 1 - index} key={index} />)}
     </GridItem>

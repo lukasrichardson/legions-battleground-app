@@ -121,7 +121,7 @@ export default function Modal({
   if (!open) return null;
 
   return (
-      <div ref={setDropRef} className={isBottomSheet ? "fixed inset-0 z-50 flex items-end bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.78)] backdrop-blur-sm" : isConstrainedDialog ? "fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.78)] p-4 backdrop-blur-sm" : "absolute left-0 top-0 z-50 h-full w-full bg-[radial-gradient(circle_at_top,rgba(52,136,205,.16),transparent_42%),rgba(1,5,10,.42)] p-4" + (!isDragging ? " pointer-events-none" : "")}>
+      <div ref={setDropRef} className={isBottomSheet ? "fixed inset-0 z-50 flex items-end bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.78)] backdrop-blur-sm" : isConstrainedDialog ? "fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.78)] p-4 backdrop-blur-sm" : "absolute left-0 top-0 z-50 h-full w-full bg-[radial-gradient(circle_at_top,rgba(52,136,205,.16),transparent_42%),rgba(1,5,10,.42)] p-4"}>
           <div
             ref={setDragRef}
             role="dialog"

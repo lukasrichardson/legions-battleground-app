@@ -145,6 +145,7 @@ export const createNewDeck = async (user, deckData: { name: string; subtitle?: s
     synergies: [],
     veilRealms: [],
     guardians: [],
+    tokens: [],
     created_at: new Date(),
     updated_at: new Date(),
   };

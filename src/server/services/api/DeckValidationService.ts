@@ -1,12 +1,11 @@
-import { cardIdentity, getCombinedCardCounts, getDeckCards, getSideDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, normalizeDeck, SIDE_DECK_MAX_SIZE, SPECIAL_MAIN_DECK_FIELDS } from "@/shared/deckComposition";
+import { cardIdentity, getCombinedCardCounts, getDeckCards, getSideDeckCards, getSpecialDeckCards, isCardAllowedForDeckLegion, isSideDeckCardTypeAllowed, normalizeDeck, SIDE_DECK_MAX_SIZE, SPECIAL_DECK_FIELDS } from "@/shared/deckComposition";
 import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 import { getDatabase } from "@/server/utils/database.util";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
-import { CARD_TYPE } from "@/shared/enums/CardType";
 import { ObjectId } from "mongodb";
 import { hydrateDeck } from "./DeckHydrationService";
 
-const EDITABLE_FIELDS = new Set(["name", "subtitle", "legion", "cards_in_deck", "side_deck", ...SPECIAL_MAIN_DECK_FIELDS]);
+const EDITABLE_FIELDS = new Set(["name", "subtitle", "legion", "cards_in_deck", "side_deck", ...SPECIAL_DECK_FIELDS]);
 const MAX_NAME_LENGTH = 120;
 const MAX_SUBTITLE_LENGTH = 500;
 const MAX_LEGION_LENGTH = 100;
@@ -18,7 +17,7 @@ export class DeckValidationError extends Error {
   }
 }
 
-export type DeckUpdateInput = Partial<Pick<DeckResponse, "name" | "subtitle" | "legion" | "cards_in_deck" | "side_deck" | typeof SPECIAL_MAIN_DECK_FIELDS[number]>>;
+export type DeckUpdateInput = Partial<Pick<DeckResponse, "name" | "subtitle" | "legion" | "cards_in_deck" | "side_deck" | typeof SPECIAL_DECK_FIELDS[number]>>;
 
 export class DeckUpdateInputError extends Error {
   constructor(message: string) {
@@ -28,6 +27,15 @@ export class DeckUpdateInputError extends Error {
 }
 
 const DEFAULT_COPY_LIMIT = 3;
+
+const getTokenCounts = (deck: DeckResponse): Map<string, number> => {
+  const counts = new Map<string, number>();
+  for (const card of getSpecialDeckCards(deck, "tokens")) {
+    const identity = cardIdentity(card);
+    counts.set(identity, (counts.get(identity) ?? 0) + 1);
+  }
+  return counts;
+};
 
 const copyLimitFor = (cardName: string, banlist: BanlistItem[]): number => {
   const status = banlist.find((item) => item.name.trim().toLocaleLowerCase() === cardName)?.status;
@@ -52,7 +60,7 @@ function validateDeckCompositionAgainstBanlist(deck: DeckResponse, banlist: Banl
 export function validateBasicDeckComposition(deck: DeckResponse): void {
   if (!Array.isArray(deck.cards_in_deck)
     || (deck.side_deck !== undefined && !Array.isArray(deck.side_deck))
-    || SPECIAL_MAIN_DECK_FIELDS.some((field) => deck[field] !== undefined && !Array.isArray(deck[field]))) {
+    || SPECIAL_DECK_FIELDS.some((field) => deck[field] !== undefined && !Array.isArray(deck[field]))) {
     throw new DeckValidationError("Deck card lists must be arrays.");
   }
   const normalizedDeck = normalizeDeck(deck);
@@ -77,13 +85,15 @@ export function validateBasicDeckComposition(deck: DeckResponse): void {
   }
 
   for (const [identity, count] of getCombinedCardCounts(normalizedDeck)) {
-    const cardType = deckCards.find((card) => cardIdentity(card) === identity)?.card_type?.names?.[0];
-    if (count > DEFAULT_COPY_LIMIT && cardType !== CARD_TYPE.TOKEN) {
+    if (count > DEFAULT_COPY_LIMIT) {
       const cardTitle = deckCards.find((card) => cardIdentity(card) === identity)?.title ?? identity;
       throw new DeckValidationError(`${cardTitle} exceeds the ${DEFAULT_COPY_LIMIT}-copy limit across the main and side decks.`);
-    } else if (count > 5 && cardType === CARD_TYPE.TOKEN) {
-      const cardTitle = deckCards.find((card) => cardIdentity(card) === identity)?.title ?? identity;
-      throw new DeckValidationError(`${cardTitle} exceeds the 5-copy limit for tokens across the main and side decks.`);
+    }
+  }
+  for (const [identity, count] of getTokenCounts(normalizedDeck)) {
+    if (count > 5) {
+      const cardTitle = getSpecialDeckCards(normalizedDeck, "tokens").find((card) => cardIdentity(card) === identity)?.title ?? identity;
+      throw new DeckValidationError(`${cardTitle} exceeds the 5-copy limit for the token pile.`);
     }
   }
 }
@@ -151,7 +161,7 @@ export const parseDeckUpdateInput = (value: unknown): DeckUpdateInput => {
   if ("legion" in value) update.legion = requireText(value.legion, "legion", MAX_LEGION_LENGTH);
   if ("cards_in_deck" in value) update.cards_in_deck = cardList(value.cards_in_deck, "cards_in_deck");
   if ("side_deck" in value) update.side_deck = cardList(value.side_deck, "side_deck");
-  for (const field of SPECIAL_MAIN_DECK_FIELDS) {
+  for (const field of SPECIAL_DECK_FIELDS) {
     if (field in value) update[field] = cardList(value[field], field);
   }
   return update;

@@ -1,5 +1,5 @@
 import { DeckPatchOperation } from "@/shared/interfaces/DeckPatch";
-import { SPECIAL_MAIN_DECK_FIELDS, SpecialMainDeckField } from "@/shared/deckComposition";
+import { SPECIAL_DECK_FIELDS, SpecialDeckField } from "@/shared/deckComposition";
 
 export type EditableDeckSnapshot = {
   name: string;
@@ -11,6 +11,7 @@ export type EditableDeckSnapshot = {
   synergies: string[];
   veilRealms: string[];
   guardians: string[];
+  tokens: string[];
 };
 
 export class DeckPatchInputError extends Error {
@@ -49,7 +50,7 @@ const requireStringList = (value: unknown, path: string): string[] => {
 const applyListOperation = (
   snapshot: EditableDeckSnapshot,
   operation: DeckPatchOperation,
-  listKey: "cards_in_deck" | "side_deck" | SpecialMainDeckField,
+  listKey: "cards_in_deck" | "side_deck" | SpecialDeckField,
 ): void => {
   const listPath = `/${listKey}`;
   const list = snapshot[listKey];
@@ -90,6 +91,7 @@ export const applyDeckJsonPatch = (
     synergies: [...deck.synergies],
     veilRealms: [...deck.veilRealms],
     guardians: [...deck.guardians],
+    tokens: [...deck.tokens],
   };
 
   for (const operation of operations) {
@@ -108,7 +110,7 @@ export const applyDeckJsonPatch = (
       applyListOperation(snapshot, operation, "side_deck");
       continue;
     }
-    const specialField = SPECIAL_MAIN_DECK_FIELDS.find((field) => operation.path === `/${field}` || operation.path.startsWith(`/${field}/`));
+    const specialField = SPECIAL_DECK_FIELDS.find((field) => operation.path === `/${field}` || operation.path.startsWith(`/${field}/`));
     if (specialField) {
       applyListOperation(snapshot, operation, specialField);
       continue;

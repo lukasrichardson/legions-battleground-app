@@ -24,6 +24,7 @@ const idsFor = (deck: DeckResponse): ObjectId[] => {
     ...normalizedDeck.synergies,
     ...normalizedDeck.veilRealms,
     ...normalizedDeck.guardians,
+    ...normalizedDeck.tokens,
     ...normalizedDeck.side_deck,
   ].map((id: DeckCardId) => id instanceof ObjectId ? id : new ObjectId(id));
 };
@@ -60,9 +61,10 @@ export async function getHydratedDeck<T extends DeckResponse>(
         synergies: { $ifNull: ["$synergies", []] },
         veilRealms: { $ifNull: ["$veilRealms", []] },
         guardians: { $ifNull: ["$guardians", []] },
+        tokens: { $ifNull: ["$tokens", []] },
       },
     },
-    { $set: { all_card_ids: { $setUnion: ["$cards_in_deck", "$warlords", "$synergies", "$veilRealms", "$guardians", "$side_deck"] } } },
+    { $set: { all_card_ids: { $setUnion: ["$cards_in_deck", "$warlords", "$synergies", "$veilRealms", "$guardians", "$tokens", "$side_deck"] } } },
     { $lookup: { from: "cards", localField: "all_card_ids", foreignField: "_id", as: "cards" } },
     {
       $set: {

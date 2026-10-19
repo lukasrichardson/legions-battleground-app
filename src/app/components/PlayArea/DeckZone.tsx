@@ -41,7 +41,7 @@ export default function DeckZone ({item, cardTarget}: {item: CardState | null, c
           <Card card={item} cardTarget={cardTarget} index={0} hidden={hidden} />
         </div>
       ) : (
-        "empty deck zone"
+        <span className="px-2 text-center text-[11px] font-medium uppercase tracking-[0.08em] text-slate-300/60">Empty deck</span>
       )}
     </GridItem>
   )

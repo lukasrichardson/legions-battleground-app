@@ -13,7 +13,7 @@ export default function RegularMatchActionModals() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const sandboxMode = useAppSelector((state) => state.gameState.sandboxMode);
-  const { concedeModalOpen, leaveGameModalOpen } = useAppSelector((state) => state.modalsState);
+  const { concedeModalOpen, leaveGameModalOpen, leaveGameTarget } = useAppSelector((state) => state.modalsState);
 
   if (sandboxMode) return null;
 
@@ -26,7 +26,7 @@ export default function RegularMatchActionModals() {
     socket.emit("leaveRegularRoom");
     dispatch(closeLeaveGameModal());
     dispatch(resetState());
-    router.push("/");
+    router.push(leaveGameTarget);
   };
 
   const concedeAndLeave = () => {
@@ -34,7 +34,7 @@ export default function RegularMatchActionModals() {
       if (payload.type !== GAME_EVENT.concede) return;
       dispatch(closeLeaveGameModal());
       dispatch(resetState());
-      router.push("/");
+      router.push(leaveGameTarget);
     };
     socket.once("gameEvent", leaveAfterConfirmation);
     emitGameEvent({ type: GAME_EVENT.concede, data: null });

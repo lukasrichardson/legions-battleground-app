@@ -37,6 +37,11 @@ function Page() {
     dispatch(resetState());
     router.push("/");
   }, [dispatch, router]);
+  const exitFailedJoin = useCallback(() => {
+    socket.disconnect();
+    dispatch(resetState());
+    router.push("/");
+  }, [dispatch, router]);
 
   useEffect(() => {
     if (!gameState.started) return;
@@ -78,7 +83,7 @@ function Page() {
         <HelpModal />
         <RegularMatchActionModals />
         <PlunderModal closeModal={() => dispatch(closePlunderModal())} />
-        {joinError && <Modal open closeModal={() => null} modalHeader={<div className="py-4 text-lg font-semibold tracking-wide text-white">Unable to join game</div>} modalContent={<div className="space-y-3 text-slate-200"><p>{joinError}</p><p className="text-sm text-slate-400">Regular matches require two different authenticated accounts. Return to the lobby and join with the other player’s account.</p></div>} />}
+        {joinError && <Modal open closeModal={() => null} modalHeader={<div className="py-4 text-lg font-semibold tracking-wide text-white">Unable to join game</div>} modalContent={<div className="space-y-4 text-slate-200"><p>{joinError}</p><p className="text-sm text-slate-400">Regular matches require two different authenticated accounts. Return to the lobby and join with the other player’s account.</p><button type="button" onClick={exitFailedJoin} className="border border-sky-200/45 bg-[#246fb8] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#338de0] focus:outline-none focus:ring-2 focus:ring-sky-200">Return to lobby</button></div>} />}
         {!gameState.sandboxMode && gameState.matchStatus === MatchStatus.Completed && gameState.result && <Modal open closeModal={() => null} modalHeader={<div className="py-4 text-lg font-semibold tracking-wide text-white">Match complete</div>} modalContent={<div className="space-y-4 text-slate-200"><p>{gameState.result.kind === "draw" ? "The match ended in a draw." : `${gameState.result.winner === (p1 ? "p1" : "p2") ? "You win by concession." : "Your opponent wins by concession."}`}</p><button type="button" onClick={exitCompletedMatch} className="border border-sky-200/45 bg-[#246fb8] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#338de0]">Leave match</button></div>} />}
         <RegularMatchSetupOverlay />
         {playerInputRequiredBlock()}

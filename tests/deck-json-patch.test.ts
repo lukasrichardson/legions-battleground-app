@@ -12,6 +12,7 @@ const deck = {
   synergies: [],
   veilRealms: [],
   guardians: [],
+  tokens: [],
 };
 
 describe("applyDeckJsonPatch", () => {
@@ -33,12 +34,40 @@ describe("applyDeckJsonPatch", () => {
     }])).toEqual({ ...deck, cards_in_deck: ["a", "b"] });
   });
 
+  it("moves a card between main and side deck in one ordered patch", () => {
+    expect(applyDeckJsonPatch({ ...deck, cards_in_deck: ["a", "b", "a"] }, [
+      { op: "remove", path: "/cards_in_deck/2" },
+      { op: "add", path: "/side_deck/-", value: "a" },
+    ])).toEqual({
+      ...deck,
+      cards_in_deck: ["a", "b"],
+      side_deck: ["a"],
+    });
+  });
+
+  it("removes a side-deck card by its array index", () => {
+    expect(applyDeckJsonPatch({ ...deck, side_deck: ["a", "b", "a"] }, [
+      { op: "remove", path: "/side_deck/2" },
+    ])).toEqual({
+      ...deck,
+      side_deck: ["a", "b"],
+    });
+  });
+
   it("supports the same safe operations for dedicated special-card arrays", () => {
     expect(applyDeckJsonPatch(deck, [{
       op: "add",
       path: "/warlords/-",
       value: "507f191e810c19729de860ea",
     }])).toEqual({ ...deck, warlords: ["507f191e810c19729de860ea"] });
+  });
+
+  it("supports the dedicated token pile", () => {
+    expect(applyDeckJsonPatch(deck, [{
+      op: "add",
+      path: "/tokens/-",
+      value: "507f191e810c19729de860ea",
+    }])).toEqual({ ...deck, tokens: ["507f191e810c19729de860ea"] });
   });
 
   it("renames a deck and replaces the full list for sorting", () => {
