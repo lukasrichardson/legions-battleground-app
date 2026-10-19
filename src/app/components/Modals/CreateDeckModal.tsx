@@ -66,7 +66,9 @@ export default function CreateDeckModal({
 
     try {
       const newDeck = await createDeck({ name: deckName.trim(), legion: selectedLegion });
-      router.push(`/decks/${newDeck._id || newDeck.id}`);
+      const deckId = newDeck._id?.toString() || newDeck.id?.toString();
+      if (!deckId) throw new Error("The created deck did not include an ID.");
+      router.push(`/decks/${deckId}`);
       setDeckName("");
       setSelectedLegion("");
       setError("");

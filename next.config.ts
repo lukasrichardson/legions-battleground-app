@@ -10,6 +10,9 @@ const r2ImageHost = (() => {
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // E2E runs beside a developer's `next dev` process. A separate directory
+  // prevents Next's dev-server lock and generated output from colliding.
+  distDir: process.env.E2E_TEST_MODE === "true" ? ".next-e2e" : ".next",
   images: {
     unoptimized: true,
     remotePatterns: [

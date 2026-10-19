@@ -73,7 +73,7 @@ function Page() {
     return null;
   }, [closePileInView, p1, resolving, sequences]);
 
-  return <div className="h-full w-full text-white">
+  return <div className="h-full w-full text-white" data-testid="game-board" data-game-mode={gameState.sandboxMode ? "sandbox" : "regular"} data-match-status={gameState.matchStatus}>
     <main className="relative flex h-full w-full items-center justify-between">
       <DndProvider backend={HTML5Backend}>
         <Toolbar />
