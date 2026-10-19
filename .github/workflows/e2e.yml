@@ -15,6 +15,10 @@ jobs:
     services:
       mongodb:
         image: mongo:8.0
+        # MongoDB's TCMalloc startup guard rejects current hosted-runner kernels
+        # unless glibc rseq is enabled. Keep this scoped to the E2E database.
+        env:
+          GLIBC_TUNABLES: glibc.pthread.rseq=1
         ports:
           - 27017:27017
         options: >-
