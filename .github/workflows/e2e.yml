@@ -8,7 +8,9 @@ on:
 
 jobs:
   e2e:
-    runs-on: ubuntu-latest
+    # `ubuntu-latest` moved to a 6.19 kernel, which MongoDB deliberately
+    # refuses to start on. Keep this test service on the supported 24.04 image.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     services:
       mongodb:
