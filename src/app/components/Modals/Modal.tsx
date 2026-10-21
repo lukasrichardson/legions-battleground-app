@@ -1,11 +1,4 @@
-import { useClickOutside } from "@/client/hooks/useClickOutside";
-import { useCallback, useRef, useEffect, useState } from "react";
-import { useDrag, useDrop } from "react-dnd";
-
-interface ModalState {
-  top: number;
-  left: number;
-}
+import { useCallback, useEffect, useRef } from "react";
 
 let openModalCount = 0;
 let bodyOverflowBeforeModal = "";
@@ -15,55 +8,31 @@ export default function Modal({
   closeModal,
   modalHeader,
   modalContent,
+  modalFooter,
   transparentOnBlur = false,
+  // Kept for callers during migration. The presentation is responsive either way.
   variant = "dialog",
   ariaLabel = "Dialog",
+  closeOnBackdrop = true,
+  closeOnEscape = true,
 }: {
   open: boolean,
   closeModal: () => void,
   modalHeader: JSX.Element,
   modalContent: JSX.Element,
+  /** Persistent primary action area that never scrolls off a phone viewport. */
+  modalFooter?: JSX.Element,
   transparentOnBlur?: boolean,
   variant?: "dialog" | "bottom-sheet" | "constrained-dialog",
   ariaLabel?: string,
+  closeOnBackdrop?: boolean,
+  closeOnEscape?: boolean,
 }) {
-  const isBottomSheet = variant === "bottom-sheet";
-  const isConstrainedDialog = variant === "constrained-dialog";
-  const isDraggable = variant === "dialog";
-  const [modalState, setModalState] = useState<ModalState | null>();
-  const [{ }, drop] = useDrop(() => ({
-    accept: "modal",
-    canDrop: () => isDraggable,
-    drop: (_, monitor) => {
-      const delta = monitor.getDifferenceFromInitialOffset();
-      const left = Math.round((modalState?.left || 0) + (delta?.x || 0));
-      const top = Math.round((modalState?.top || 0) + (delta?.y || 0));
-      setModalState({ top, left });
-    },
-  }), [isDraggable, modalState]);
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: "modal",
-    canDrag: () => isDraggable,
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  }), [isDraggable]);
+  void variant;
   const ref = useRef<HTMLDivElement>(null);
   const closeModalRef = useRef(closeModal);
   closeModalRef.current = closeModal;
-  const setDropRef = useCallback((node: HTMLDivElement | null) => {
-    drop(node);
-  }, [drop]);
-  const setDragRef = useCallback((node: HTMLDivElement | null) => {
-    ref.current = node;
-    drag(node);
-  }, [drag]);
-  const handleClickOutside = useCallback(() => {
-    if (open) {
-      closeModalRef.current();
-    }
-  }, [open]);
-  useClickOutside(ref, handleClickOutside);
+  const requestClose = useCallback(() => closeModalRef.current(), []);
 
   useEffect(() => {
     if (!open) return;
@@ -81,8 +50,9 @@ export default function Modal({
     });
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        closeModalRef.current();
+      if (e.key === "Escape" && closeOnEscape) {
+        e.preventDefault();
+        requestClose();
         return;
       }
       if (e.key !== "Tab" || !ref.current) return;
@@ -108,7 +78,6 @@ export default function Modal({
 
     return () => {
       cancelAnimationFrame(focusModal);
-      setModalState(null);
       openModalCount = Math.max(0, openModalCount - 1);
       if (openModalCount === 0) {
         document.body.style.overflow = bodyOverflowBeforeModal;
@@ -116,41 +85,35 @@ export default function Modal({
       document.removeEventListener("keydown", handleKeyDown);
       previouslyFocused?.focus();
     };
-  }, [open]);
+  }, [closeOnEscape, open, requestClose]);
 
   if (!open) return null;
 
   return (
-      <div ref={setDropRef} className={isBottomSheet ? "fixed inset-0 z-50 flex items-end bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.78)] backdrop-blur-sm" : isConstrainedDialog ? "fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.78)] p-4 backdrop-blur-sm" : "absolute left-0 top-0 z-50 h-full w-full bg-[radial-gradient(circle_at_top,rgba(52,136,205,.16),transparent_42%),rgba(1,5,10,.42)] p-4"}>
+      <div className="fixed inset-0 z-50 flex items-end bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.78)] px-0 pt-[env(safe-area-inset-top)] backdrop-blur-sm sm:items-center sm:justify-center sm:p-4" onPointerDown={(event) => { if (closeOnBackdrop && event.target === event.currentTarget) requestClose(); }}>
           <div
-            ref={setDragRef}
+            ref={ref}
             role="dialog"
             aria-modal="true"
             aria-label={ariaLabel}
             tabIndex={-1}
-            className={[isBottomSheet
-              ? "relative max-h-[95vh] w-full overflow-hidden rounded-t-sm border border-sky-200/35 border-b-0 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] shadow-[0_-18px_45px_rgba(0,0,0,.5),0_0_28px_rgba(79,169,255,.16)]"
-              : isConstrainedDialog
-                ? "relative flex max-h-[85dvh] w-full max-w-2xl overflow-hidden rounded-sm border border-sky-200/35 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_28px_rgba(79,169,255,.16)]"
-              : "relative max-h-[85%] w-fit max-w-[75%] transform overflow-hidden rounded-sm border border-sky-200/35 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_28px_rgba(79,169,255,.16)] top-1/4 left-1/2",
-              "flex flex-col pointer-events-auto",
+            className={["flex max-h-[calc(100dvh-env(safe-area-inset-top))] w-full flex-col overflow-hidden rounded-t-sm border border-sky-200/35 border-b-0 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] shadow-[0_-18px_45px_rgba(0,0,0,.5),0_0_28px_rgba(79,169,255,.16)] sm:max-h-[85dvh] sm:max-w-2xl sm:rounded-sm sm:border-b sm:shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_28px_rgba(79,169,255,.16)]",
+              "pointer-events-auto",
               transparentOnBlur ? "bg-white/25" : ""
             ].join(" ")}
-            style={!isDraggable ? undefined : {
-              transform: modalState ? `translate(calc(-50% + ${modalState.left}px), calc(-25% + ${modalState.top}px))` : "translate(-50%, -25%)"
-            }}
           >
-            {!isDragging && <>
-              <div className={`border-b border-sky-200/20 bg-[linear-gradient(90deg,rgba(79,169,255,.13),transparent_60%)] ${isDraggable ? "px-6 hover:cursor-grab active:cursor-grabbing" : "px-4 sm:px-6"}`}>
+            <>
+              <div className="shrink-0 border-b border-sky-200/20 bg-[linear-gradient(90deg,rgba(79,169,255,.13),transparent_60%)] px-4 sm:px-6">
                 {modalHeader}
               </div>
 
               <div className={["flex-1 min-h-0 overflow-x-hidden overflow-y-auto bg-[linear-gradient(145deg,rgba(8,21,33,.96),rgba(3,10,18,.98))]", transparentOnBlur ? "opacity-5 hover:opacity-100" : ""].join(" ")}>
-                <div className={isDraggable ? "p-6" : "p-4 sm:p-6"}>
+                <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6">
                   {modalContent}
                 </div>
               </div>
-            </>}
+              {modalFooter && <div className="shrink-0 border-t border-sky-200/20 bg-slate-950/90 p-3 pb-[max(.75rem,env(safe-area-inset-bottom))] sm:px-6">{modalFooter}</div>}
+            </>
           </div>
       </div>
   );

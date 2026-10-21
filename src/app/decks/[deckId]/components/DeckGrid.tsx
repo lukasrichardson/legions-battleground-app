@@ -12,6 +12,7 @@ import LoadingState from "@/app/components/LoadingState";
 import AppIcon from "@/app/components/AppIcon";
 import { EmptyState } from "@/client/ui/empty-state";
 import { DeckCardListKey, DeckDragItem } from "./CardTile";
+import { decodeHTMLEntities } from "@/client/utils/string.util";
 
 const renderSectionStructure = (name: string, cards: HydratedDeckCard[], renderSubSection: (cards: HydratedDeckCard[]) => JSX.Element) => (
   cards && cards.length > 0 && (
@@ -38,6 +39,8 @@ export default function DeckGrid({
   handleAddCardToSideDeck = () => null,
   getSideDeckMoveError = () => null,
   onMoveCardToSideDeck = () => null,
+  onInspectCard = () => null,
+  onRemoveAll = () => null,
   readOnly = false
 }: {
   deck: DeckResponse | null,
@@ -50,6 +53,8 @@ export default function DeckGrid({
   handleAddCardToSideDeck?: (card: HydratedDeckCard) => void,
   getSideDeckMoveError?: (card: HydratedDeckCard) => string | null,
   onMoveCardToSideDeck?: (item: DeckDragItem) => void,
+  onInspectCard?: (card: HydratedDeckCard) => void,
+  onRemoveAll?: (card: HydratedDeckCard, source: DeckCardListKey) => void,
   readOnly?: boolean
 }) {
 
@@ -121,6 +126,40 @@ export default function DeckGrid({
   const attachSideDeckDropTarget = (node: HTMLDivElement | null) => {
     sideDeckDrop(node);
   };
+  const mobileRows = (label: string, cards: HydratedDeckCard[], remove: (card: HydratedDeckCard) => void, add: (card: HydratedDeckCard) => void, source: DeckCardListKey | ((card: HydratedDeckCard) => DeckCardListKey)) => {
+    const groups = new Map<string, HydratedDeckCard[]>();
+    cards.forEach((card) => {
+      const key = card._id.toString();
+      groups.set(key, [...(groups.get(key) ?? []), card]);
+    });
+    return (
+      <section className="space-y-1" aria-label={label}>
+        <h3 className="px-1 text-xs font-semibold uppercase tracking-wide text-white/75">{label} <span className="text-white/50">({cards.length})</span></h3>
+        {[...groups.values()].map((group) => {
+          const card = group[0];
+          return <div key={card._id.toString()} className="flex min-h-11 items-center gap-2 rounded border border-white/10 bg-white/5 p-1.5">
+            <button type="button" onClick={() => onInspectCard(card)} className="min-w-0 flex-1 truncate px-2 py-2 text-left text-sm text-white touch-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300" aria-label={`Inspect ${decodeHTMLEntities(card.title)}`}>{decodeHTMLEntities(card.title)}</button>
+            {!readOnly && <div className="flex shrink-0 items-center gap-1" aria-label={`${decodeHTMLEntities(card.title)} quantity`}>
+              <Button type="button" size="icon" variant="outline" onClick={() => remove(card)} className="size-11 border-white/20 bg-white/5 text-white" aria-label={`Remove one ${decodeHTMLEntities(card.title)}`}>−</Button>
+              <span className="grid size-11 place-items-center text-sm font-semibold" aria-label={`${group.length} copies`}>{group.length}</span>
+              <Button type="button" size="icon" variant="outline" onClick={() => add(card)} className="size-11 border-white/20 bg-white/5 text-white" aria-label={`Add one ${decodeHTMLEntities(card.title)}`}>+</Button>
+              <Button type="button" variant="ghost" onClick={() => onRemoveAll(card, typeof source === "function" ? source(card) : source)} className="min-h-11 px-2 text-xs text-rose-200 hover:bg-rose-500/10 hover:text-rose-100" aria-label={`Remove all ${decodeHTMLEntities(card.title)}`}>All</Button>
+            </div>}
+          </div>;
+        })}
+      </section>
+    );
+  };
+  if (isMobile) {
+    return <div className="space-y-3">
+      {!deck ? <LoadingState label="Loading deck…" /> : <>
+        {mobileRows("Special cards", [...warlords, ...veilRealms, ...synergies, ...guardians, ...tokens], handleRemoveCardFromDeck, handleAddCardToDeck, mainSourceListForCard)}
+        {mobileRows("Main deck", allMainDeckCards, handleRemoveCardFromDeck, handleAddCardToDeck, "cards_in_deck")}
+        {mobileRows("Side deck", sideDeck, handleRemoveCardFromSideDeck, handleAddCardToSideDeck, "side_deck")}
+        {allMainDeckCards.length + sideDeck.length + warlords.length + veilRealms.length + synergies.length + guardians.length + tokens.length === 0 && <EmptyState icon={<AppIcon name="create" size={20} />} title="No cards in deck" description="Use Find cards to inspect a card, then add it to your deck." />}
+      </>}
+    </div>;
+  }
   return (
     <div className="flex h-full min-h-0 flex-col gap-2">
     <Card className="min-h-0 flex-1 bg-white/10 border-white/20 text-white flex flex-col">

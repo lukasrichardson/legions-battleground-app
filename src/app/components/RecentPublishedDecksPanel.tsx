@@ -5,7 +5,7 @@ import { LEGIONS } from "@/client/constants/legions.constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { type WheelEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import LoadingState from "./LoadingState";
 import { PublishedDeckListItem } from "@/shared/interfaces/DeckListItem";
 import { EmptyState } from "@/client/ui/empty-state";
@@ -52,20 +52,6 @@ export default function RecentPublishedDecksPanel() {
   const [decks, setDecks] = useState<PublishedDeckListItem[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 
-  const handleHorizontalWheel = (event: WheelEvent<HTMLDivElement>) => {
-    if (
-      !window.matchMedia("(max-width: 767px)").matches
-      || event.deltaX !== 0
-      || event.deltaY === 0
-    ) return;
-
-    const panel = event.currentTarget;
-    if (panel.scrollWidth <= panel.clientWidth) return;
-
-    event.preventDefault();
-    panel.scrollLeft += event.deltaY;
-  };
-
   useEffect(() => {
     let isActive = true;
 
@@ -85,7 +71,7 @@ export default function RecentPublishedDecksPanel() {
   }, []);
 
   return (
-    <Card className="flex h-full min-h-0 w-auto mx-auto min-w-0 flex-col border-white/20 bg-white/10 text-white">
+    <Card className="flex h-full min-h-0 w-full mx-auto min-w-0 flex-col border-white/20 bg-white/10 text-white">
       <CardHeader className="shrink-0 flex flex-row items-center justify-between p-2 pb-1 md:p-4 md:pb-2">
         <CardTitle className="text-md md:text-lg">Recently Published Decks</CardTitle>
         <Button
@@ -99,8 +85,7 @@ export default function RecentPublishedDecksPanel() {
       </CardHeader>
 
       <CardContent
-        className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden p-4 pt-0 md:overflow-x-hidden md:overflow-y-auto"
-        onWheel={handleHorizontalWheel}
+        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4 pt-0"
       >
         {status === "loading" && (
           <LoadingState label="Loading published decks…" className="h-full border-0" />
@@ -113,7 +98,7 @@ export default function RecentPublishedDecksPanel() {
         {status === "ready" && decks.length === 0 && <EmptyState icon="♜" title="No published decks yet" description="Community decklists will appear here." />}
 
         {status === "ready" && decks.length > 0 && (
-          <ul className="flex md:flex-col divide-x md:divide-y divide-white/10" aria-label="Five most recently published decks">
+          <ul className="flex flex-col divide-y divide-white/10" aria-label="Five most recently published decks">
             {decks.slice(0, 10).map((deck) => {
               const coverImage = getDeckCoverImage(deck);
               const deckId = deck._id.toString();
@@ -122,7 +107,7 @@ export default function RecentPublishedDecksPanel() {
                 <li key={deckId}>
                   <button
                     type="button"
-                    className="flex w-full cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                    className="flex min-h-16 w-full cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                     onClick={() => deckId && router.push(`/browse/${deckId}`)}
                     aria-label={`Open published deck ${deck.name}`}
                   >
@@ -140,13 +125,12 @@ export default function RecentPublishedDecksPanel() {
                       </div>
                     )}
 
-                    <span className="min-w-0 flex-1">
+                      <span className="min-w-0 flex-1">
                       <span className="flex min-w-0 items-center gap-1.5">
-                        <span className="max-w-[60%] shrink-0 truncate text-sm font-bold text-white">{deck.name}</span>
-                        <span className="min-w-0 truncate text-xs text-gray-400">by {deck.author || "Unknown Author"}</span>
-                        <span className="shrink-0 text-xs text-white ml-auto">Main: {deck.mainDeckSize}</span>
-                        <span className="shrink-0 text-xs text-white">Side: {deck.sideDeckSize}</span>
+                        <span className="min-w-0 flex-1 truncate text-sm font-bold text-white">{deck.name}</span>
+                        <span className="shrink-0 text-xs text-white">{deck.mainDeckSize}/{deck.sideDeckSize}</span>
                       </span>
+                      <span className="mt-0.5 block truncate text-xs text-gray-400">by {deck.author || "Unknown Author"}</span>
                       <span className="mt-1 flex min-w-0 items-center gap-2">
                         <span
                           className="shrink-0 rounded-full border border-white/20 px-2 py-0.5 text-xs font-medium capitalize"

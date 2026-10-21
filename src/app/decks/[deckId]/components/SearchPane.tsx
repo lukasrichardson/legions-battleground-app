@@ -17,6 +17,12 @@ import Modal from "@/app/components/Modals/Modal";
 import AppIcon from "@/app/components/AppIcon";
 import { EmptyState } from "@/client/ui/empty-state";
 import { InlineStatus } from "@/client/ui/inline-status";
+import {
+  copyGalleryFilters,
+  countGalleryFilters,
+  emptyGalleryFilters,
+  type GalleryFilters,
+} from "@/app/cards/galleryFilters";
 
 export default function SearchPane({
   setHoveredCard,
@@ -28,6 +34,7 @@ export default function SearchPane({
   onSelectCard,
   onClearSelectedCard,
   selectedCardId = null,
+  onInspectCard,
 }: {
   setHoveredCard: (card: CardDocument | null, banlistItem?: BanlistItem | null) => void,
   handleAddCardToDeck: (card: CardDocument) => void,
@@ -38,6 +45,8 @@ export default function SearchPane({
   onSelectCard?: (card: CardDocument, banlistItem: BanlistItem | null) => void,
   onClearSelectedCard?: () => void,
   selectedCardId?: string | null,
+  /** Deck builder uses inspection as the only card-body action. */
+  onInspectCard?: (card: CardDocument) => void,
 }) {
   const [legion, setLegion] = useState<string[]>([]);
   const [query, setQuery] = useState("");
@@ -55,6 +64,7 @@ export default function SearchPane({
   const [loadingCards, setLoadingCards] = useState(true);
   const [cardLoadError, setCardLoadError] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filterDraft, setFilterDraft] = useState<GalleryFilters>(emptyGalleryFilters);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const horizontalScrollRef = useRef<HTMLDivElement | null>(null);
   const isScrollingRef = useRef(false);
@@ -268,6 +278,29 @@ export default function SearchPane({
     setDebouncedQuery("");
   }
 
+  const appliedGalleryFilters = useMemo<GalleryFilters>(() => ({ legion, type, rarity, set, srlStatus }), [legion, rarity, set, srlStatus, type]);
+
+  const openGalleryFilters = () => {
+    setFilterDraft(copyGalleryFilters(appliedGalleryFilters));
+    setFiltersOpen(true);
+  };
+
+  const updateFilterDraft = (key: keyof GalleryFilters, value: string[]) => {
+    setFilterDraft((current) => ({ ...current, [key]: value }));
+  };
+
+  const applyGalleryFilters = () => {
+    setLegion(filterDraft.legion);
+    setType(filterDraft.type);
+    setRarity(filterDraft.rarity);
+    setSet(filterDraft.set);
+    setSrlStatus(filterDraft.srlStatus);
+    setPageAndScrollTop(1);
+    setFiltersOpen(false);
+  };
+
+  const resetGalleryFilterDraft = () => setFilterDraft(emptyGalleryFilters());
+
   useEffect(() => {
     return () => {
       if (scrollStopTimeoutRef.current) {
@@ -321,7 +354,7 @@ export default function SearchPane({
       setHoveredCard(card, banlistByName.get(card.title) ?? null);
     }
   }, [banlistByName, setHoveredCard]);
-  const activeFilterCount = legion.length + type.length + rarity.length + set.length + srlStatus.length;
+  const activeFilterCount = countGalleryFilters(appliedGalleryFilters);
   const hasActiveCriteria = Boolean(query || activeFilterCount);
   const resultStart = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const resultEnd = Math.min(page * pageSize, total);
@@ -340,22 +373,41 @@ export default function SearchPane({
     }
   }, [gallery, onClearSelectedCard, previewCriteriaKey, selectedCardId, setHoveredCard]);
 
-  const galleryFilters = (className = "", menuPlacement: "popover" | "viewport" | "inline" = "popover") => (
+  const galleryFilters = (
+    className = "",
+    menuPlacement: "popover" | "viewport" | "inline" = "popover",
+    draft = false,
+  ) => {
+    const selectedFilters = draft ? filterDraft : appliedGalleryFilters;
+    const setFilter = (key: keyof GalleryFilters, value: string[]) => {
+      if (draft) {
+        updateFilterDraft(key, value);
+        return;
+      }
+      if (key === "legion") handleLegionSelect(value);
+      else if (key === "type") handleTypeSelect(value);
+      else if (key === "rarity") handleRaritySelect(value);
+      else if (key === "set") handleSetSelect(value);
+      else handleSrlStatusSelect(value);
+    };
+
+    return (
     <div className={`flex flex-wrap items-center gap-2 ${className}`}>
       {Object.keys(filterOptionsForDeckLegion).map((key) => (
         <MultiSelect
           key={key}
           options={filterOptionsForDeckLegion[key].map((option) => ({ value: option, label: key === 'srlStatus' ? option.charAt(0).toUpperCase() + option.slice(1) : option }))}
-          value={key === 'legion' ? legion : key === 'type' ? type : key === 'rarity' ? rarity : key === 'set' ? set : srlStatus}
-          onChange={key === 'legion' ? handleLegionSelect : key === 'type' ? handleTypeSelect : key === 'rarity' ? handleRaritySelect : key === 'set' ? handleSetSelect : handleSrlStatusSelect}
+          value={selectedFilters[key as keyof GalleryFilters]}
+          onChange={(value) => setFilter(key as keyof GalleryFilters, value)}
           placeholder={key === 'srlStatus' ? 'S/R/L Status' : `${key.charAt(0).toUpperCase() + key.slice(1)}`}
           menuPlacement={menuPlacement}
           className="cursor-pointer text-xs [&_button]:min-h-10 [&_button]:border-white/25 [&_button]:bg-white/5 [&_button]:px-3 [&_button]:text-slate-100 [&_button]:transition-colors [&_button:hover]:border-blue-300 [&_button:hover]:bg-blue-400/10"
         />
       ))}
-      {hasActiveCriteria && <Button onClick={clearFilters} type="button" variant="ghost" className="min-h-10 px-2 text-sm text-blue-100 hover:bg-white/10 hover:text-white">Clear all</Button>}
+      {!draft && hasActiveCriteria && <Button onClick={clearFilters} type="button" variant="ghost" className="min-h-10 px-2 text-sm text-blue-100 hover:bg-white/10 hover:text-white">Clear all</Button>}
     </div>
-  );
+    );
+  };
 
   return (
     <Card className={gallery ? "h-full rounded-[2px] border-white/20 bg-[rgba(4,9,14,.68)] text-white shadow-xl shadow-black/20" : "flex h-full flex-col border-white/20 bg-white/10 text-white"}>
@@ -366,10 +418,10 @@ export default function SearchPane({
           {onAddTargetChange && (
             <div className="flex items-center gap-1 text-xs text-white/80">
               <span className="mr-1">Add to:</span>
-              <Button type="button" size="sm" onClick={() => onAddTargetChange("main")} className={`h-6 px-2 text-xs text-white ${addTarget === "main" ? "bg-blue-600 hover:bg-blue-500" : "bg-white/10 hover:bg-white/20"}`}>
+              <Button type="button" size="sm" onClick={() => onAddTargetChange("main")} className={`min-h-11 px-3 text-xs text-white ${addTarget === "main" ? "bg-blue-600 hover:bg-blue-500" : "bg-white/10 hover:bg-white/20"}`}>
                 Main Deck
               </Button>
-              <Button type="button" size="sm" onClick={() => onAddTargetChange("side")} className={`h-6 px-2 text-xs text-white ${addTarget === "side" ? "bg-purple-600 hover:bg-purple-500" : "bg-white/10 hover:bg-white/20"}`}>
+              <Button type="button" size="sm" onClick={() => onAddTargetChange("side")} className={`min-h-11 px-3 text-xs text-white ${addTarget === "side" ? "bg-purple-600 hover:bg-purple-500" : "bg-white/10 hover:bg-white/20"}`}>
                 Side Deck
               </Button>
             </div>
@@ -380,12 +432,12 @@ export default function SearchPane({
             onChange={handleSearchChange}
             placeholder="Search cards..."
             aria-label="Search cards"
-            className={gallery ? "h-11 max-w-lg border-white/25 bg-[rgba(4,9,14,.76)] px-3 text-sm text-white placeholder:text-slate-500 focus-visible:ring-blue-300" : "h-6 border-white/20 bg-white/10 text-xs text-white placeholder:text-white/50"}
+            className={gallery ? "h-11 max-w-lg border-white/25 bg-[rgba(4,9,14,.76)] px-3 text-sm text-white placeholder:text-slate-500 focus-visible:ring-blue-300" : "min-h-11 border-white/20 bg-white/10 px-3 text-sm text-white placeholder:text-white/50"}
           />
 
           {gallery ? <>
             <div className="flex items-center justify-between gap-2 lg:hidden">
-              <Button type="button" onClick={() => setFiltersOpen(true)} variant="outline" className="min-h-11 border-blue-200/25 bg-blue-300/10 px-4 text-blue-50 hover:bg-blue-300/20">
+              <Button type="button" onClick={openGalleryFilters} variant="outline" className="min-h-11 shrink-0 border-blue-200/25 bg-blue-300/10 px-4 text-blue-50 hover:bg-blue-300/20">
                 Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
               </Button>
             </div>
@@ -411,15 +463,15 @@ export default function SearchPane({
           </div>}
           </div>
 
-          <div className={gallery ? "flex items-center justify-between gap-2 border-white/10" : "flex justify-center gap-1"}>
-            <Button onClick={prevPage} size="sm" variant="outline" disabled={page <= 1} className={gallery ? "min-h-10 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
+          <div className={gallery ? "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-white/10" : "flex justify-center gap-1"}>
+            <Button onClick={prevPage} size="sm" variant="outline" disabled={page <= 1} className={gallery ? "min-h-11 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
               Prev
             </Button>
-            <div className={gallery ? "text-center text-xs text-slate-400" : "text-center text-xs text-gray-300"}>
+            <div aria-live="polite" className={gallery ? "min-w-0 text-center text-xs leading-4 text-slate-400" : "text-center text-xs text-gray-300"}>
               {gallery ? `Showing ${resultStart}–${resultEnd} of ${total.toLocaleString()}` : `Page ${page} of ${total / pageSize > 0 ? Math.ceil(total / pageSize) : 1} (${total} cards)`}
             </div>
             
-              <Button onClick={nextPage} size="sm" variant="outline" disabled={total <= page * pageSize} className={gallery ? "min-h-8 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
+              <Button onClick={nextPage} size="sm" variant="outline" disabled={total <= page * pageSize} className={gallery ? "min-h-11 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
                 Next
               </Button>
           </div>
@@ -450,7 +502,7 @@ export default function SearchPane({
                     role="button"
                     tabIndex={0}
                     aria-label={`Inspect ${decodeHTMLEntities(card.title)}${selectedCardId === card._id ? ", selected" : ""}`}
-                    className={`group relative box-border max-h-full cursor-pointer rounded-xl p-0.5 outline-none transition focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${selectedCardId === card._id ? "bg-blue-300 shadow-lg shadow-blue-950/50" : "hover:bg-white/10"}`}
+                    className={`touch-feedback group relative box-border min-h-[44px] max-h-full cursor-pointer rounded-xl p-0.5 outline-none transition focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${selectedCardId === card._id ? "bg-blue-300 shadow-lg shadow-blue-950/50" : "hover:bg-white/10"}`}
                     onClick={() => onSelectCard?.(card, getBanlistItem(card))}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
@@ -487,11 +539,15 @@ export default function SearchPane({
                 {cards.map((card, index) => (
                   <div
                     key={card.toString() + index}
-                    className="bg-white/10 hover:bg-white/20 inline-block w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-full cursor-pointer max-h-full lg:flex justify-start items-center overflow-hidden rounded pr-0.5 border-b-white border-b-2 relative "
+                    className="bg-white/10 hover:bg-white/20 inline-flex w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-full max-h-full lg:flex justify-start items-center overflow-hidden rounded pr-0.5 border-b-white border-b-2 relative "
                     style={{ backgroundColor: legionColours[card.legion.names[0]] ? `${legionColours[card.legion.names[0]]}` : "", color: [LEGIONS.ANGELS.toString(), LEGIONS.TITANS.toString()].includes(card.legion.names[0]) ? "black" : "white"}}
-                    onClick={(e) => handleSearchedCardClick(e, card)}
                   >
-                    <div className="w-full lg:w-1/7 xl:w-1/8 h-full relative z-2">
+                    <button
+                      type="button"
+                      aria-label={`Inspect ${decodeHTMLEntities(card.title)}`}
+                      className="touch-feedback w-full lg:w-1/7 xl:w-1/8 h-full relative z-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+                      onClick={() => onInspectCard ? onInspectCard(card) : setHoveredCard(card, getBanlistItem(card))}
+                    >
                       {suspendedCards[card.title] && (
                         <div className="absolute top-0 right-0 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-10">
                           0
@@ -508,7 +564,15 @@ export default function SearchPane({
                         </div>
                       )}
                       <SearchCardTile card={card} index={index} eagerImage={index < 6} onContextMenu={handleSearchedCardClick} onMouseEnter={setHoveredCard} />
-                    </div>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Add one ${decodeHTMLEntities(card.title)}`}
+                      className="touch-feedback absolute right-1 top-1 z-20 grid size-11 place-items-center rounded-full border border-white/50 bg-slate-950/80 text-lg font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+                      onClick={() => handleAddCardToDeck(card)}
+                    >
+                      +
+                    </button>
                     <div className="hidden w-6/7 lg:flex flex-col xl:w-7/8 h-full justify-between" onClick={() => setHoveredCard(card)}>
                       <span className="text-md underline truncate">{decodeHTMLEntities(card.title)}</span>
                       <span>
@@ -521,7 +585,6 @@ export default function SearchPane({
                         <span className="text-[8px]">{card.card_code}</span>
                       </div>
                     </div>
-                    <div className="w-full h-full absolute bg-transparent hover:bg-white/20 transition-all duration-100"></div>
                   </div>
                 ))}
               </div>}
@@ -534,8 +597,9 @@ export default function SearchPane({
             closeModal={() => setFiltersOpen(false)}
             variant="bottom-sheet"
             ariaLabel="Card filters"
-            modalHeader={<div className="flex items-center justify-between py-4"><span className="text-base font-semibold tracking-wide text-white">Filters</span><button type="button" aria-label="Close filters" onClick={() => setFiltersOpen(false)} className="inline-flex h-10 w-10 items-center justify-center border border-transparent text-slate-300 transition hover:border-sky-200/35 hover:bg-blue-400/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"><AppIcon name="close" size={18} /></button></div>}
-            modalContent={<div className="w-full pb-2">{galleryFilters("flex-col items-stretch [&_.relative]:w-full [&_button]:w-full", "viewport")}</div>}
+            modalHeader={<div className="flex items-center justify-between py-2"><span className="text-base font-semibold tracking-wide text-white">Filters</span><button type="button" aria-label="Close filters" onClick={() => setFiltersOpen(false)} className="touch-feedback inline-flex h-11 w-11 items-center justify-center border border-transparent text-slate-300 transition hover:border-sky-200/35 hover:bg-blue-400/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"><AppIcon name="close" size={18} /></button></div>}
+            modalContent={<div className="w-full pb-2">{galleryFilters("flex-col items-stretch [&_.relative]:w-full [&_button]:w-full", "viewport", true)}</div>}
+            modalFooter={<div className="grid grid-cols-2 gap-3"><Button type="button" variant="outline" onClick={resetGalleryFilterDraft}>Reset</Button><Button type="button" onClick={applyGalleryFilters}>Apply{countGalleryFilters(filterDraft) > 0 ? ` (${countGalleryFilters(filterDraft)})` : ""}</Button></div>}
           />
         </div>}
       </CardContent>

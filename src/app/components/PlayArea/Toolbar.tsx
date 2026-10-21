@@ -25,7 +25,7 @@ import AppIcon, { AppIconName } from "../AppIcon";
 type Panel = "inspect" | "activity" | "menu" | null;
 
 const actionButtonClass =
-  "grid min-h-9 w-full place-items-center border border-sky-200/20 bg-slate-950/45 px-2 text-[11px] font-semibold text-slate-100 transition hover:border-sky-200/55 hover:bg-blue-400/15 focus:outline-none focus:ring-2 focus:ring-sky-200";
+  "grid min-h-11 w-full place-items-center border border-sky-200/20 bg-slate-950/45 px-2 text-[11px] font-semibold text-slate-100 transition hover:border-sky-200/55 hover:bg-blue-400/15 focus:outline-none focus:ring-2 focus:ring-sky-200 touch-feedback";
 
 const navigationLinks = [
   { href: "/", label: "Home", icon: Home },
@@ -69,7 +69,7 @@ function RailButton({ label, icon, active, onClick }: RailButtonProps) {
     : "border-sky-200/15 bg-slate-950/45 text-slate-300 hover:bg-blue-400/10";
 
   return (
-    <button type="button" aria-label={label} aria-pressed={active} onClick={onClick} className={`grid size-10 place-items-center border ${stateClass}`}>
+    <button type="button" aria-label={label} aria-pressed={active} onClick={onClick} className={`grid size-11 place-items-center border touch-feedback ${stateClass}`}>
       {icon}
     </button>
   );
@@ -79,7 +79,7 @@ function PanelHeader({ title, onClose }: { title: string; onClose: () => void })
   return (
     <div className="mb-2 flex justify-between text-xs font-semibold uppercase tracking-[.14em] text-sky-100/70">
       <span>{title}</span>
-      <button type="button" onClick={onClose} aria-label={`Close ${title}`}><X size={17} /></button>
+      <button type="button" onClick={onClose} aria-label={`Close ${title}`} className="grid min-h-11 min-w-11 place-items-center touch-feedback"><X size={17} /></button>
     </div>
   );
 }

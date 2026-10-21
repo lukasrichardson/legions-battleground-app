@@ -10,6 +10,9 @@ export interface CardProps {
   hidden?: boolean;
   compactHand?: boolean;
   compactOpponentHand?: boolean;
+  /** Explicit touch action; the card itself remains reserved for inspection/menu actions. */
+  onSelectForZone?: () => void;
+  selectForZoneLabel?: string;
 }
 
 export interface CardModifierHandlers {

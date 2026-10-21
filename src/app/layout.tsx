@@ -3,6 +3,7 @@ import "@/app/globals.css";
 import StoreProvider from "@/client/redux/StoreProvider";
 import NextAuthSessionProvider from "@/app/providers/SessionProvider";
 import Script from "next/script";
+import { ToastProvider } from "@/app/components/ToastProvider";
 
 const r2PublicBaseUrl = process.env.R2_PUBLIC_BASE_URL || "";
 const serviceWorkerUrl = (() => {
@@ -37,7 +38,7 @@ export default function RootLayout({
           <head>
           </head>
           <body>
-            {children}
+            <ToastProvider>{children}</ToastProvider>
             {/* Service Worker Registration for Image Caching */}
             <Script
               id="sw-registration"

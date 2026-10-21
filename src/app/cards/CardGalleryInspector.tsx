@@ -59,7 +59,7 @@ export default function CardGalleryInspector({
       <div className="flex h-full min-h-56 flex-col items-center justify-center rounded-[2px] border border-white/10 bg-slate-950/40 px-6 text-center text-sm text-slate-400">
         <span className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">Card inspector</span>
         <p className="font-medium text-slate-100">Preview cards as you browse</p>
-        <p className="mt-2 max-w-52 text-xs leading-5 text-slate-400">Hover a card to inspect it here. Select one to keep its details pinned while you continue searching.</p>
+        <p className="mt-2 max-w-52 text-xs leading-5 text-slate-400">Tap or select a card to inspect its details.</p>
       </div>
     );
   }
@@ -81,11 +81,11 @@ export default function CardGalleryInspector({
         </button>
       )}
       {onClose && (
-        <button type="button" aria-label="Close card details" onClick={onClose} className="sticky right-3 top-4 ml-auto z-10 inline-flex h-10 w-10 cursor-pointer items-center justify-center border border-sky-200/30 bg-slate-950/80 text-slate-300 transition hover:border-sky-200/60 hover:bg-blue-400/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
+        <button type="button" aria-label="Close card details" onClick={onClose} className="touch-feedback sticky right-3 top-2 ml-auto z-10 inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center border border-sky-200/30 bg-slate-950/80 text-slate-300 transition hover:border-sky-200/60 hover:bg-blue-400/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
           <AppIcon name="close" size={18} />
         </button>
       )}
-      <div className={compact ? "mx-auto w-full max-w-[80%] sm:max-w-[60%] md:max-w-[40%]" : "mx-auto w-full max-w-72"}>
+      <div className={compact ? "mx-auto w-full max-w-72 sm:max-w-[60%] md:max-w-[40%]" : "mx-auto w-full max-w-72"}>
         <button
           type="button"
           onClick={() => setImageExpanded(true)}
@@ -95,7 +95,7 @@ export default function CardGalleryInspector({
           <CardImage src={card.featured_image} alt={decodeHTMLEntities(card.title)} className="object-contain" />
         </button>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col pt-2">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-2">
         <h2 className="pr-10 text-lg font-semibold leading-6 text-white">{decodeHTMLEntities(card.title)}</h2>
         <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
           {[type, subtype, legion, rarity].filter(Boolean).map((item) => <span key={item} className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-slate-200">{item}</span>)}
@@ -111,7 +111,7 @@ export default function CardGalleryInspector({
           </dl>
         )}
         {keywords.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{keywords.map((keyword) => <span key={keyword} className="rounded-md bg-cyan-300/10 px-2 py-1 text-xs text-cyan-100">{keyword}</span>)}</div>}
-        {card.text && <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300 overflow-y-scroll">{decodeHTMLEntities(card.text)}</p>}
+        {card.text && <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-300">{decodeHTMLEntities(card.text)}</p>}
       </div>
       {imageExpanded && createPortal(
         <div

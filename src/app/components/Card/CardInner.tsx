@@ -69,6 +69,8 @@ interface CardInnerProps {
   handleAPIncrease?: () => void;
   compactHand?: boolean;
   compactOpponentHand?: boolean;
+  onSelectForZone?: () => void;
+  selectForZoneLabel?: string;
 }
 
 export default function CardInner({
@@ -97,6 +99,8 @@ export default function CardInner({
   handleDecreaseCooldown,
   compactHand = false,
   compactOpponentHand = false,
+  onSelectForZone,
+  selectForZoneLabel,
 }: CardInnerProps) {
   const gameState = useCardGameState(cardTarget);
   const clientSettings = useAppSelector(state => state.clientSettings);
@@ -242,6 +246,16 @@ export default function CardInner({
               {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true, isOnPlayersSide)}
               {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false, isOnPlayersSide)}
             </>)}
+          {onSelectForZone && (
+            <button
+              type="button"
+              aria-label={selectForZoneLabel}
+              className="absolute inset-x-0 bottom-0 z-20 hidden min-h-11 items-center justify-center border border-yellow-200/70 bg-slate-950/85 px-1 text-[10px] font-bold uppercase tracking-wide text-yellow-100 shadow-md backdrop-blur touch-feedback max-[1100px]:flex"
+              onClick={(event) => { event.stopPropagation(); onSelectForZone(); }}
+            >
+              Play
+            </button>
+          )}
         </div>
     </Popover>
   )

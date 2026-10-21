@@ -14,13 +14,38 @@
 
 html,
 body {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
+  min-width: 0;
+  min-height: 100%;
 }
 
-@media (max-width: 1100px) and (orientation: portrait) {
-  .play-rotate-notice { display: flex; }
+html {
+  overflow-x: clip;
+}
+
+body {
+  /*
+   * Routes must be able to use normal document scrolling on phones. Bounded
+   * surfaces (the game board, for example) opt into overflow containment
+   * locally instead of making the entire application a scroll trap.
+   */
+  min-height: 100dvh;
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+:root {
+  --mobile-page-gutter: 0.75rem;
+  --page-gutter: 1rem;
+  --mobile-header-height: 3.5rem;
+  --touch-target-size: 2.75rem;
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --mobile-page-gutter: 1rem;
+  }
 }
 
 body {
@@ -36,6 +61,21 @@ body {
   box-sizing: border-box;
   /* padding: 0; */
   /* margin: 0; */
+}
+
+/* Prevent flex/grid children with long content from widening a phone page. */
+:where(.mobile-page-content, .mobile-sticky-action, .mobile-shrink) {
+  min-width: 0;
+}
+
+/* A shared pressed state for controls that opt into the mobile touch contract. */
+.touch-feedback {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.touch-feedback:not(:disabled):active {
+  transform: scale(0.98);
 }
 
 a {

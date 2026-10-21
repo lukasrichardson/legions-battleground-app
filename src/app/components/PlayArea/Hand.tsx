@@ -73,8 +73,13 @@ export default function Hand({children, cardTarget, compact = false}: {children:
         <div className="w-1/8 h-full flex items-center justify-center text-3xl">
           {(p1Side && playerHand) || (!p1Side && !playerHand) ? "P1" : "P2"}
         </div>
-        <div className={"w-6/8 h-full flex justify-center" + (compact && !playerHand ? " items-end" : "")}>
-        {children}
+        <div
+          data-mobile-overflow-exempt={compact && playerHand ? "hand-tray" : undefined}
+          data-mobile-horizontal-scroll-affordance={compact && playerHand ? true : undefined}
+          className={"relative w-6/8 h-full flex justify-center" + (compact && !playerHand ? " items-end" : "") + (compact && playerHand ? " overflow-x-auto justify-start px-1 hand-scrollbar" : "")}
+        >
+        <div className={compact && playerHand ? "flex min-w-max items-end gap-1 pr-7" : "flex justify-center"}>{children}</div>
+        {compact && playerHand && <span aria-hidden="true" className="pointer-events-none absolute right-0 top-0 h-full w-7 bg-gradient-to-l from-slate-950/90 to-transparent text-right text-[9px] font-semibold text-cyan-100/80">›</span>}
         </div>
         <div className="w-1/8 h-full flex items-center justify-center text-xl overflow-hidden">
         <span className="w-full max-h-full wrap-anywhere text-center">

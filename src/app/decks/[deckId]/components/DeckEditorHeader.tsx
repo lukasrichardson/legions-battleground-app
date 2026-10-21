@@ -15,6 +15,7 @@ interface DeckEditorHeaderProps {
   isEditingName: boolean;
   editedName: string;
   saving: boolean;
+  saveStatus?: string;
   onStartEditingName: () => void;
   onCancelEditingName: () => void;
   onSaveDeckName: () => void;
@@ -28,6 +29,7 @@ export default function DeckEditorHeader({
   isEditingName,
   editedName,
   saving,
+  saveStatus,
   onStartEditingName,
   onCancelEditingName,
   onSaveDeckName,
@@ -114,7 +116,7 @@ export default function DeckEditorHeader({
   const isMobile = useIsMobile();
   const actionsDisabled = saving || actionPending !== null;
   return (
-    <div className="space-y-1">
+    <div className="sticky top-0 z-20 space-y-1 bg-slate-950/95 py-1 backdrop-blur">
       <div className="text-center flex flex-wrap">
         <div className="flex flex-wrap items-center justify-center gap-2">
           <Select value={deck?._id?.toString()} onValueChange={handleDeckChange} disabled={loading || Boolean(error) || actionsDisabled}>
@@ -188,8 +190,8 @@ export default function DeckEditorHeader({
               {actionPending === "publish" ? "Publishing…" : "Publish"}
             </Button>
         {!isMobile && (<span className="text-sm text-gray-400">Click or Drag to add / remove cards from deck</span>)}
-
       </div>
+      {saveStatus && <p aria-live="polite" className={`px-1 text-center text-xs ${saveStatus === "Save failed" ? "text-rose-200" : "text-white/60"}`}>{saveStatus}</p>}
       {error && <InlineStatus variant="error">{error}</InlineStatus>}
       {actionError && <InlineStatus variant="error">{actionError}</InlineStatus>}
     </div>

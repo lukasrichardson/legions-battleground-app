@@ -22,6 +22,12 @@ To use a different local test database, set `E2E_MONGO_URL` and `E2E_MONGO_DB_NA
 
 The suite signs in using a NextAuth credentials provider which is only present when `E2E_TEST_MODE=true` and `NODE_ENV` is not `production`. It exercises authenticated deck management, public-deck copying, browser-driven regular-room creation and joining, match-state synchronization and reconnecting, and sandbox entry.
 
+### Mobile regression helpers
+
+Use `e2e/mobile.ts` in Playwright coverage for phone-sized routes and overlays. It provides the supported viewport matrix plus assertions for document-level horizontal overflow and visible interactive controls that extend outside the current viewport. Run the layout assertion only after the route has reached an observable ready state (for example, a heading, list, or dialog title), rather than using a timing delay.
+
+Intentional horizontally scrollable card strips and the in-match hand tray may opt out of the control-bounds assertion only by declaring both `data-mobile-overflow-exempt="card-strip"` or `"hand-tray"` and `data-mobile-horizontal-scroll-affordance` on their scroll container. The exemption is rejected for forms, navigation, primary actions, and room lists. All other controls must remain wholly within the viewport.
+
 GitHub Actions runs this suite for pull requests targeting `master` and pushes to `master`. Failed runs retain the Playwright HTML report, traces, screenshots, and retry-only videos as artifacts.
 
 ## Current coverage scope

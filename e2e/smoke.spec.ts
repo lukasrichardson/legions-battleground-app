@@ -1,5 +1,24 @@
 import { test, expect } from "@playwright/test";
 import { createRoomFromLobby, joinRoomFromLobby, newSignedInPage, signInAs } from "./fixtures";
+import { expectNoDocumentHorizontalOverflow, setMobileViewport } from "./mobile";
+
+test("published deck browsing and inspection work at a narrow phone width", async ({ page }) => {
+  await setMobileViewport(page, "narrow");
+  await page.goto("/browse");
+  const publicDeck = page.getByRole("button", { name: "Open published deck E2E Public Deck" });
+  await expect(publicDeck).toBeVisible();
+  await expectNoDocumentHorizontalOverflow(page);
+  await publicDeck.click();
+  await page.waitForURL(/\/browse\/[a-f\d]{24}$/);
+  await expect(page.getByRole("heading", { name: "E2E Public Deck" })).toBeVisible();
+  await page.getByRole("tab", { name: "cards" }).click();
+  const card = page.getByRole("button", { name: /Inspect E2E Warrior 1/i }).first();
+  await expect(card).toBeVisible();
+  await card.click();
+  await expect(page.getByRole("dialog", { name: "Published deck card details" })).toBeVisible();
+  await page.getByRole("button", { name: "Close card details" }).click();
+  await expectNoDocumentHorizontalOverflow(page);
+});
 
 test("a signed-in player can manage decks and copy a public deck", async ({ page }) => {
   await signInAs(page, "e2e-player-one");

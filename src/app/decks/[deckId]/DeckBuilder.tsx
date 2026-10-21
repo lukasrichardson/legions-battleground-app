@@ -18,7 +18,12 @@ import { getDeckCards, getOrdinaryMainDeckCards, isCardAllowedForDeckLegion, isS
 import { DeckPatchOperation } from "@/shared/interfaces/DeckPatch";
 import { createDeckPatchQueue } from "@/client/utils/deckPatchQueue";
 import { InlineStatus } from "@/client/ui/inline-status";
+import { Button } from "@/client/ui/button";
 import { DeckCardListKey, DeckDragItem } from "./components/CardTile";
+import Modal from "@/app/components/Modals/Modal";
+import CardGalleryInspector from "@/app/cards/CardGalleryInspector";
+import { useToast } from "@/app/components/ToastProvider";
+import { decodeHTMLEntities } from "@/client/utils/string.util";
 
 export default function DeckBuilder() {
   const params = useParams<{ deckId: string }>()
@@ -30,7 +35,10 @@ export default function DeckBuilder() {
   const [deckListRefreshTrigger, setDeckListRefreshTrigger] = useState(0);
   const [addTarget, setAddTarget] = useState<"main" | "side">("main");
   const [saveError, setSaveError] = useState("");
+  const [mobileTab, setMobileTab] = useState<"deck" | "find" | "details">("deck");
+  const [inspectedCard, setInspectedCard] = useState<CardDocument | null>(null);
   const deckRef = useRef<DeckResponse | null>(null);
+  const { showToast } = useToast();
 
   const setCurrentDeck = (nextDeck: DeckResponse | null) => {
     deckRef.current = nextDeck;
@@ -94,6 +102,19 @@ export default function DeckBuilder() {
     void queue.whenIdle().then(() => setSaving(false));
   };
 
+  const restoreDeck = (previousDeck: DeckResponse) => {
+    const currentDeck = deckRef.current;
+    if (!currentDeck) return;
+    const fields = ["cards_in_deck", "side_deck", "warlords", "synergies", "veilRealms", "guardians", "tokens"] as const;
+    saveDeckPatch(fields.map((field) => ({ op: "replace" as const, path: `/${field}`, value: (previousDeck[field] ?? []).map((id) => id.toString()) })), previousDeck);
+  };
+
+  const saveCompositionChange = (operations: DeckPatchOperation[], nextDeck: DeckResponse, label: string, previousDeck: DeckResponse) => {
+    saveDeckPatch(operations, nextDeck, () => {
+      showToast({ label, actionLabel: "Undo", onAction: () => restoreDeck(previousDeck) });
+    });
+  };
+
   const lastCardIndexById = (cards, cardId) => {
     return cards.findLastIndex((item) => item.toString() === cardId.toString());
   };
@@ -113,24 +134,32 @@ export default function DeckBuilder() {
     const cardIndex = lastCardIndexById(cards, card._id);
     if (cardIndex < 0) return;
 
-    saveDeckPatch(
+    saveCompositionChange(
       [{ op: "remove", path: `/${field ?? "cards_in_deck"}/${cardIndex}` }],
       field
         ? { ...currentDeck, [field]: cards.filter((_, index) => index !== cardIndex) }
         : { ...currentDeck, cards_in_deck: cards.filter((_, index) => index !== cardIndex) },
+      `Removed ${decodeHTMLEntities(card.title)}`,
+      currentDeck,
     );
   };
 
   const handleAddCardToDeck = (card) => {
     const currentDeck = deckRef.current;
     if (!currentDeck || !card) return;
+    if (!isCardAllowedForDeckLegion(card, currentDeck.legion)) {
+      setSaveError(`${card.title} is not valid for the ${currentDeck.legion} legion.`);
+      return;
+    }
     const field = specialDeckFieldForCardType(card.card_type?.names?.[0]);
     const cards = field ? currentDeck[field] : currentDeck.cards_in_deck;
-    saveDeckPatch(
+    saveCompositionChange(
       [{ op: "add", path: `/${field ?? "cards_in_deck"}/-`, value: card._id.toString() }],
       field
         ? { ...currentDeck, [field]: [...cards, card._id], cards: includeCardMetadata(currentDeck, card) }
         : { ...currentDeck, cards_in_deck: [...cards, card._id], cards: includeCardMetadata(currentDeck, card) },
+      `Added ${decodeHTMLEntities(card.title)}`,
+      currentDeck,
     );
   };
 
@@ -141,9 +170,25 @@ export default function DeckBuilder() {
     const cardIndex = lastCardIndexById(sideDeck, card._id);
     if (cardIndex < 0) return;
 
-    saveDeckPatch(
+    saveCompositionChange(
       [{ op: "remove", path: `/side_deck/${cardIndex}` }],
       { ...currentDeck, side_deck: sideDeck.filter((_, index) => index !== cardIndex) },
+      `Removed ${decodeHTMLEntities(card.title)}`,
+      currentDeck,
+    );
+  };
+
+  const handleRemoveAllCards = (card: HydratedDeckCard, source: DeckCardListKey) => {
+    const currentDeck = deckRef.current;
+    if (!currentDeck) return;
+    const cards = currentDeck[source] ?? [];
+    const indexes = cards.map((entry, index) => entry.toString() === card._id.toString() ? index : -1).filter((index) => index >= 0);
+    if (!indexes.length) return;
+    saveCompositionChange(
+      indexes.reverse().map((index) => ({ op: "remove" as const, path: `/${source}/${index}` })),
+      { ...currentDeck, [source]: cards.filter((entry) => entry.toString() !== card._id.toString()) },
+      `Removed all ${decodeHTMLEntities(card.title)}`,
+      currentDeck,
     );
   };
 
@@ -166,9 +211,11 @@ export default function DeckBuilder() {
     }
     const sideDeck = currentDeck.side_deck ?? [];
 
-    saveDeckPatch(
+    saveCompositionChange(
       [{ op: "add", path: "/side_deck/-", value: card._id.toString() }],
       { ...currentDeck, side_deck: [...sideDeck, card._id], cards: includeCardMetadata(currentDeck, card) },
+      `Added ${decodeHTMLEntities(card.title)}`,
+      currentDeck,
     );
   };
 
@@ -343,6 +390,7 @@ export default function DeckBuilder() {
           isEditingName={isEditingName}
           editedName={editedName}
           saving={saving}
+          saveStatus={saving ? "Saving…" : saveError ? "Save failed" : deck ? "Saved" : ""}
           onStartEditingName={handleStartEditingName}
           onCancelEditingName={handleCancelEditingName}
           onSaveDeckName={handleSaveDeckName}
@@ -352,11 +400,14 @@ export default function DeckBuilder() {
         />
       </div>
       {saveError && <InlineStatus variant="error" className="mb-2 text-center">{saveError}</InlineStatus>}
+      {isMobile && <div className="grid grid-cols-3 gap-1 rounded border border-white/15 bg-slate-950/50 p-1" role="tablist" aria-label="Deck builder sections">
+        {([['deck', 'Deck'], ['find', 'Find cards'], ['details', 'Details']] as const).map(([value, label]) => <Button key={value} type="button" role="tab" aria-selected={mobileTab === value} onClick={() => setMobileTab(value)} className={`min-h-11 px-1 text-xs ${mobileTab === value ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-transparent text-white/70 hover:bg-white/10'}`}>{label}</Button>)}
+      </div>}
 
       {/* Main Content Area - Takes remaining space */}
       <div className="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto gap-2 lg:flex-row lg:overflow-hidden">
         {/* Deck Grid Pane - Full width on mobile, left side on large screens */}
-        <div ref={attachDeckDropTarget} className="relative order-1 min-h-[320px] min-w-0 flex-[2] border border-white/15 bg-[rgba(4,9,14,.56)] p-1.5 shadow-[0_14px_32px_rgba(0,0,0,.2)] sm:p-2 lg:min-h-0 lg:flex-[3]">
+        <div ref={attachDeckDropTarget} className={`relative order-1 min-h-[320px] min-w-0 flex-[2] border border-white/15 bg-[rgba(4,9,14,.56)] p-1.5 shadow-[0_14px_32px_rgba(0,0,0,.2)] sm:p-2 lg:min-h-0 lg:flex-[3] ${isMobile && mobileTab !== 'deck' ? 'hidden lg:block' : ''}`}>
             {canDropDeck && (
             <div className={`pointer-events-none absolute z-10 size-full border-3 border-dashed border-white ${isOverDeck ? "bg-green-600/30" : "bg-green-800/30"}`} />
           )}
@@ -371,11 +422,13 @@ export default function DeckBuilder() {
               handleAddCardToSideDeck={handleAddCardToSideDeck}
               getSideDeckMoveError={getSideDeckMoveError}
               onMoveCardToSideDeck={(item) => moveDeckCard(item, "side")}
+              onInspectCard={(card) => setInspectedCard(card as unknown as CardDocument)}
+              onRemoveAll={(card, source) => handleRemoveAllCards(card, source)}
             />
         </div>
 
         {/* Right Sidebar - Search and Preview on large screens */}
-        <div ref={attachSearchPaneDropTarget} className="relative order-2 flex min-h-[320px] min-w-0 flex-1 flex-col gap-2 border border-white/15 bg-[rgba(3,8,13,.72)] p-1.5 shadow-[0_14px_32px_rgba(0,0,0,.2)] sm:p-2 lg:min-h-0 lg:w-80 xl:w-96">
+        <div ref={attachSearchPaneDropTarget} className={`relative order-2 flex min-h-[320px] min-w-0 flex-1 flex-col gap-2 border border-white/15 bg-[rgba(3,8,13,.72)] p-1.5 shadow-[0_14px_32px_rgba(0,0,0,.2)] sm:p-2 lg:min-h-0 lg:w-80 xl:w-96 ${isMobile && mobileTab !== 'find' ? 'hidden lg:flex' : ''}`}>
           {canDropSearch && (
             <div className={`pointer-events-none absolute z-10 size-full border-3 border-dashed border-white ${isOverSearchPane ? "bg-red-600/30" : "bg-red-800/30"}`} />
           )}
@@ -392,10 +445,13 @@ export default function DeckBuilder() {
               deckLegion={deck?.legion || null}
               addTarget={addTarget}
               onAddTargetChange={setAddTarget}
+              onInspectCard={(card) => setInspectedCard(card)}
             />
           </div>
         </div>
+        {isMobile && mobileTab === 'details' && <section className="order-1 min-h-[320px] rounded border border-white/15 bg-[rgba(4,9,14,.56)] p-4 text-sm text-white"><h2 className="text-lg font-semibold">Deck details</h2><dl className="mt-4 space-y-3"><div><dt className="text-white/60">Name</dt><dd className="break-words">{deck?.name ?? 'Loading…'}</dd></div><div><dt className="text-white/60">Legion</dt><dd>{deck?.legion ?? '—'}</dd></div><div><dt className="text-white/60">Save status</dt><dd>{saving ? 'Saving…' : saveError ? 'Save failed' : 'Saved'}</dd></div></dl></section>}
       </div>
+      <Modal open={Boolean(inspectedCard)} closeModal={() => setInspectedCard(null)} variant="bottom-sheet" ariaLabel="Card details" modalHeader={<div className="flex items-center justify-between"><span className="text-base font-semibold text-white">Card details</span><button type="button" onClick={() => setInspectedCard(null)} className="size-11 text-xl text-white" aria-label="Close card details">×</button></div>} modalContent={<CardGalleryInspector compact card={inspectedCard} banlistItem={null} />} modalFooter={<div className="grid grid-cols-2 gap-2"><Button type="button" variant="outline" onClick={() => setInspectedCard(null)}>Cancel</Button><Button type="button" onClick={() => { if (inspectedCard) { if (addTarget === 'side') handleAddCardToSideDeck(inspectedCard); else handleAddCardToDeck(inspectedCard); } }}>Add to {addTarget === 'side' ? 'side deck' : 'deck'}</Button></div>} />
       </div>
     </FullPage>
   );

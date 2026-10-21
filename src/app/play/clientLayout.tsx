@@ -6,6 +6,12 @@ const SCALE_WIDTH = 1200;
 const SCALE_HEIGHT = 815;
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const size = useWindowSize();
+  const isMobilePortrait = Boolean(
+    size.width
+    && size.height
+    && size.width <= 767
+    && size.height > size.width,
+  );
   const scaleX = useMemo(() => (size.width ? size.width / SCALE_WIDTH : 1), [size.width]);
   const scaleY = useMemo(() => (size.height ? size.height / SCALE_HEIGHT : 1), [size.height]);
   const smallestScale = Math.min(scaleX, scaleY);
@@ -23,7 +29,19 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
         <div style={styles} className="relative shrink-0 overflow-hidden border border-sky-200/10 shadow-[0_0_60px_rgba(0,0,0,.55)]">{children}</div>
       </div>
-      <div className="play-rotate-notice absolute inset-0 z-[100] hidden items-center justify-center bg-slate-950 p-8 text-center text-slate-100"><div><div className="mx-auto mb-4 grid size-12 place-items-center border border-sky-200/35 bg-sky-300/10 text-2xl text-sky-200">↻</div><h1 className="font-serif text-xl">Rotate your device</h1><p className="mt-2 text-sm text-slate-400">Legions Battleground is played in landscape.</p></div></div>
+      {isMobilePortrait && (
+        <section
+          className="absolute inset-0 z-[100] flex items-center justify-center bg-slate-950 p-8 text-center text-slate-100"
+          aria-label="Landscape required to play"
+          aria-live="polite"
+        >
+          <div>
+            <div className="mx-auto mb-4 grid size-12 place-items-center border border-sky-200/35 bg-sky-300/10 text-2xl text-sky-200" aria-hidden="true">↻</div>
+            <h1 className="font-serif text-xl">Rotate your device</h1>
+            <p className="mt-2 text-sm text-slate-400">Legions Battleground is played in landscape.</p>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

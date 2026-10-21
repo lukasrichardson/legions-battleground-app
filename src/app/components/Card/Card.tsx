@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/client/redux/hooks';
 import { moveCard, flipCard } from '@/client/redux/gameStateSlice';
-import { setPileInView } from '@/client/redux/clientGameStateSlice';
+import { setPileInView, setSelectionFeedback } from '@/client/redux/clientGameStateSlice';
 import { openPlunderModal } from '@/client/redux/modalsSlice';
 import IMenuItem, { INewMenuItem } from '@/client/interfaces/IMenuItem';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
@@ -13,6 +13,8 @@ import useHandleCardEvents from '@/client/hooks/useHandleCardEvents';
 import useMenuItemClick from '@/client/hooks/useMenuItemClick';
 import { emitGameEvent } from '@/client/utils/emitEvent';
 import { getMenuItemsForCard, getMenuItemsForCardLegacy } from '@/client/utils/cardMenu.utils';
+import { CARD_TYPE } from '@/shared/enums/CardType';
+import { MatchStatus } from '@/shared/enums/Match';
 
 export default function Card({ 
   card, 
@@ -235,6 +237,25 @@ export default function Card({
   const isP1Selected = Boolean(p1SelectedCards?.find(c => c.id === card.id));
   const isP2Selected = Boolean(p2SelectedCards?.find(c => c.id === card.id));
   const focused = cardInFocus?.id === card.id;
+  const isFieldCard = [
+    CARD_TARGET.P1_PLAYER_WARRIOR, CARD_TARGET.P2_PLAYER_WARRIOR,
+    CARD_TARGET.P1_PLAYER_UNIFIED, CARD_TARGET.P2_PLAYER_UNIFIED,
+    CARD_TARGET.P1_PLAYER_FORTIFIED, CARD_TARGET.P2_PLAYER_FORTIFIED,
+  ].includes(cardTarget);
+  const selectionLabelByType: Partial<Record<CARD_TYPE, string>> = {
+    [CARD_TYPE.WARRIOR]: "Select warrior zone",
+    [CARD_TYPE.UNIFIED]: "Select unified zone",
+    [CARD_TYPE.FORTIFIED]: "Select fortified zone",
+  };
+  const selectForZoneLabel = !isHidden && isOnPlayerSide && !isFieldCard && gameState.matchStatus !== MatchStatus.Completed
+    ? selectionLabelByType[card.type]
+    : undefined;
+  const handleSelectForZone = useCallback(() => {
+    dispatch(setSelectionFeedback(null));
+    if (card.type === CARD_TYPE.WARRIOR) handleConscript();
+    if (card.type === CARD_TYPE.UNIFIED) handleActivate();
+    if (card.type === CARD_TYPE.FORTIFIED) handleSet();
+  }, [card.type, dispatch, handleConscript, handleActivate, handleSet]);
 
   const {
     handleDecreaseCooldown,
@@ -285,6 +306,8 @@ export default function Card({
       handlePopoverVisibleChange={handlePopoverVisibleChange}
       compactHand={compactHand}
       compactOpponentHand={compactOpponentHand}
+      onSelectForZone={selectForZoneLabel ? handleSelectForZone : undefined}
+      selectForZoneLabel={selectForZoneLabel}
       onMenuItemClick={handleMenuClick}
       {...interactionHandlers}
       {...modifierHandlers}
