@@ -1,6 +1,7 @@
 import { CardState } from "@/shared/interfaces/CardState";
 import Card from "@/app/components/Card/Card";
 import { MouseEventHandler, useEffect, useState } from "react";
+import { useDragLayer } from "react-dnd";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import Modal from "./Modal";
 import { emitGameEvent } from "@/client/utils/emitEvent";
@@ -31,6 +32,9 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   const clientGameState = useAppSelector((state) => state.clientGameState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
   const { transparentOnBlur } = useClientSettings();
+  const isDraggingCard = useDragLayer((monitor) =>
+    monitor.isDragging() && monitor.getItemType() === "card"
+  );
 
   const { side, topXCards, pileInViewTarget, pileInViewIndex, pileInViewLimit, wisdoming } = clientGameState;
   const { sequences, resolving } = sequenceState;
@@ -38,6 +42,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   const resolvingEffectStep = sequences?.[0]?.items?.[0]?.effect?.[0];
   const waitingForUserInput = (p1 && resolving && resolvingEffectStep?.waitingForInput?.p1) || (!p1 && resolving && resolvingEffectStep?.waitingForInput?.p2);
   const open = !!pileInViewTarget || waitingForUserInput;
+  const dragThroughBackdrop = isDraggingCard && !waitingForUserInput && !wisdoming;
   const {
     ShuffleBtnText,
     CloseShuffleBtnText,
@@ -311,6 +316,6 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   }
 
   return (
-    <Modal open={open} closeModal={handleCloseModal} modalHeader={renderModalHeader()} modalContent={renderModalContent()} transparentOnBlur={transparentOnBlur} />
+    <Modal open={open} closeModal={handleCloseModal} modalHeader={renderModalHeader()} modalContent={renderModalContent()} transparentOnBlur={transparentOnBlur} dragThroughBackdrop={dragThroughBackdrop} blurBackdrop={false} />
   )
 }
