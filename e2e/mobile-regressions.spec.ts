@@ -12,7 +12,6 @@ test.beforeEach(({ page }) => {
   page.setDefaultTimeout(30_000);
   page.setDefaultNavigationTimeout(60_000);
 });
-
 async function createDeck(page: Page) {
   await signInAs(page, "e2e-player-one");
   const response = await page.request.post("/api/decks", {
@@ -29,63 +28,99 @@ async function createDeck(page: Page) {
   return deck._id as string;
 }
 
-test("Undo cannot roll back a newer pending mutation and only reverses the latest save", async ({
+test("opening a deck from the deck list mounts only one HTML5 drag backend", async ({
   page,
 }) => {
-  const id = await createDeck(page);
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await signInAs(page, "e2e-player-one");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/decks");
   await page
-    .getByRole("button", { name: "Add one E2E Warrior 1", exact: true })
-    .tap();
-  await expect(
-    page.getByRole("button", { name: "Undo", exact: true }),
-  ).toBeVisible();
-
-  let release!: () => void;
-  const gate = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  await page.route(`**/api/decks/${id}`, async (route) => {
-    if (route.request().method() !== "PATCH") return route.continue();
-    await gate;
-    await route.continue();
-  });
-  await page
-    .getByRole("button", { name: "Add one E2E Warrior 2", exact: true })
+    .getByRole("button", {
+      name: "Edit deck E2E Player 1 Deck",
+      exact: true,
+    })
     .click();
+  await page.waitForURL(/\/decks\/[a-f\d]{24}$/);
   await expect(
-    page.getByRole("button", { name: "Undo", exact: true }),
-  ).toHaveCount(0);
-  release();
-  await expect(
-    page.getByRole("button", { name: "Undo", exact: true }),
+    page.getByRole("heading", { name: /^Main:/ }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Undo", exact: true }).click();
-  await expect
-    .poll(
-      async () =>
-        (await (await page.request.get(`/api/decks/${id}`)).json())
-          .cards_in_deck.length,
-    )
-    .toBe(1);
-  await page.reload();
-  await expect(
-    page.getByRole("button", { name: "Inspect E2E Warrior 1", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Inspect E2E Warrior 2", exact: true }),
-  ).toHaveCount(0);
+  expect(errors).not.toContain("Cannot have two HTML5 backends at the same time.");
 });
 
-test("failed mutations and leaving a deck invalidate Undo", async ({
+test("deck builder keeps a focused workspace across tablet widths", async ({
+  page,
+}) => {
+  const id = await createDeck(page);
+  const tabs = page.getByRole("tablist", { name: "Deck builder sections" });
+
+  for (const width of [768, 1023]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(`/decks/${id}`);
+    await expect(tabs).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /^Main: 0/ }),
+    ).toBeVisible();
+    await page.getByRole("tab", { name: "Find cards", exact: true }).click();
+    await expect(
+      page.getByRole("button", { name: "Add one E2E Warrior 1", exact: true }),
+    ).toBeVisible();
+    await expectNoDocumentHorizontalOverflow(page);
+  }
+
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto(`/decks/${id}`);
+  await expect(tabs).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: /^Main: 0/ })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Add one E2E Warrior 1", exact: true }),
+  ).toBeVisible();
+  const sidebar = await page
+    .locator("[data-deck-builder-search-pane]")
+    .boundingBox();
+  const workspace = await page.locator("main").boundingBox();
+  expect(sidebar).not.toBeNull();
+  expect(workspace).not.toBeNull();
+  expect(sidebar!.y).toBeLessThanOrEqual(workspace!.y + 12);
+  expect(sidebar!.y + sidebar!.height).toBeGreaterThanOrEqual(
+    workspace!.y + workspace!.height - 24,
+  );
+});
+
+test("Find cards keeps the Add action inside its compact card strip", async ({
+  page,
+}) => {
+  const id = await createDeck(page);
+  const strip = page.locator("[data-mobile-horizontal-scroll-affordance]");
+  const add = page.getByRole("button", {
+    name: "Add one E2E Warrior 1",
+    exact: true,
+  });
+  for (const width of [767, 1023]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(`/decks/${id}`);
+    await page.getByRole("tab", { name: "Find cards", exact: true }).click();
+    await expect(add).toBeVisible();
+    const [stripBox, addBox] = await Promise.all([
+      strip.boundingBox(),
+      add.boundingBox(),
+    ]);
+    expect(stripBox).not.toBeNull();
+    expect(addBox).not.toBeNull();
+    expect(addBox!.y + addBox!.height).toBeLessThanOrEqual(
+      stripBox!.y + stripBox!.height,
+    );
+  }
+});
+
+test("failed deck mutations surface an error without an Undo action", async ({
   page,
 }) => {
   const id = await createDeck(page);
   await page
     .getByRole("button", { name: "Add one E2E Warrior 1", exact: true })
     .click();
-  await expect(
-    page.getByRole("button", { name: "Undo", exact: true }),
-  ).toBeVisible();
   await page.route(`**/api/decks/${id}`, (route) =>
     route.request().method() === "PATCH"
       ? route.fulfill({ status: 500, json: { message: "Save rejected" } })
@@ -95,26 +130,8 @@ test("failed mutations and leaving a deck invalidate Undo", async ({
     .getByRole("button", { name: "Add one E2E Warrior 2", exact: true })
     .click();
   await expect(page.getByText("Save failed", { exact: true })).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Undo", exact: true }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Undo", exact: true })).toHaveCount(0);
   await page.unroute(`**/api/decks/${id}`);
-  await page.goto(`/decks/${id}`);
-  await page.getByRole("tab", { name: "Find cards", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Add one E2E Warrior 1", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Undo", exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Open navigation", exact: true })
-    .click();
-  await page.getByRole("link", { name: "Decks", exact: true }).click();
-  await expect(page).toHaveURL(/\/decks$/);
-  await expect(
-    page.getByRole("button", { name: "Undo", exact: true }),
-  ).toHaveCount(0);
 });
 
 test("saved-card inspection and status warnings work after reloading and across presentations", async ({
@@ -173,7 +190,6 @@ test("saved-card inspection and status warnings work after reloading and across 
   await page.waitForURL(/\/browse\/[a-f\d]{24}$/);
   for (const status of ["suspended", "restricted", "limited"])
     await expect(page.getByText(status, { exact: true })).toBeVisible();
-  await page.getByRole("tab", { name: "grouped", exact: true }).click();
   await expect(page.getByText("suspended", { exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -364,50 +380,4 @@ test("filter options support keyboard selection and Escape closes only the optio
   await expect(
     page.getByRole("button", { name: "Inspect E2E Warrior 1", exact: true }),
   ).toBeVisible();
-});
-
-test("queued saves offer Undo only for the newest completed mutation", async ({
-  page,
-}) => {
-  const id = await createDeck(page);
-  let release!: () => void;
-  const gate = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  await page.route(`**/api/decks/${id}`, async (route) => {
-    if (route.request().method() !== "PATCH") return route.continue();
-    await gate;
-    await route.continue();
-  });
-  await page
-    .getByRole("button", { name: "Add one E2E Warrior 1", exact: true })
-    .tap();
-  await page
-    .getByRole("button", { name: "Add one E2E Warrior 2", exact: true })
-    .tap();
-  await expect(
-    page.getByRole("button", { name: "Undo", exact: true }),
-  ).toHaveCount(0);
-  release();
-  await expect(
-    page.getByText("Added E2E Warrior 2", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("Added E2E Warrior 1", { exact: true }),
-  ).toHaveCount(0);
-  await page.getByRole("button", { name: "Undo", exact: true }).tap();
-  await expect
-    .poll(
-      async () =>
-        (await (await page.request.get(`/api/decks/${id}`)).json())
-          .cards_in_deck.length,
-    )
-    .toBe(1);
-  await page.reload();
-  await expect(
-    page.getByRole("button", { name: "Inspect E2E Warrior 1", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Inspect E2E Warrior 2", exact: true }),
-  ).toHaveCount(0);
 });

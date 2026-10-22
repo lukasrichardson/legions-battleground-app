@@ -15,7 +15,7 @@ import { useUiVariant } from "@/app/components/arena/uiVariant";
 import { InlineStatus } from "@/client/ui/inline-status";
 import LoadingState from "@/app/components/LoadingState";
 import { EmptyState } from "@/client/ui/empty-state";
-import CardImage from "@/app/components/Card/CardImage";
+import DeckSummaryCard from "@/app/components/DeckSummaryCard";
 
 const date = (value: Date | string) => new Date(value).toLocaleDateString();
 
@@ -123,10 +123,21 @@ export default function DeckBrowser() {
           ) : (
             <div className="mt-3 grid grid-cols-1 gap-3 min-[540px]:grid-cols-2 xl:grid-cols-3">
               {decks.map((deck) => (
-                <DeckCard
+                <DeckSummaryCard
                   key={deck._id.toString()}
                   deck={deck}
+                  openLabel={`Open published deck ${deck.name}`}
                   onOpen={() => router.push(`/browse/${deck._id}`)}
+                  detail={
+                    <>
+                      <span className="mt-1 mr-1 break-words text-sm text-slate-300">
+                        By {deck.author || "Unknown author"}
+                      </span>
+                      <span className="mt-1 text-xs text-slate-500">
+                        {date(deck.published_date)}
+                      </span>
+                    </>
+                  }
                 />
               ))}
             </div>
@@ -148,63 +159,5 @@ export default function DeckBrowser() {
         </section>
       </div>
     </FullPage>
-  );
-}
-
-function DeckCard({
-  deck,
-  onOpen,
-}: {
-  deck: PublishedDeckListItem;
-  onOpen: () => void;
-}) {
-  const featured = deck.coverCard?.title || "No featured card";
-  return (
-    <article>
-      <button
-        type="button"
-        onClick={onOpen}
-        aria-label={`Open published deck ${deck.name}`}
-        className="touch-feedback flex min-h-[var(--touch-target-size)] w-full gap-3 rounded-sm border border-white/15 bg-slate-950/35 p-3 text-left hover:bg-blue-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-      >
-        <span className="relative block w-20 shrink-0 self-start overflow-hidden rounded border border-white/10">
-          <span className="block aspect-[3/4]">
-            {deck.coverCard ? (
-              <CardImage
-                src={deck.coverCard.featured_image}
-                alt={featured}
-                loading="lazy"
-                priority={false}
-                className="object-contain"
-              />
-            ) : (
-              <span className="grid h-full place-items-center text-slate-500">
-                ♜
-              </span>
-            )}
-          </span>
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block break-words text-base font-semibold text-white">
-            {deck.name}
-          </span>
-          <span className="mt-1 block break-words text-sm text-sky-100">
-            {deck.legion}
-          </span>
-          <span className="mt-1 block break-words text-sm text-slate-300">
-            By {deck.author || "Unknown author"}
-          </span>
-          <span className="mt-1 block break-words text-xs text-slate-400">
-            Featured card: {featured}
-          </span>
-          <span className="mt-1 block text-xs text-slate-300">
-            {deck.mainDeckSize} main · {deck.sideDeckSize}/15 side
-          </span>
-          <span className="mt-1 block text-xs text-slate-500">
-            Published {date(deck.published_date)}
-          </span>
-        </span>
-      </button>
-    </article>
   );
 }

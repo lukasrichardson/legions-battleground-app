@@ -113,7 +113,7 @@ export default function DeckEditorHeader({
       setActionError("Could not download this deck. Please try again.");
     }
   };
-  const isMobile = useIsMobile();
+  const isCompact = useIsMobile(1024);
   const actionsDisabled = saving || actionPending !== null;
   return (
     <div className="sticky top-0 z-20 space-y-1 bg-slate-950/95 py-1 backdrop-blur">
@@ -189,7 +189,7 @@ export default function DeckEditorHeader({
             <Button type="button" variant="outline" onClick={handlePublishDeckClick} className="h-9 border-green-500/50 bg-green-500/10 text-green-300 hover:bg-green-500/20 hover:text-green-200" disabled={actionsDisabled}>
               {actionPending === "publish" ? "Publishing…" : "Publish"}
             </Button>
-        {!isMobile && (<span className="text-sm text-gray-400">Click or Drag to add / remove cards from deck</span>)}
+        {!isCompact && (<span className="text-sm text-gray-400">Click or Drag to add / remove cards from deck</span>)}
       </div>
       {saveStatus && <p aria-live="polite" className={`px-1 text-center text-xs ${saveStatus === "Save failed" ? "text-rose-200" : "text-white/60"}`}>{saveStatus}</p>}
       {error && <InlineStatus variant="error">{error}</InlineStatus>}

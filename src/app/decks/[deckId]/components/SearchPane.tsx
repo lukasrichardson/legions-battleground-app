@@ -463,12 +463,24 @@ export default function SearchPane({
                 <Button onClick={clearFilters} size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs">
                   Clear
                 </Button>
+                <div className="w-fit inline-flex items-center">
+                <Button onClick={prevPage} size="sm" variant="outline" disabled={page <= 1} className={gallery ? "min-h-11 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
+              Prev
+            </Button>
+            <span aria-live="polite" className={gallery ? "min-w-0 text-center text-xs leading-4 text-slate-400" : "text-center text-xs text-gray-300"}>
+              {gallery ? `Showing ${resultStart}–${resultEnd} of ${total.toLocaleString()}` : `Page ${page} of ${total / pageSize > 0 ? Math.ceil(total / pageSize) : 1} (${total} cards)`}
+            </span>
+
+              <Button onClick={nextPage} size="sm" variant="outline" disabled={total <= page * pageSize} className={gallery ? "min-h-11 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
+                Next
+              </Button>
+              </div>
               </div>
             )}
           </div>}
           </div>
 
-          <div className={gallery ? "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-white/10" : "flex justify-center gap-1"}>
+          {/* <div className={gallery ? "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-white/10" : "flex justify-center gap-1"}>
             <Button onClick={prevPage} size="sm" variant="outline" disabled={page <= 1} className={gallery ? "min-h-11 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
               Prev
             </Button>
@@ -479,7 +491,7 @@ export default function SearchPane({
               <Button onClick={nextPage} size="sm" variant="outline" disabled={total <= page * pageSize} className={gallery ? "min-h-11 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10" : "bg-white/10 border-white/20 text-white hover:bg-white/20 h-5 px-1 text-xs"}>
                 Next
               </Button>
-          </div>
+          </div> */}
         </div>
 
         {/* Cards List - Scrollable with smaller card sizes to match deck */}

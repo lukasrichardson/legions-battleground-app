@@ -8,12 +8,16 @@ import {
   setMobileViewport,
 } from "./mobile";
 
-test("the mobile bounds helper rejects clipped controls and permits only named scroll strips", async ({ page }) => {
+test("the mobile bounds helper rejects clipped controls and permits only named scroll strips", async ({
+  page,
+}) => {
   await setMobileViewport(page, "narrow");
   await page.setContent(`
     <button style="position: fixed; left: calc(100vw - 12px); top: 12px; width: 44px; height: 44px">Clipped action</button>
   `);
-  await expect(expectVisibleInteractiveElementsInViewport(page)).rejects.toThrow(/Clipped action/);
+  await expect(
+    expectVisibleInteractiveElementsInViewport(page),
+  ).rejects.toThrow(/Clipped action/);
 
   await page.setContent(`
     <div data-mobile-overflow-exempt="card-strip" data-mobile-horizontal-scroll-affordance>
@@ -23,7 +27,9 @@ test("the mobile bounds helper rejects clipped controls and permits only named s
   await expectVisibleInteractiveElementsInViewport(page);
 });
 
-test("phone navigation exposes a reachable route and closes after navigation", async ({ page }) => {
+test("phone navigation exposes a reachable route and closes after navigation", async ({
+  page,
+}) => {
   await setMobileViewport(page, "narrow");
   await page.goto("/");
 
@@ -38,7 +44,9 @@ test("phone navigation exposes a reachable route and closes after navigation", a
   await expectNoDocumentHorizontalOverflow(page);
 });
 
-test("the card gallery opens and closes an inspector from a phone tap", async ({ page }) => {
+test("the card gallery opens and closes an inspector from a phone tap", async ({
+  page,
+}) => {
   await setMobileViewport(page, "standard");
   await page.goto("/cards");
 
@@ -53,27 +61,44 @@ test("the card gallery opens and closes an inspector from a phone tap", async ({
   await expect(inspector).toHaveCount(0);
 });
 
-test("public phone routes remain bounded across the supported portrait widths", async ({ page }) => {
+test("public phone routes remain bounded across the supported portrait widths", async ({
+  page,
+}) => {
   await setMobileViewport(page, "wide");
   await page.goto("/browse");
-  await expect(page.getByRole("button", { name: "Open published deck E2E Public Deck" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Open published deck E2E Public Deck" }),
+  ).toBeVisible();
   await expectNoDocumentHorizontalOverflow(page);
 
-  await page.getByRole("button", { name: "Open published deck E2E Public Deck" }).click();
+  await page
+    .getByRole("button", { name: "Open published deck E2E Public Deck" })
+    .click();
   await page.waitForURL(/\/browse\/[a-f\d]{24}$/, { timeout: 30_000 });
-  await expect(page.getByRole("heading", { name: "E2E Public Deck" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "E2E Public Deck" }),
+  ).toBeVisible();
   await expectNoDocumentHorizontalOverflow(page);
 });
 
-test("the phone deck builder uses explicit quantity controls and offers undo", async ({ page }) => {
+test("the phone deck builder uses explicit quantity controls without a reversal action", async ({
+  page,
+}) => {
   await signInAs(page, "e2e-player-one");
   await setMobileViewport(page, "standard");
   await page.goto("/decks");
-  await page.getByRole("button", { name: /create deck/i }).first().click();
+  await page
+    .getByRole("button", { name: /create deck/i })
+    .first()
+    .click();
   await page.getByLabel("Deck Name").fill(`Mobile controls ${Date.now()}`);
   await page.getByRole("combobox").click();
   await page.getByRole("option", { name: "E2E Legion", exact: true }).click();
-  const createResponse = page.waitForResponse((response) => response.url().includes("/api/decks") && response.request().method() === "POST");
+  const createResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/decks") &&
+      response.request().method() === "POST",
+  );
   await page.getByRole("button", { name: "Create Deck", exact: true }).click();
   await expect((await createResponse).status()).toBe(201);
   await page.waitForURL(/\/decks\/[a-f\d]{24}$/, { timeout: 30_000 });
@@ -92,25 +117,26 @@ test("the phone deck builder uses explicit quantity controls and offers undo", a
   const add = page.getByRole("button", { name: "Add one E2E Warrior 1" });
   await expectTapTargetVisible(add);
   await add.click();
-  await expect(page.getByText("Added E2E Warrior 1", { exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Deck", exact: true }).click();
   await expect(page.getByLabel("1 copies")).toBeVisible();
-  await page.getByRole("button", { name: "Undo", exact: true }).click();
-  await expect(page.getByText("No cards in deck", { exact: true })).toBeVisible();
-
-  await page.getByRole("tab", { name: "Find cards", exact: true }).click();
-  await page.getByRole("button", { name: "Add one E2E Warrior 1" }).click();
-  await page.getByRole("tab", { name: "Deck", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Undo", exact: true }),
+  ).toHaveCount(0);
   const remove = page.getByRole("button", { name: "Remove one E2E Warrior 1" });
   await expectTapTargetVisible(remove);
   await remove.click();
-  await expect(page.getByRole("button", { name: "Undo", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Undo", exact: true }).click();
-  await expect(page.getByLabel("1 copies")).toBeVisible();
+  await expect(
+    page.getByText("No cards in deck", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Undo", exact: true }),
+  ).toHaveCount(0);
   await expectNoDocumentHorizontalOverflow(page);
 });
 
-test("a phone player can join a lobby and sees the portrait rotate gate only in portrait", async ({ browser }) => {
+test("a phone player can join a lobby and sees the portrait rotate gate only in portrait", async ({
+  browser,
+}) => {
   const hostContext = await browser.newContext();
   const guestContext = await browser.newContext();
   try {
@@ -129,10 +155,14 @@ test("a phone player can join a lobby and sees the portrait rotate gate only in 
     await guest.goto("/");
     const roomCard = guest.getByRole("article").filter({ hasText: roomName });
     await expect(roomCard).toBeVisible({ timeout: 30_000 });
-    await expectTapTargetVisible(roomCard.getByRole("button", { name: "Join", exact: true }));
+    await expectTapTargetVisible(
+      roomCard.getByRole("button", { name: "Join", exact: true }),
+    );
     await roomCard.getByRole("button", { name: "Join", exact: true }).click();
     await guest.getByLabel("Deck", { exact: true }).click();
-    await guest.getByRole("option", { name: "E2E Player 2 Deck", exact: true }).click();
+    await guest
+      .getByRole("option", { name: "E2E Player 2 Deck", exact: true })
+      .click();
     await guest.getByRole("button", { name: "Join Room", exact: true }).click();
     await expect(guest).toHaveURL(/\/play\?/);
     await expect(guest.getByLabel("Landscape required to play")).toBeVisible();

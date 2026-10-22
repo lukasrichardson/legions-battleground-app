@@ -30,8 +30,6 @@ import Modal from "@/app/components/Modals/Modal";
 import CardGalleryInspector, {
   InspectableCard,
 } from "@/app/cards/CardGalleryInspector";
-import { useToast } from "@/app/components/ToastProvider";
-import { decodeHTMLEntities } from "@/client/utils/string.util";
 import { useBanlist } from "@/client/hooks/useBanlist";
 import { getCardStatus } from "@/app/components/Card/CardStatusBadge";
 
@@ -52,19 +50,15 @@ export default function DeckBuilder() {
     null,
   );
   const deckRef = useRef<DeckResponse | null>(null);
-  const { showToast, dismissToast } = useToast();
   const revision = useRef(0);
-  const undoToast = useRef<number>();
   const recoveringDeck = useRef<string | null>(null);
   const activeDeckId = useRef<string | null>(params.deckId);
   activeDeckId.current = params.deckId;
   const banlist = useBanlist();
 
-  const invalidateUndo = useCallback(() => {
+  const advanceRevision = useCallback(() => {
     revision.current += 1;
-    if (undoToast.current !== undefined) dismissToast(undoToast.current);
-    undoToast.current = undefined;
-  }, [dismissToast]);
+  }, []);
 
   const setCurrentDeck = (nextDeck: DeckResponse | null) => {
     deckRef.current = nextDeck;
@@ -91,7 +85,7 @@ export default function DeckBuilder() {
           patchQueueRef.current !== queue
         )
           return;
-        invalidateUndo();
+        advanceRevision();
         recoveringDeck.current = request.deckId;
         const failedRevision = revision.current;
         const message =
@@ -130,7 +124,7 @@ export default function DeckBuilder() {
     setCurrentDeck(null);
     setSaving(false);
     setSaveError("");
-    invalidateUndo();
+    advanceRevision();
     setInspectedCard(null);
     const fetchDeck = async () => {
       if (!params.deckId) return;
@@ -145,10 +139,10 @@ export default function DeckBuilder() {
     return () => {
       active = false;
       activeDeckId.current = null;
-      invalidateUndo();
+      advanceRevision();
       deckRef.current = null;
     };
-  }, [params?.deckId, invalidateUndo]);
+  }, [params?.deckId, advanceRevision]);
 
   // Preload deck images when deck is loaded
   useEffect(() => {
@@ -176,7 +170,7 @@ export default function DeckBuilder() {
       );
       return;
     }
-    invalidateUndo();
+    advanceRevision();
     const mutationRevision = revision.current;
     const queue = patchQueueRef.current!;
     setCurrentDeck(nextDeck);
@@ -197,53 +191,6 @@ export default function DeckBuilder() {
     void queue.whenIdle().then(() => {
       if (activeDeckId.current === deckId && patchQueueRef.current === queue)
         setSaving(false);
-    });
-  };
-
-  const restoreDeck = (previousDeck: DeckResponse) => {
-    const currentDeck = deckRef.current;
-    if (!currentDeck) return;
-    const fields = [
-      "cards_in_deck",
-      "side_deck",
-      "warlords",
-      "synergies",
-      "veilRealms",
-      "guardians",
-      "tokens",
-    ] as const;
-    saveDeckPatch(
-      fields.map((field) => ({
-        op: "replace" as const,
-        path: `/${field}`,
-        value: (previousDeck[field] ?? []).map((id) => id.toString()),
-      })),
-      previousDeck,
-    );
-  };
-
-  const saveCompositionChange = (
-    operations: DeckPatchOperation[],
-    nextDeck: DeckResponse,
-    label: string,
-    previousDeck: DeckResponse,
-  ) => {
-    saveDeckPatch(operations, nextDeck, (_savedDeck, mutationRevision) => {
-      if (revision.current !== mutationRevision) return;
-      const savedRevision = revision.current;
-      const deckId = nextDeck._id.toString();
-      undoToast.current = showToast({
-        label,
-        actionLabel: "Undo",
-        onAction: () => {
-          if (
-            activeDeckId.current !== deckId ||
-            revision.current !== savedRevision
-          )
-            return;
-          restoreDeck(previousDeck);
-        },
-      });
     });
   };
 
@@ -271,7 +218,7 @@ export default function DeckBuilder() {
     const cardIndex = lastCardIndexById(cards, card._id);
     if (cardIndex < 0) return;
 
-    saveCompositionChange(
+    saveDeckPatch(
       [{ op: "remove", path: `/${field ?? "cards_in_deck"}/${cardIndex}` }],
       field
         ? {
@@ -282,8 +229,6 @@ export default function DeckBuilder() {
             ...currentDeck,
             cards_in_deck: cards.filter((_, index) => index !== cardIndex),
           },
-      `Removed ${decodeHTMLEntities(card.title)}`,
-      currentDeck,
     );
   };
 
@@ -298,7 +243,7 @@ export default function DeckBuilder() {
     }
     const field = specialDeckFieldForCardType(card.card_type?.names?.[0]);
     const cards = field ? currentDeck[field] : currentDeck.cards_in_deck;
-    saveCompositionChange(
+    saveDeckPatch(
       [
         {
           op: "add",
@@ -317,8 +262,6 @@ export default function DeckBuilder() {
             cards_in_deck: [...cards, card._id],
             cards: includeCardMetadata(currentDeck, card),
           },
-      `Added ${decodeHTMLEntities(card.title)}`,
-      currentDeck,
     );
   };
 
@@ -329,14 +272,12 @@ export default function DeckBuilder() {
     const cardIndex = lastCardIndexById(sideDeck, card._id);
     if (cardIndex < 0) return;
 
-    saveCompositionChange(
+    saveDeckPatch(
       [{ op: "remove", path: `/side_deck/${cardIndex}` }],
       {
         ...currentDeck,
         side_deck: sideDeck.filter((_, index) => index !== cardIndex),
       },
-      `Removed ${decodeHTMLEntities(card.title)}`,
-      currentDeck,
     );
   };
 
@@ -353,7 +294,7 @@ export default function DeckBuilder() {
       )
       .filter((index) => index >= 0);
     if (!indexes.length) return;
-    saveCompositionChange(
+    saveDeckPatch(
       indexes.reverse().map((index) => ({
         op: "remove" as const,
         path: `/${source}/${index}`,
@@ -364,8 +305,6 @@ export default function DeckBuilder() {
           (entry) => entry.toString() !== card._id.toString(),
         ),
       },
-      `Removed all ${decodeHTMLEntities(card.title)}`,
-      currentDeck,
     );
   };
 
@@ -394,15 +333,13 @@ export default function DeckBuilder() {
     }
     const sideDeck = currentDeck.side_deck ?? [];
 
-    saveCompositionChange(
+    saveDeckPatch(
       [{ op: "add", path: "/side_deck/-", value: card._id.toString() }],
       {
         ...currentDeck,
         side_deck: [...sideDeck, card._id],
         cards: includeCardMetadata(currentDeck, card),
       },
-      `Added ${decodeHTMLEntities(card.title)}`,
-      currentDeck,
     );
   };
 
@@ -610,40 +547,44 @@ export default function DeckBuilder() {
   const attachSearchPaneDropTarget = (node: HTMLDivElement | null) => {
     searchPaneDrop(node);
   };
-  const isMobile = useIsMobile();
+  // The split workspace begins at Tailwind's `lg` breakpoint. Keep the
+  // focused, one-pane-at-a-time controls through the tablet range so the two
+  // desktop panes never get stacked into an awkward in-between layout.
+  const isCompact = useIsMobile(1024);
+  const deckHeader = (
+    <DeckEditorHeader
+      deck={deck}
+      isEditingName={isEditingName}
+      editedName={editedName}
+      saving={saving}
+      saveStatus={
+        saving
+          ? "Saving…"
+          : saveError
+            ? "Save failed"
+            : deck
+              ? "Saved"
+              : ""
+      }
+      onStartEditingName={handleStartEditingName}
+      onCancelEditingName={handleCancelEditingName}
+      onSaveDeckName={handleSaveDeckName}
+      onNameChange={setEditedName}
+      onNameKeyPress={handleNameKeyPress}
+      deckListRefreshTrigger={deckListRefreshTrigger}
+    />
+  );
   return (
     <FullPage showBreadcrumbs={false}>
       <div className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-2">
-        {isMobile && <div className="w-full h-6"></div>}
-        <div className="h-auto">
-          <DeckEditorHeader
-            deck={deck}
-            isEditingName={isEditingName}
-            editedName={editedName}
-            saving={saving}
-            saveStatus={
-              saving
-                ? "Saving…"
-                : saveError
-                  ? "Save failed"
-                  : deck
-                    ? "Saved"
-                    : ""
-            }
-            onStartEditingName={handleStartEditingName}
-            onCancelEditingName={handleCancelEditingName}
-            onSaveDeckName={handleSaveDeckName}
-            onNameChange={setEditedName}
-            onNameKeyPress={handleNameKeyPress}
-            deckListRefreshTrigger={deckListRefreshTrigger}
-          />
-        </div>
-        {saveError && (
+        {isCompact && <div className="h-6 w-full" />}
+        {isCompact && <div className="h-auto">{deckHeader}</div>}
+        {isCompact && saveError && (
           <InlineStatus variant="error" className="mb-2 text-center">
             {saveError}
           </InlineStatus>
         )}
-        {isMobile && (
+        {isCompact && (
           <div
             className="grid grid-cols-3 gap-1 rounded border border-white/15 bg-slate-950/50 p-1"
             role="tablist"
@@ -675,34 +616,43 @@ export default function DeckBuilder() {
           {/* Deck Grid Pane - Full width on mobile, left side on large screens */}
           <div
             ref={attachDeckDropTarget}
-            className={`relative order-1 min-h-[320px] min-w-0 flex-[2] border border-white/15 bg-[rgba(4,9,14,.56)] p-1.5 shadow-[0_14px_32px_rgba(0,0,0,.2)] sm:p-2 lg:min-h-0 lg:flex-[3] ${isMobile && mobileTab !== "deck" ? "hidden lg:block" : ""}`}
+            className={`relative order-1 min-h-[320px] min-w-0 flex-[2] border border-white/15 bg-[rgba(4,9,14,.56)] p-1.5 shadow-[0_14px_32px_rgba(0,0,0,.2)] sm:p-2 lg:flex lg:min-h-0 lg:flex-[3] lg:flex-col ${isCompact && mobileTab !== "deck" ? "hidden lg:block" : ""}`}
           >
             {canDropDeck && (
               <div
                 className={`pointer-events-none absolute z-10 size-full border-3 border-dashed border-white ${isOverDeck ? "bg-green-600/30" : "bg-green-800/30"}`}
               />
             )}
-            <DeckGrid
-              deck={deck}
-              setHoveredCard={setHoveredCard}
-              handleRemoveCardFromDeck={handleRemoveCardFromDeck}
-              handleSortClick={handleSortClick}
-              saving={saving}
-              handleAddCardToDeck={handleAddCardToDeck}
-              handleRemoveCardFromSideDeck={handleRemoveCardFromSideDeck}
-              handleAddCardToSideDeck={handleAddCardToSideDeck}
-              getSideDeckMoveError={getSideDeckMoveError}
-              onMoveCardToSideDeck={(item) => moveDeckCard(item, "side")}
-              onInspectCard={setInspectedCard}
-              onRemoveAll={(card, source) => handleRemoveAllCards(card, source)}
-              banlist={banlist}
-            />
+            {!isCompact && <div className="shrink-0">{deckHeader}</div>}
+            {!isCompact && saveError && (
+              <InlineStatus variant="error" className="mb-2 text-center">
+                {saveError}
+              </InlineStatus>
+            )}
+            <div className="lg:min-h-0 lg:flex-1">
+              <DeckGrid
+                deck={deck}
+                setHoveredCard={setHoveredCard}
+                handleRemoveCardFromDeck={handleRemoveCardFromDeck}
+                handleSortClick={handleSortClick}
+                saving={saving}
+                handleAddCardToDeck={handleAddCardToDeck}
+                handleRemoveCardFromSideDeck={handleRemoveCardFromSideDeck}
+                handleAddCardToSideDeck={handleAddCardToSideDeck}
+                getSideDeckMoveError={getSideDeckMoveError}
+                onMoveCardToSideDeck={(item) => moveDeckCard(item, "side")}
+                onInspectCard={setInspectedCard}
+                onRemoveAll={(card, source) => handleRemoveAllCards(card, source)}
+                banlist={banlist}
+              />
+            </div>
           </div>
 
           {/* Right Sidebar - Search and Preview on large screens */}
           <div
             ref={attachSearchPaneDropTarget}
-            className={`relative order-2 flex min-h-[320px] min-w-0 flex-none flex-col gap-2 border border-white/15 bg-[rgba(3,8,13,.72)] p-1.5 shadow-[0_14px_32px_rgba(0,0,0,.2)] sm:p-2 lg:min-h-0 lg:flex-1 lg:w-80 xl:w-96 ${isMobile && mobileTab !== "find" ? "hidden lg:flex" : ""}`}
+            data-deck-builder-search-pane
+            className={`relative order-2 flex min-h-[320px] min-w-0 flex-none flex-col gap-2 border border-white/15 bg-[rgba(3,8,13,.72)] p-1.5 shadow-[0_14px_32px_rgba(0,0,0,.2)] sm:p-2 lg:min-h-0 lg:flex-1 lg:w-80 xl:w-96 ${isCompact && mobileTab !== "find" ? "hidden lg:flex" : ""}`}
           >
             {canDropSearch && (
               <div
@@ -730,7 +680,7 @@ export default function DeckBuilder() {
               />
             </div>
           </div>
-          {isMobile && mobileTab === "details" && (
+          {isCompact && mobileTab === "details" && (
             <section className="order-1 min-h-[320px] rounded border border-white/15 bg-[rgba(4,9,14,.56)] p-4 text-sm text-white">
               <h2 className="text-lg font-semibold">Deck details</h2>
               <dl className="mt-4 space-y-3">
