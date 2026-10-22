@@ -26,7 +26,13 @@ The suite signs in using a NextAuth credentials provider which is only present w
 
 Use `e2e/mobile.ts` in Playwright coverage for phone-sized routes and overlays. It provides the supported viewport matrix plus assertions for document-level horizontal overflow and visible interactive controls that extend outside the current viewport. Run the layout assertion only after the route has reached an observable ready state (for example, a heading, list, or dialog title), rather than using a timing delay.
 
-Intentional horizontally scrollable card strips and the in-match hand tray may opt out of the control-bounds assertion only by declaring both `data-mobile-overflow-exempt="card-strip"` or `"hand-tray"` and `data-mobile-horizontal-scroll-affordance` on their scroll container. The exemption is rejected for forms, navigation, primary actions, and room lists. All other controls must remain wholly within the viewport.
+Intentional horizontally scrollable card strips and the in-match hand tray may opt out of the instantaneous control-bounds assertion only by declaring both `data-mobile-overflow-exempt="card-strip"` or `"hand-tray"` and `data-mobile-horizontal-scroll-affordance` on their scroll container. The exemption is rejected for forms, navigation, primary actions, and room lists.
+
+Use `expectControlsReachable` for vertically scrolling routes: it scrolls real controls into view, checks their 44px hit areas and horizontal bounds, and hit-tests them against clipping or overlapping ancestors. It restores scroll positions afterward. Disabled controls must still meet the size and bounds contract but need not receive pointer events. Run it inside open dialogs as well as on settled routes. Document width alone cannot detect clipped content.
+
+Compact gameplay (up to 1100px wide) renders without a board-wide transform. At 568×320 and 667×375, the battlefield scrolls vertically while the local hand and phase action remain pinned. Only the local hand scrolls horizontally. Counter adjustments are available in the existing card menu with 44px buttons; desktop inline adjustments and draggable dialogs remain available to precision pointers.
+
+The regression specs cover pending-save Undo invalidation, failed-save recovery, hydrated-card inspection, status warning parity, portrait route reachability at 320/360/390/414px, filter keyboard behavior, native touch targeting, desktop pile-dialog/card dragging, and two-player synchronization/reconnection on desktop and landscape touch contexts. Board screenshots are written into the corresponding Playwright test output directory.
 
 GitHub Actions runs this suite for pull requests targeting `master` and pushes to `master`. Failed runs retain the Playwright HTML report, traces, screenshots, and retry-only videos as artifacts.
 

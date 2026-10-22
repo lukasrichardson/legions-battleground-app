@@ -10,10 +10,14 @@ export async function signInAs(page: Page, userId: E2eUser) {
   await expect.poll(() => page.evaluate(() => fetch("/api/auth/session").then((response) => response.json()).then((session) => session.user?.id))).toBe(userId);
 }
 
-export async function createRoomFromLobby(page: Page, roomName: string, sandboxMode: boolean) {
+export async function createRoomFromLobby(page: Page, roomName: string, sandboxMode: boolean, deckName?: string) {
   await page.goto("/");
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page.getByLabel("Room Name").fill(roomName);
+  if (deckName) {
+    await page.getByLabel("Deck", { exact: true }).click();
+    await page.getByRole("option", { name: deckName, exact: true }).click();
+  }
   if (!sandboxMode) await page.getByLabel("Sandbox Mode").uncheck();
   await page.getByRole("button", { name: "Create New Game", exact: true }).click();
   await expect(page).toHaveURL(/\/play\?/);
@@ -22,7 +26,7 @@ export async function createRoomFromLobby(page: Page, roomName: string, sandboxM
 
 export async function joinRoomFromLobby(page: Page, roomName: string, deckName: string) {
   await page.goto("/");
-  const roomRow = page.getByText(roomName, { exact: true }).locator("..");
+  const roomRow = page.getByRole("article").filter({ has: page.getByText(roomName, { exact: true }) });
   await expect(roomRow).toBeVisible();
   await roomRow.getByRole("button", { name: "Join", exact: true }).click();
   await page.getByLabel("Deck", { exact: true }).click();

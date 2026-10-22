@@ -20,8 +20,18 @@ export default function CardPreview({ detailsCollapsed = false, onToggleDetails 
 
   useEffect(() => {
     if (!imageExpanded) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    const ownsScrollLock = previousOverflow !== "hidden";
+    if (ownsScrollLock) document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Tab") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        closeImageButtonRef.current?.focus();
+        return;
+      }
       if (event.key !== "Escape") return;
       event.stopImmediatePropagation();
       setImageExpanded(false);
@@ -29,7 +39,11 @@ export default function CardPreview({ detailsCollapsed = false, onToggleDetails 
 
     document.addEventListener("keydown", handleKeyDown, true);
     closeImageButtonRef.current?.focus();
-    return () => document.removeEventListener("keydown", handleKeyDown, true);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown, true);
+      if (ownsScrollLock) document.body.style.overflow = previousOverflow;
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
   }, [imageExpanded]);
 
   useEffect(() => {

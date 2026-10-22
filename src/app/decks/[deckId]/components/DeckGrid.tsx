@@ -13,6 +13,8 @@ import AppIcon from "@/app/components/AppIcon";
 import { EmptyState } from "@/client/ui/empty-state";
 import { DeckCardListKey, DeckDragItem } from "./CardTile";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
+import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
+import CardStatusBadge, { getCardStatus } from "@/app/components/Card/CardStatusBadge";
 
 const renderSectionStructure = (name: string, cards: HydratedDeckCard[], renderSubSection: (cards: HydratedDeckCard[]) => JSX.Element) => (
   cards && cards.length > 0 && (
@@ -41,7 +43,8 @@ export default function DeckGrid({
   onMoveCardToSideDeck = () => null,
   onInspectCard = () => null,
   onRemoveAll = () => null,
-  readOnly = false
+  readOnly = false,
+  banlist = [],
 }: {
   deck: DeckResponse | null,
   handleRemoveCardFromDeck: (card: HydratedDeckCard) => void,
@@ -55,7 +58,8 @@ export default function DeckGrid({
   onMoveCardToSideDeck?: (item: DeckDragItem) => void,
   onInspectCard?: (card: HydratedDeckCard) => void,
   onRemoveAll?: (card: HydratedDeckCard, source: DeckCardListKey) => void,
-  readOnly?: boolean
+  readOnly?: boolean,
+  banlist?: BanlistItem[],
 }) {
 
   const deckCards = deck ? getOrdinaryMainDeckCards(deck) : [];
@@ -90,6 +94,7 @@ export default function DeckGrid({
       addCardToDeck={addCard}
       readOnly={readOnly}
       sourceListForCard={sourceListForCard}
+      banlist={banlist}
     />
   )
 
@@ -138,7 +143,7 @@ export default function DeckGrid({
         {[...groups.values()].map((group) => {
           const card = group[0];
           return <div key={card._id.toString()} className="flex min-h-11 items-center gap-2 rounded border border-white/10 bg-white/5 p-1.5">
-            <button type="button" onClick={() => onInspectCard(card)} className="min-w-0 flex-1 truncate px-2 py-2 text-left text-sm text-white touch-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300" aria-label={`Inspect ${decodeHTMLEntities(card.title)}`}>{decodeHTMLEntities(card.title)}</button>
+            <button type="button" onClick={() => onInspectCard(card)} className="min-h-11 min-w-11 flex-1 break-words px-1 py-2 text-left text-sm text-white touch-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300" aria-label={`Inspect ${decodeHTMLEntities(card.title)}`}><span className="block">{decodeHTMLEntities(card.title)}</span><CardStatusBadge item={getCardStatus(banlist, card.title)} /></button>
             {!readOnly && <div className="flex shrink-0 items-center gap-1" aria-label={`${decodeHTMLEntities(card.title)} quantity`}>
               <Button type="button" size="icon" variant="outline" onClick={() => remove(card)} className="size-11 border-white/20 bg-white/5 text-white" aria-label={`Remove one ${decodeHTMLEntities(card.title)}`}>−</Button>
               <span className="grid size-11 place-items-center text-sm font-semibold" aria-label={`${group.length} copies`}>{group.length}</span>

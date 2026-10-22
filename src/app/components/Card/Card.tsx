@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/client/redux/hooks';
 import { moveCard, flipCard } from '@/client/redux/gameStateSlice';
-import { setPileInView, setSelectionFeedback } from '@/client/redux/clientGameStateSlice';
+import { setPileInView, setSelectionFeedback, setSelectingZone, setCardForSelectingZone } from '@/client/redux/clientGameStateSlice';
 import { openPlunderModal } from '@/client/redux/modalsSlice';
 import IMenuItem, { INewMenuItem } from '@/client/interfaces/IMenuItem';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
@@ -237,25 +237,27 @@ export default function Card({
   const isP1Selected = Boolean(p1SelectedCards?.find(c => c.id === card.id));
   const isP2Selected = Boolean(p2SelectedCards?.find(c => c.id === card.id));
   const focused = cardInFocus?.id === card.id;
-  const isFieldCard = [
-    CARD_TARGET.P1_PLAYER_WARRIOR, CARD_TARGET.P2_PLAYER_WARRIOR,
-    CARD_TARGET.P1_PLAYER_UNIFIED, CARD_TARGET.P2_PLAYER_UNIFIED,
-    CARD_TARGET.P1_PLAYER_FORTIFIED, CARD_TARGET.P2_PLAYER_FORTIFIED,
-  ].includes(cardTarget);
   const selectionLabelByType: Partial<Record<CARD_TYPE, string>> = {
     [CARD_TYPE.WARRIOR]: "Select warrior zone",
     [CARD_TYPE.UNIFIED]: "Select unified zone",
     [CARD_TYPE.FORTIFIED]: "Select fortified zone",
   };
-  const selectForZoneLabel = !isHidden && isOnPlayerSide && !isFieldCard && gameState.matchStatus !== MatchStatus.Completed
+  const isLocalHand = cardTarget === (p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND);
+  const selectForZoneLabel = !isHidden && isOnPlayerSide && isLocalHand && gameState.matchStatus !== MatchStatus.Completed
     ? selectionLabelByType[card.type]
     : undefined;
   const handleSelectForZone = useCallback(() => {
+    setIsPopoverVisible(false);
     dispatch(setSelectionFeedback(null));
+    if (clientGameState.cardForSelectingZone?.id === card.id) {
+      dispatch(setSelectingZone(null));
+      dispatch(setCardForSelectingZone(null));
+      return;
+    }
     if (card.type === CARD_TYPE.WARRIOR) handleConscript();
     if (card.type === CARD_TYPE.UNIFIED) handleActivate();
     if (card.type === CARD_TYPE.FORTIFIED) handleSet();
-  }, [card.type, dispatch, handleConscript, handleActivate, handleSet]);
+  }, [card.id, card.type, clientGameState.cardForSelectingZone?.id, dispatch, handleConscript, handleActivate, handleSet]);
 
   const {
     handleDecreaseCooldown,
@@ -284,9 +286,9 @@ export default function Card({
     handleCardBlur,
   };
 
-  const handlePopoverVisibleChange = () => {
-    if (isHidden) return;
-    setIsPopoverVisible(!isPopoverVisible);
+  const handlePopoverVisibleChange = (open: boolean) => {
+    if (isHidden || clientGameState.selectingZone) return;
+    setIsPopoverVisible(open);
   };
 
   return (

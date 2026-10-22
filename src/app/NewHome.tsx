@@ -26,9 +26,9 @@ const primaryButtonClass = [
 ].join(" ");
 
 const homeContainerClass = [
-  "mx-auto flex min-h-0 flex-col overflow-y-auto",
+  "mx-auto flex h-full min-h-0 flex-col overflow-y-auto",
   "w-[calc(100%-24px)] gap-3 py-3 pb-[max(1rem,env(safe-area-inset-bottom))]",
-  "sm:h-[calc(100dvh-76px)] sm:w-[min(1380px,calc(100%-64px))] sm:overflow-hidden",
+  "md:h-[calc(100dvh-76px)] sm:w-[min(1380px,calc(100%-64px))] md:overflow-hidden",
   "sm:gap-[14px] sm:pb-8 sm:pt-[40px]",
   "[@media(max-height:700px)]:gap-2 [@media(max-height:700px)]:pt-2.5",
   "[@media(max-height:600px)]:gap-1 [@media(max-height:600px)]:py-1.5",
@@ -53,9 +53,9 @@ export default function NewHome() {
           </span>
         </div>
       </section>
-      <div className="flex min-h-0 w-full shrink flex-col py-2 md:flex-row">
+      <div className="flex min-h-0 w-full shrink-0 flex-col py-2 md:shrink md:flex-row">
         <section className="min-h-0 grow shrink md:h-full w-full md:w-3/5 px-0 sm:px-2">
-          <div className="flex flex-col items-start md:h-full">
+          <div className="flex flex-col items-start md:h-full md:overflow-y-auto md:[&>*]:shrink-0">
             <div className="flex w-full justify-center items-center">
                 <button className={`${primaryButtonClass} min-h-11 w-full max-w-md sm:w-auto`} type="button" onClick={() => session ? dispatch(setCreateRoomModalOpen(true)) : signIn()}>{session ? "Play" : "Enter The Battleground"} {session ? <Play size={26} /> : <LogIn size={26} />}</button>
             </div>
@@ -80,7 +80,7 @@ export default function NewHome() {
                     <button className="min-h-11 w-full cursor-pointer border border-[#4fa9ff] bg-[#246fb8] px-4 py-2 font-serif text-sm text-[#eaf5ff] shadow-[0_0_10px_rgba(79,169,255,.25)] transition-colors hover:bg-[#338de0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:w-auto" type="button" onClick={() => session ? dispatch(setJoinRoomModalOpen(room.id)) : signIn()}>Join</button>
                   </article>
                 )}
-              </div> : <div className="space-y-3 p-4 text-sm text-[#e1e8ee]"><p className="m-0">No active games right now. Create one when you are ready to play.</p><button type="button" className="min-h-11 border border-sky-200/45 bg-blue-400/10 px-4 text-sm font-semibold text-sky-100 transition hover:bg-blue-400/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300" onClick={() => session ? dispatch(setCreateRoomModalOpen(true)) : signIn()}>{session ? "Create a game" : "Sign in to play"}</button></div>}
+              </div> : <div className="space-y-3 p-4 text-sm text-[#e1e8ee]"><p className="m-0">No active games right now. Create one when you are ready to play.</p></div>}
             </div>
             {session && <RecentDecksPanel />}
           </div>

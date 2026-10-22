@@ -100,7 +100,7 @@ export default function RegularMatchSetupOverlay() {
 
 function BlockingPanel({ children }: { children: ReactNode }) {
   return <div className="absolute inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.82)] p-4 backdrop-blur-sm">
-    <section role="dialog" aria-modal="true" aria-label="Regular match setup" className="w-full max-w-xl border border-sky-200/35 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] p-6 shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_28px_rgba(79,169,255,.16)]">
+    <section role="dialog" aria-modal="true" aria-label="Regular match setup" className="max-h-full w-full max-w-xl overflow-y-auto border border-sky-200/35 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] p-4 sm:p-6 shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_28px_rgba(79,169,255,.16)]">
       {children}
     </section>
   </div>;

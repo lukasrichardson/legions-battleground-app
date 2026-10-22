@@ -143,6 +143,12 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
   }
   return (
       <div
+        data-game-zone={cardTarget}
+        data-zone-index={targetIndex}
+        role={selectingZone ? "button" : undefined}
+        tabIndex={selectingZone ? 0 : undefined}
+        aria-label={selectingZone ? `${cardTarget} zone ${targetIndex ?? ""}` : undefined}
+        onKeyDown={(event) => { if (selectingZone && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); handleZoneSelect(); } }}
         ref={(node) => { drop(node); }}
         className={[
           "relative flex items-center justify-center rounded md:rounded-lg border transition-all duration-200",

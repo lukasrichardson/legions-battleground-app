@@ -64,8 +64,108 @@ body {
 }
 
 /* Prevent flex/grid children with long content from widening a phone page. */
-:where(.mobile-page-content, .mobile-sticky-action, .mobile-shrink) {
+:where(.mobile-shrink) {
   min-width: 0;
+}
+
+/* Keep the board's hit areas in viewport CSS pixels on compact screens. The
+ * battlefield scrolls vertically; the local hand and phase actions stay pinned.
+ * Six rows plus two hands cannot all have 44px targets inside a 320px height. */
+[data-compact-game] .game-play-area {
+  display: grid;
+  grid-template-rows: 60px minmax(168px, 1fr) 52px minmax(168px, 1fr) 100px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: 60px 156px;
+}
+[data-compact-game] [data-game-mode="sandbox"] .game-play-area {
+  grid-template-rows: 60px minmax(168px, 1fr) minmax(168px, 1fr) 100px;
+}
+[data-compact-game] .game-play-area > div {
+  min-width: 0;
+}
+[data-compact-game] .game-play-area > .contents {
+  display: block;
+  height: 100%;
+}
+[data-compact-game] .game-play-area > .contents > div {
+  height: 100%;
+}
+[data-compact-game] .game-play-area > .grid {
+  height: auto;
+}
+[data-compact-game] .game-play-area > div:last-child {
+  position: sticky;
+  bottom: 0;
+  z-index: 25;
+  background: #050a0e;
+}
+[data-compact-game] .game-play-area > section {
+  position: sticky;
+  top: calc(100% - 152px);
+  bottom: 100px;
+  z-index: 24;
+  background: #09202d;
+}
+[data-compact-game] [data-game-zone] {
+  min-height: 44px;
+  min-width: 44px;
+  margin-inline: 1px;
+  transition: none;
+  transform: none;
+}
+[data-compact-game] [data-game-zone] .card-inner {
+  width: 44px;
+  height: 54px;
+}
+[data-compact-game] [data-opponent-hand] {
+  width: 44px;
+  height: 54px;
+}
+[data-compact-game] .card-inner {
+  box-sizing: border-box !important;
+}
+[data-compact-game] .card-inner > span {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  line-height: 1.2;
+}
+[data-compact-game] .card-inner:hover {
+  transform: none;
+}
+[data-compact-game] .game-play-area > aside {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+}
+[data-compact-game] aside button,
+[data-compact-game] [role="menuitem"],
+[data-compact-game] [role="dialog"] button {
+  min-height: 44px;
+  min-width: 44px;
+}
+@media (max-width: 1100px) {
+  .ant-popover .ant-menu-item, .ant-popover .ant-menu-submenu-title {
+    min-height: 44px;
+    height: auto;
+    line-height: 44px;
+  }
+  .ant-popover { max-width: calc(100vw - 16px); }
+  .game-card-menu.ant-popover {
+    position: fixed !important;
+    top: max(12px, env(safe-area-inset-top)) !important;
+    right: max(12px, env(safe-area-inset-right)) !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+  }
+  .game-card-menu .ant-popover-arrow { display: none; }
+  .game-card-menu-content {
+    max-height: calc(100dvh - max(12px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom)));
+  }
 }
 
 /* A shared pressed state for controls that opt into the mobile touch contract. */

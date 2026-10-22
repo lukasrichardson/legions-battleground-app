@@ -128,7 +128,8 @@ export default function RecentPublishedDecksPanel() {
                       <span className="min-w-0 flex-1">
                       <span className="flex min-w-0 items-center gap-1.5">
                         <span className="min-w-0 flex-1 truncate text-sm font-bold text-white">{deck.name}</span>
-                        <span className="shrink-0 text-xs text-white">{deck.mainDeckSize}/{deck.sideDeckSize}</span>
+                        <span className="shrink-0 text-xs text-white">Main: {deck.mainDeckSize}</span>
+                        <span className="shrink-0 text-xs text-white">Side: {deck.sideDeckSize}</span>
                       </span>
                       <span className="mt-0.5 block truncate text-xs text-gray-400">by {deck.author || "Unknown Author"}</span>
                       <span className="mt-1 flex min-w-0 items-center gap-2">

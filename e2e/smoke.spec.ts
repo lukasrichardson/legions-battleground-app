@@ -43,9 +43,9 @@ test("a signed-in player can manage decks and copy a public deck", async ({ page
   await expect(page).toHaveURL(/\/decks\/[a-f\d]{24}$/);
 });
 
-test("two players can create, join, synchronize a match action, and reconnect", async ({ browser }) => {
-  const playerOneContext = await browser.newContext();
-  const playerTwoContext = await browser.newContext();
+for (const mobile of [false, true]) test(`two players can create, join, synchronize a match action, and reconnect (${mobile ? "touch landscape" : "desktop"})`, async ({ browser }) => {
+  const playerOneContext = await browser.newContext(mobile ? { hasTouch: true, viewport: { width: 568, height: 320 } } : {});
+  const playerTwoContext = await browser.newContext(mobile ? { hasTouch: true, viewport: { width: 667, height: 375 } } : {});
   try {
     const playerOne = await newSignedInPage(playerOneContext, "e2e-player-one");
     const playerTwo = await newSignedInPage(playerTwoContext, "e2e-player-two");
@@ -75,7 +75,11 @@ test("two players can create, join, synchronize a match action, and reconnect", 
     const playerTwoStatus = playerTwo.getByRole("region", { name: "Regular match status" });
     await expect(playerOne.getByRole("button", { name: "Advance phase", exact: true })).toBeVisible();
     const statusBeforeAdvance = await playerTwoStatus.innerText();
-    await playerOne.getByRole("button", { name: "Advance phase", exact: true }).click();
+    const advance = playerOne.getByRole("button", { name: "Advance phase", exact: true });
+    if (mobile) {
+      await expect.poll(async () => (await advance.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+      await advance.tap();
+    } else await advance.click();
     await expect.poll(() => playerTwoStatus.innerText()).not.toBe(statusBeforeAdvance);
     const statusAfterAdvance = await playerTwoStatus.innerText();
 

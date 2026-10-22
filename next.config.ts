@@ -9,6 +9,9 @@ const r2ImageHost = (() => {
 })();
 
 const nextConfig: NextConfig = {
+  // The development badge is absent in production and must not cover controls
+  // while browser tests hit-test the customer-facing interface.
+  devIndicators: process.env.E2E_TEST_MODE === "true" ? false : undefined,
   /* config options here */
   // E2E runs beside a developer's `next dev` process. A separate directory
   // prevents Next's dev-server lock and generated output from colliding.

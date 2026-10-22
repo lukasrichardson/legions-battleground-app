@@ -1,15 +1,9 @@
 import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { DeckCardListKey, DeckCardTile } from "./CardTile";
-import { useEffect, useState } from "react";
 import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
-import { fetchBanlist } from "@/client/utils/api.utils";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
 
-export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck, readOnly = false, sourceListForCard }: { cards: HydratedDeckCard[], removeCardFromDeck: (e: React.MouseEvent, card: HydratedDeckCard) => void, setHoveredCard: (card: HydratedDeckCard) => void, useGroupedView: boolean, addCardToDeck: (card: HydratedDeckCard) => void, readOnly?: boolean, sourceListForCard: (card: HydratedDeckCard) => DeckCardListKey }) {
-  const [banlist, setBanlist] = useState<BanlistItem[]>([]);
-  useEffect(() => {
-    void fetchBanlist().then(setBanlist).catch((error) => console.warn("[DeckSection] Banlist request failed:", error));
-  }, []);
+export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck, readOnly = false, sourceListForCard, banlist }: { cards: HydratedDeckCard[], removeCardFromDeck: (e: React.MouseEvent, card: HydratedDeckCard) => void, setHoveredCard: (card: HydratedDeckCard) => void, useGroupedView: boolean, addCardToDeck: (card: HydratedDeckCard) => void, readOnly?: boolean, sourceListForCard: (card: HydratedDeckCard) => DeckCardListKey, banlist: BanlistItem[] }) {
 
   // Group cards by name to apply grouping styling
   const groupedCards = cards.reduce((groups: Record<string, HydratedDeckCard[]>, card) => {

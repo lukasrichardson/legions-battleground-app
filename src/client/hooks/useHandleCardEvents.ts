@@ -5,7 +5,7 @@ import { MouseEventHandler, useCallback, useState } from "react";
 import { decreaseAttackModifier, decreaseCooldown, decreaseOtherModifier, increaseAttackModifier, increaseCooldown, increaseOtherModifier, multiSelectCard, selectCard } from "../redux/gameStateSlice";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { CardState } from "@/shared/interfaces/CardState";
-import { setCardInFocus, clearCardInFocus, setCardForSelectingZone, setSelectingZone } from "../redux/clientGameStateSlice";
+import { setCardInFocus, clearCardInFocus, setCardForSelectingZone, setSelectingZone, setSelectionFeedback } from "../redux/clientGameStateSlice";
 import back_of_card from "PUBLIC/back_of_card.jpg";
 
 export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TARGET, hidden: boolean, inPileView: boolean, index?: number, zoneIndex?: number, faceUp?: boolean, p1?: boolean) {
@@ -84,6 +84,17 @@ export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TA
 
   const handleCardRightClick: MouseEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
+    if (selectingZone) {
+      e.stopPropagation();
+      if (clientGameState.cardForSelectingZone?.id === card.id) {
+        dispatch(setSelectingZone(null));
+        dispatch(setCardForSelectingZone(null));
+        dispatch(setSelectionFeedback(null));
+      } else {
+        dispatch(setSelectionFeedback(`Choose an empty ${selectingZone} zone on your side.`));
+      }
+      return;
+    }
     const cardToSelect = hidden ? {
       ...card,
       img: back_of_card.src,
@@ -100,10 +111,6 @@ export default function useHandleCardEvents(card: CardState, cardTarget: CARD_TA
     } else {
       dispatch(selectCard({ card: cardToSelect, side: p1 ? "p1" : "p2" }));
       emitGameEvent({ type: GAME_EVENT.selectCard, data: { card: cardToSelect, side: p1 ? "p1" : "p2" } });
-    }
-    if (selectingZone) {
-      dispatch(setSelectingZone(null));
-      dispatch(setCardForSelectingZone(null));
     }
   }
 

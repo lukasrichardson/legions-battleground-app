@@ -15,6 +15,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const scaleX = useMemo(() => (size.width ? size.width / SCALE_WIDTH : 1), [size.width]);
   const scaleY = useMemo(() => (size.height ? size.height / SCALE_HEIGHT : 1), [size.height]);
   const smallestScale = Math.min(scaleX, scaleY);
+  const compact = Boolean(size.width && size.width <= 1100);
   const styles = useMemo(
     () => ({
       transform: `scale(${smallestScale}, ${smallestScale})`,
@@ -26,8 +27,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   );
   return (
     <div className="relative h-dvh w-dvw overflow-hidden bg-[#050a0e] bg-[radial-gradient(circle_at_70%_20%,rgba(27,90,145,.24),transparent_34%),linear-gradient(135deg,#050a0e,#10243a_50%,#050a0e)]">
-      <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-        <div style={styles} className="relative shrink-0 overflow-hidden border border-sky-200/10 shadow-[0_0_60px_rgba(0,0,0,.55)]">{children}</div>
+      <div className="absolute flex items-center justify-center overflow-hidden" style={{ top: "env(safe-area-inset-top)", right: "env(safe-area-inset-right)", bottom: "env(safe-area-inset-bottom)", left: "env(safe-area-inset-left)" }}>
+        <div style={compact ? { width: "100%", height: "100%" } : styles} data-compact-game={compact || undefined} className="relative shrink-0 overflow-hidden border border-sky-200/10 shadow-[0_0_60px_rgba(0,0,0,.55)]">{children}</div>
       </div>
       {isMobilePortrait && (
         <section

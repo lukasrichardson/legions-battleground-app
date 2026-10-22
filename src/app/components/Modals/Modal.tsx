@@ -49,8 +49,8 @@ export default function Modal({
   const requestClose = useCallback(() => closeModalRef.current(), []);
 
   useEffect(() => {
-    // Match the sm breakpoint used by the dialog's centered desktop layout.
-    const desktop = window.matchMedia("(min-width: 640px)");
+    // Only precision pointers drag headers; landscape phones still use sheets.
+    const desktop = window.matchMedia("(min-width: 640px) and (hover: hover) and (pointer: fine)");
     const updateDesktop = () => {
       setIsDesktop(desktop.matches);
       if (!desktop.matches) {

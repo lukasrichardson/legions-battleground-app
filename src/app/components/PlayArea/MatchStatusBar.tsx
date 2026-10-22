@@ -26,6 +26,7 @@ export default function MatchStatusBar({ status, phase, turn, activeSide, canAdv
       <div className="grid h-full grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto] items-center gap-2 px-1 max-[700px]:grid-cols-[minmax(0,1fr)_auto]">
         <div className="min-w-0">
           <div className="truncate font-bold text-white">{statusLabel[status]}</div>
+          <div className="truncate font-semibold text-cyan-100 min-[701px]:hidden" title={phase}>{phase}</div>
           {activeLabel ? <div className={canAdvance ? "mt-0.5 text-cyan-200" : "mt-0.5 text-slate-400"}>{activeLabel}</div> : null}
         </div>
         <div className="min-w-0 text-center max-[700px]:hidden">

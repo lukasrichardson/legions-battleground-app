@@ -3,25 +3,353 @@ import FullPage from "@/app/components/FullPage";
 import LoadingState from "@/app/components/LoadingState";
 import CardImage from "@/app/components/Card/CardImage";
 import Modal from "@/app/components/Modals/Modal";
-import { fetchPublishedDeckById, copyPublishedDeck } from "@/client/utils/api.utils";
+import {
+  fetchPublishedDeckById,
+  copyPublishedDeck,
+} from "@/client/utils/api.utils";
 import { Button } from "@/client/ui/button";
 import { InlineStatus } from "@/client/ui/inline-status";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
-import { getMainDeckCards, getSideDeckCards, getSpecialDeckCards, SPECIAL_DECK_FIELDS, type SpecialDeckField } from "@/shared/deckComposition";
+import {
+  getMainDeckCards,
+  getSideDeckCards,
+  getSpecialDeckCards,
+  SPECIAL_DECK_FIELDS,
+  type SpecialDeckField,
+} from "@/shared/deckComposition";
 import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import PublishedDeck from "@/shared/interfaces/PublishedDeck";
 import { signIn, useSession } from "next-auth/react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useBanlist } from "@/client/hooks/useBanlist";
+import CardStatusBadge, {
+  getCardStatus,
+} from "@/app/components/Card/CardStatusBadge";
+import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
+import CardGalleryInspector from "@/app/cards/CardGalleryInspector";
 type View = "cards" | "grouped" | "stats";
-const labels: Record<SpecialDeckField, string> = { warlords: "Warlords", synergies: "Synergies", veilRealms: "Veil Realms", guardians: "Guardians", tokens: "Tokens" };
-export default function PublishedDeckViewer() { const params = useParams<{ published_deck_id: string }>(); const router = useRouter(); const pathname = usePathname(); const { data: session, status } = useSession(); const [deck, setDeck] = useState<PublishedDeck | null>(null); const [error, setError] = useState(""); const [loading, setLoading] = useState(true); const [view, setView] = useState<View>("cards"); const [selected, setSelected] = useState<HydratedDeckCard | null>(null); const [copyError, setCopyError] = useState("");
- useEffect(() => { let active = true; setLoading(true); setError(""); void fetchPublishedDeckById(params.published_deck_id).then((d) => active && setDeck(d)).catch(() => active && setError("This published deck could not be loaded.")).finally(() => active && setLoading(false)); return () => { active = false; }; }, [params.published_deck_id]);
- const copy = async () => { if (!deck) return; if (!session) { await signIn(undefined, { callbackUrl: pathname }); return; } try { const result = await copyPublishedDeck(deck._id.toString()); if (result._id) router.push(`/decks/${result._id}`); else setCopyError("The deck copy could not be created. Please try again."); } catch { setCopyError("The deck copy could not be created. Please try again."); } };
- if (loading) return <FullPage showBreadcrumbs={false}><LoadingState label="Loading published deck…" className="min-h-64" /></FullPage>; if (error || !deck) return <FullPage showBreadcrumbs={false}><InlineStatus variant="error">{error || "This published deck could not be loaded."}</InlineStatus></FullPage>;
- const main = getMainDeckCards(deck); const side = getSideDeckCards(deck); const special = SPECIAL_DECK_FIELDS.map((field) => ({ label: labels[field], cards: getSpecialDeckCards(deck, field) }));
- return <FullPage showBreadcrumbs={false}><div className="mobile-shrink min-h-0 flex-1 overflow-y-auto px-3 pb-[calc(1rem+var(--safe-area-bottom))] pt-2 sm:px-4"><header className="rounded-sm border border-white/20 bg-[rgba(5,11,17,.71)] p-4"><p className="text-xs uppercase tracking-[.16em] text-sky-200">Published deck</p><h1 className="mt-1 break-words font-serif text-3xl text-white">{deck.name}</h1><div className="mt-3 grid gap-1 text-sm text-slate-300 sm:grid-cols-2"><span className="break-words">Legion: {deck.legion}</span><span className="break-words">Author: {deck.author || "Unknown author"}</span><span>Published: {new Date(deck.published_date).toLocaleDateString()}</span><span>{main.length} main · {side.length}/15 side</span></div><Button type="button" onClick={copy} disabled={status === "loading"} pending={status === "loading"} className="mt-4 w-full">{status === "loading" ? "Checking sign-in…" : session ? "Copy to My Decks" : "Sign in to copy this deck"}</Button>{!session && status !== "loading" && <p className="mt-2 text-sm text-slate-400">You can browse public decks without an account. Sign in only to save a copy.</p>}{copyError && <InlineStatus variant="error" className="mt-3">{copyError}</InlineStatus>}</header><div role="tablist" aria-label="Published deck view" className="mt-4 flex flex-wrap gap-2">{(["cards", "grouped", "stats"] as const).map((item) => <button key={item} role="tab" aria-selected={view === item} type="button" onClick={() => setView(item)} className={`touch-feedback min-h-[var(--touch-target-size)] rounded-sm border px-4 capitalize ${view === item ? "border-sky-200/55 bg-blue-400/15 text-white" : "border-white/15 text-slate-300"}`}>{item}</button>)}</div>{view === "stats" ? <Stats main={main} side={side} special={special} /> : <div className="mt-4 space-y-3">{special.map((section) => <Section key={section.label} {...section} view={view} onInspect={setSelected} />)}<Section label="Main Deck" cards={main} view={view} onInspect={setSelected} open /><Section label="Side Deck" cards={side} view={view} onInspect={setSelected} /></div>}<Modal open={Boolean(selected)} closeModal={() => setSelected(null)} ariaLabel="Published deck card details" modalHeader={<div className="flex items-center justify-between py-3"><span className="min-w-0 break-words text-base font-semibold text-white">{selected && decodeHTMLEntities(selected.title)}</span><button type="button" aria-label="Close card details" className="touch-feedback ml-3 grid h-11 w-11 shrink-0 place-items-center border border-sky-200/30" onClick={() => setSelected(null)}>×</button></div>} modalContent={<Inspector card={selected} />} /></div></FullPage>; }
-function Section({ label, cards, view, onInspect, open = false }: { label: string; cards: HydratedDeckCard[]; view: View; onInspect: (card: HydratedDeckCard) => void; open?: boolean }) { const [expanded, setExpanded] = useState(open); const grouped = useMemo(() => { const m = new Map<string, { card: HydratedDeckCard; count: number }>(); cards.forEach((card) => { const entry = m.get(card._id.toString()); if (entry) entry.count++; else m.set(card._id.toString(), { card, count: 1 }); }); return [...m.values()]; }, [cards]); return <section className="rounded-sm border border-white/15 bg-slate-950/30"><button type="button" onClick={() => setExpanded(!expanded)} aria-expanded={expanded} className="touch-feedback flex min-h-[var(--touch-target-size)] w-full items-center justify-between px-3 text-left text-sm font-semibold text-white"><span>{label} <span className="text-sky-200">({cards.length})</span></span><span>{expanded ? "−" : "+"}</span></button>{expanded && (cards.length === 0 ? <p className="border-t border-white/10 px-3 py-3 text-sm text-slate-400">No cards in this section.</p> : view === "grouped" ? <div className="border-t border-white/10 p-2">{grouped.map(({ card, count }) => <button type="button" key={card._id.toString()} onClick={() => onInspect(card)} className="touch-feedback flex min-h-[var(--touch-target-size)] w-full items-center justify-between gap-3 px-2 text-left text-sm text-slate-100"><span className="min-w-0 break-words">{decodeHTMLEntities(card.title)}</span><span className="shrink-0">×{count}</span></button>)}</div> : <div className="grid grid-cols-2 gap-2 border-t border-white/10 p-2 min-[420px]:grid-cols-3 sm:grid-cols-4">{cards.map((card, i) => <button type="button" key={`${card._id}-${i}`} aria-label={`Inspect ${decodeHTMLEntities(card.title)}`} onClick={() => onInspect(card)} className="touch-feedback overflow-hidden rounded-sm border border-white/10 text-left"><span className="relative block aspect-[3/4]"><CardImage src={card.featured_image} alt="" loading="lazy" priority={false} className="object-contain" /></span><span className="block min-h-[var(--touch-target-size)] break-words px-2 py-2 text-xs text-slate-100">{decodeHTMLEntities(card.title)}</span></button>)}</div>)}</section>; }
-function Stats({ main, side, special }: { main: HydratedDeckCard[]; side: HydratedDeckCard[]; special: Array<{ label: string; cards: HydratedDeckCard[] }> }) { return <section className="mt-4 rounded-sm border border-white/15 bg-slate-950/30 p-4"><h2 className="text-lg font-semibold text-white">Deck stats</h2><dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3"><Stat label="Main deck" value={main.length} /><Stat label="Side deck" value={`${side.length}/15`} />{special.map((section) => <Stat key={section.label} label={section.label} value={section.cards.length} />)}</dl></section>; }
-function Stat({ label, value }: { label: string; value: string | number }) { return <div><dt className="text-sm text-slate-400">{label}</dt><dd className="text-lg text-white">{value}</dd></div>; }
-function Inspector({ card }: { card: HydratedDeckCard | null }) { if (!card) return <div />; return <div className="mx-auto max-w-sm"><div className="relative aspect-[3/4]"><CardImage src={card.featured_image} alt={decodeHTMLEntities(card.title)} className="object-contain" /></div><div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-200"><span>{card.card_type?.names?.[0] || "Card"}</span><span>{card.legion?.names?.[0] || "Unknown legion"}</span></div><p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-slate-300">{decodeHTMLEntities(card.text)}</p></div>; }
+const labels: Record<SpecialDeckField, string> = {
+  warlords: "Warlords",
+  synergies: "Synergies",
+  veilRealms: "Veil Realms",
+  guardians: "Guardians",
+  tokens: "Tokens",
+};
+export default function PublishedDeckViewer() {
+  const banlist = useBanlist();
+  const params = useParams<{ published_deck_id: string }>();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const [deck, setDeck] = useState<PublishedDeck | null>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<View>("cards");
+  const [selected, setSelected] = useState<HydratedDeckCard | null>(null);
+  const [copyError, setCopyError] = useState("");
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError("");
+    void fetchPublishedDeckById(params.published_deck_id)
+      .then((d) => active && setDeck(d))
+      .catch(
+        () => active && setError("This published deck could not be loaded."),
+      )
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [params.published_deck_id]);
+  const copy = async () => {
+    if (!deck) return;
+    if (!session) {
+      await signIn(undefined, { callbackUrl: pathname });
+      return;
+    }
+    try {
+      const result = await copyPublishedDeck(deck._id.toString());
+      if (result._id) router.push(`/decks/${result._id}`);
+      else
+        setCopyError("The deck copy could not be created. Please try again.");
+    } catch {
+      setCopyError("The deck copy could not be created. Please try again.");
+    }
+  };
+  if (loading)
+    return (
+      <FullPage showBreadcrumbs={false}>
+        <LoadingState label="Loading published deck…" className="min-h-64" />
+      </FullPage>
+    );
+  if (error || !deck)
+    return (
+      <FullPage showBreadcrumbs={false}>
+        <InlineStatus variant="error">
+          {error || "This published deck could not be loaded."}
+        </InlineStatus>
+      </FullPage>
+    );
+  const main = getMainDeckCards(deck);
+  const side = getSideDeckCards(deck);
+  const special = SPECIAL_DECK_FIELDS.map((field) => ({
+    label: labels[field],
+    cards: getSpecialDeckCards(deck, field),
+  }));
+  return (
+    <FullPage showBreadcrumbs={false}>
+      <div className="mobile-shrink min-h-0 flex-1 overflow-y-auto px-3 pb-[calc(1rem+var(--safe-area-bottom))] pt-2 sm:px-4">
+        <header className="rounded-sm border border-white/20 bg-[rgba(5,11,17,.71)] p-4">
+          <p className="text-xs uppercase tracking-[.16em] text-sky-200">
+            Published deck
+          </p>
+          <h1 className="mt-1 break-words font-serif text-3xl text-white">
+            {deck.name}
+          </h1>
+          <div className="mt-3 grid gap-1 text-sm text-slate-300 sm:grid-cols-2">
+            <span className="break-words">Legion: {deck.legion}</span>
+            <span className="break-words">
+              Author: {deck.author || "Unknown author"}
+            </span>
+            <span>
+              Published: {new Date(deck.published_date).toLocaleDateString()}
+            </span>
+            <span>
+              {main.length} main · {side.length}/15 side
+            </span>
+          </div>
+          <Button
+            type="button"
+            onClick={copy}
+            disabled={status === "loading"}
+            pending={status === "loading"}
+            className="mt-4 w-full"
+          >
+            {status === "loading"
+              ? "Checking sign-in…"
+              : session
+                ? "Copy to My Decks"
+                : "Sign in to copy this deck"}
+          </Button>
+          {!session && status !== "loading" && (
+            <p className="mt-2 text-sm text-slate-400">
+              You can browse public decks without an account. Sign in only to
+              save a copy.
+            </p>
+          )}
+          {copyError && (
+            <InlineStatus variant="error" className="mt-3">
+              {copyError}
+            </InlineStatus>
+          )}
+        </header>
+        <div
+          role="tablist"
+          aria-label="Published deck view"
+          className="mt-4 flex flex-wrap gap-2"
+        >
+          {(["cards", "grouped", "stats"] as const).map((item) => (
+            <button
+              key={item}
+              role="tab"
+              aria-selected={view === item}
+              type="button"
+              onClick={() => setView(item)}
+              className={`touch-feedback min-h-[var(--touch-target-size)] rounded-sm border px-4 capitalize ${view === item ? "border-sky-200/55 bg-blue-400/15 text-white" : "border-white/15 text-slate-300"}`}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+        {view === "stats" ? (
+          <Stats main={main} side={side} special={special} />
+        ) : (
+          <div className="mt-4 space-y-3">
+            {special.map((section) => (
+              <Section
+                key={section.label}
+                {...section}
+                view={view}
+                banlist={banlist}
+                onInspect={setSelected}
+              />
+            ))}
+            <Section
+              label="Main Deck"
+              cards={main}
+              banlist={banlist}
+              view={view}
+              onInspect={setSelected}
+              open
+            />
+            <Section
+              label="Side Deck"
+              cards={side}
+              banlist={banlist}
+              view={view}
+              onInspect={setSelected}
+            />
+          </div>
+        )}
+        <Modal
+          open={Boolean(selected)}
+          closeModal={() => setSelected(null)}
+          ariaLabel="Published deck card details"
+          modalHeader={
+            <div className="flex items-center justify-between py-3">
+              <span className="min-w-0 break-words text-base font-semibold text-white">
+                {selected && decodeHTMLEntities(selected.title)}
+              </span>
+              <button
+                type="button"
+                aria-label="Close card details"
+                className="touch-feedback ml-3 grid h-11 w-11 shrink-0 place-items-center border border-sky-200/30"
+                onClick={() => setSelected(null)}
+              >
+                ×
+              </button>
+            </div>
+          }
+          modalContent={
+            <CardGalleryInspector
+              compact
+              card={selected}
+              banlistItem={
+                selected ? getCardStatus(banlist, selected.title) : null
+              }
+            />
+          }
+        />
+      </div>
+    </FullPage>
+  );
+}
+function Section({
+  label,
+  cards,
+  view,
+  onInspect,
+  open = false,
+  banlist,
+}: {
+  label: string;
+  cards: HydratedDeckCard[];
+  view: View;
+  onInspect: (card: HydratedDeckCard) => void;
+  open?: boolean;
+  banlist: BanlistItem[];
+}) {
+  const [expanded, setExpanded] = useState(open);
+  const grouped = useMemo(() => {
+    const m = new Map<string, { card: HydratedDeckCard; count: number }>();
+    cards.forEach((card) => {
+      const entry = m.get(card._id.toString());
+      if (entry) entry.count++;
+      else m.set(card._id.toString(), { card, count: 1 });
+    });
+    return [...m.values()];
+  }, [cards]);
+  return (
+    <section className="rounded-sm border border-white/15 bg-slate-950/30">
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
+        className="touch-feedback flex min-h-[var(--touch-target-size)] w-full items-center justify-between px-3 text-left text-sm font-semibold text-white"
+      >
+        <span>
+          {label} <span className="text-sky-200">({cards.length})</span>
+        </span>
+        <span>{expanded ? "−" : "+"}</span>
+      </button>
+      {expanded &&
+        (cards.length === 0 ? (
+          <p className="border-t border-white/10 px-3 py-3 text-sm text-slate-400">
+            No cards in this section.
+          </p>
+        ) : view === "grouped" ? (
+          <div className="border-t border-white/10 p-2">
+            {grouped.map(({ card, count }) => (
+              <button
+                type="button"
+                key={card._id.toString()}
+                onClick={() => onInspect(card)}
+                className="touch-feedback flex min-h-[var(--touch-target-size)] w-full items-center justify-between gap-3 px-2 text-left text-sm text-slate-100"
+              >
+                <span className="min-w-0 break-words">
+                  {decodeHTMLEntities(card.title)}
+                  <CardStatusBadge item={getCardStatus(banlist, card.title)} />
+                </span>
+                <span className="shrink-0">×{count}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 border-t border-white/10 p-2 min-[420px]:grid-cols-3 sm:grid-cols-4">
+            {cards.map((card, i) => (
+              <button
+                type="button"
+                key={`${card._id}-${i}`}
+                aria-label={`Inspect ${decodeHTMLEntities(card.title)}`}
+                onClick={() => onInspect(card)}
+                className="touch-feedback overflow-hidden rounded-sm border border-white/10 text-left"
+              >
+                <span className="relative block aspect-[3/4]">
+                  <span className="absolute right-1 top-1 z-10">
+                    <CardStatusBadge
+                      item={getCardStatus(banlist, card.title)}
+                    />
+                  </span>
+                  <CardImage
+                    src={card.featured_image}
+                    alt=""
+                    loading="lazy"
+                    priority={false}
+                    className="object-contain"
+                  />
+                </span>
+                <span className="block min-h-[var(--touch-target-size)] break-words px-2 py-2 text-xs text-slate-100">
+                  {decodeHTMLEntities(card.title)}
+                </span>
+              </button>
+            ))}
+          </div>
+        ))}
+    </section>
+  );
+}
+function Stats({
+  main,
+  side,
+  special,
+}: {
+  main: HydratedDeckCard[];
+  side: HydratedDeckCard[];
+  special: Array<{ label: string; cards: HydratedDeckCard[] }>;
+}) {
+  return (
+    <section className="mt-4 rounded-sm border border-white/15 bg-slate-950/30 p-4">
+      <h2 className="text-lg font-semibold text-white">Deck stats</h2>
+      <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Stat label="Main deck" value={main.length} />
+        <Stat label="Side deck" value={`${side.length}/15`} />
+        {special.map((section) => (
+          <Stat
+            key={section.label}
+            label={section.label}
+            value={section.cards.length}
+          />
+        ))}
+      </dl>
+    </section>
+  );
+}
+function Stat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div>
+      <dt className="text-sm text-slate-400">{label}</dt>
+      <dd className="text-lg text-white">{value}</dd>
+    </div>
+  );
+}

@@ -119,7 +119,7 @@ export default function DeckEditorHeader({
     <div className="sticky top-0 z-20 space-y-1 bg-slate-950/95 py-1 backdrop-blur">
       <div className="text-center flex flex-wrap">
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <Select value={deck?._id?.toString()} onValueChange={handleDeckChange} disabled={loading || Boolean(error) || actionsDisabled}>
+          <Select value={deck?._id?.toString() ?? ""} onValueChange={handleDeckChange} disabled={loading || Boolean(error) || actionsDisabled}>
             <SelectTrigger className="h-10 min-w-52 border-white/20 bg-white/10 text-sm text-white focus-visible:ring-2 focus-visible:ring-blue-400">
               <SelectValue placeholder={loading ? "Loading decks…" : error ? "Decks unavailable" : "Select deck"} />
             </SelectTrigger>

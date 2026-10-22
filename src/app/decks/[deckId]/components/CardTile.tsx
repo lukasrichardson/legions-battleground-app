@@ -1,8 +1,9 @@
 import CardImage from "@/app/components/Card/CardImage";
-import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
+import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
+import CardStatusBadge, { getCardStatus } from "@/app/components/Card/CardStatusBadge";
 import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDrag } from "react-dnd";
 
 export type DeckCardListKey =
@@ -83,35 +84,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
       }
     }
   }, [timeoutId]);
-  const suspendedCards = useMemo(() => {
-    const suspended = {};
-    banlist.forEach(item => {
-      if (item.status === BanlistStatus.SUSPENDED) {
-        suspended[item.name] = true;
-      }
-    });
-    return suspended;
-  }, [banlist]);
-
-  const restrictedCards = useMemo(() => {
-    const restricted = {};
-    banlist.forEach(item => {
-      if (item.status === BanlistStatus.RESTRICTED) {
-        restricted[item.name] = true;
-      }
-    });
-    return restricted;
-  }, [banlist]);
-
-  const limitedCards = useMemo(() => {
-    const limited = {};
-    banlist.forEach(item => {
-      if (item.status === BanlistStatus.LIMITED) {
-        limited[item.name] = true;
-      }
-    });
-    return limited;
-  }, [banlist]);
+  const status = getCardStatus(banlist, card.title);
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "cardFromDeck",
     item: { card, sourceList } satisfies DeckDragItem,
@@ -132,21 +105,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
         <div ref={(node) => { drag(node); }} className={readOnly ? undefined : "cursor-grab active:cursor-grabbing"}>
           {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck)}
           <div key={card._id.toString() + index}>
-            {suspendedCards[card.title] && (
-              <div className="absolute top-1 right-2 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
-                0
-              </div>
-            )}
-            {restrictedCards[card.title] && (
-              <div className="absolute top-1 right-2 bg-yellow-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
-                1
-              </div>
-            )}
-            {limitedCards[card.title] && (
-              <div className="absolute top-1 right-2 bg-purple-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
-                2
-              </div>
-            )}
+            <div className="absolute top-1 right-2 z-50"><CardStatusBadge item={status} numeric /></div>
             {renderCardTile(card, index, () => null)}
           </div>
         </div>
@@ -161,21 +120,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
         <div ref={(node) => { drag(node); }} className={readOnly ? undefined : "cursor-grab active:cursor-grabbing"}>
           {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck)}
           <div onContextMenu={(e) => removeCardFromDeck(e, card)} key={card._id.toString() + index} onMouseLeave={handleOnMouseLeave}>
-            {suspendedCards[card.title] && (
-              <div className="absolute top-1 right-1 bg-red-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
-                0
-              </div>
-            )}
-            {restrictedCards[card.title] && (
-              <div className="absolute top-1 right-1 bg-yellow-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
-                1
-              </div>
-            )}
-            {limitedCards[card.title] && (
-              <div className="absolute top-1 right-1 bg-purple-500 text-white text-[16px] px-1 py-0.5 rounded z-50">
-                2
-              </div>
-            )}
+            <div className="absolute top-1 right-1 z-50"><CardStatusBadge item={status} numeric /></div>
             {renderCardTile(card, index, () => null)}
           </div>
         </div>

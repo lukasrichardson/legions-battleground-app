@@ -2,13 +2,18 @@ import { describe, expect, it, vi } from "vitest";
 import { createDeckPatchQueue } from "@/client/utils/deckPatchQueue";
 import { DeckPatchOperation } from "@/shared/interfaces/DeckPatch";
 
-const addCard = (id: string): DeckPatchOperation[] => [{ op: "add", path: "/cards_in_deck/-", value: id }];
+const addCard = (id: string): DeckPatchOperation[] => [
+  { op: "add", path: "/cards_in_deck/-", value: id },
+];
 
 describe("createDeckPatchQueue", () => {
   it("sends edits in order and never overlaps requests", async () => {
     let releaseFirst: (() => void) | undefined;
-    const firstRequest = new Promise<void>((resolve) => { releaseFirst = resolve; });
-    const send = vi.fn()
+    const firstRequest = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+    const send = vi
+      .fn()
       .mockImplementationOnce(async () => firstRequest)
       .mockResolvedValueOnce(undefined);
     const queue = createDeckPatchQueue(send, vi.fn());
@@ -35,6 +40,26 @@ describe("createDeckPatchQueue", () => {
     await queue.whenIdle();
 
     expect(send).toHaveBeenCalledTimes(1);
-    expect(onError).toHaveBeenCalledWith(failure);
+    expect(onError).toHaveBeenCalledWith(failure, addCard("first"));
+  });
+
+  it("does not report idle until failed-save recovery finishes", async () => {
+    let release!: () => void;
+    const recovery = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const queue = createDeckPatchQueue(
+      vi.fn().mockRejectedValue(new Error("Save failed")),
+      () => recovery,
+    );
+    const idle = vi.fn();
+    queue.enqueue(addCard("first"));
+    void queue.whenIdle().then(idle);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(idle).not.toHaveBeenCalled();
+    release();
+    await queue.whenIdle();
+    expect(idle).toHaveBeenCalledOnce();
   });
 });

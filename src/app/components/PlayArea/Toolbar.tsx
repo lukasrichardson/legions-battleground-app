@@ -242,7 +242,7 @@ export default function Toolbar() {
 
   let panelContent: ReactNode = null;
   if (panel === "inspect") {
-    panelContent = <div className="h-full p-3"><PanelHeader title="Card inspector" onClose={closePanel} /><div className="h-[calc(100%-2rem)] overflow-hidden border border-sky-200/15"><CardPreview /></div></div>;
+    panelContent = <div className="flex h-full flex-col p-3"><PanelHeader title="Card inspector" onClose={closePanel} /><div className="min-h-0 flex-1 overflow-hidden border border-sky-200/15"><CardPreview /></div></div>;
   } else if (panel === "activity") {
     panelContent = <div className="flex h-full flex-col p-3"><PanelHeader title="Activity" onClose={closePanel} /><div className="flex min-h-0 flex-1 flex-col">{activity}</div></div>;
   } else if (panel === "menu") {
