@@ -7,7 +7,7 @@ import { getApiErrorMessage } from "@/client/utils/apiError";
 import { useDeckPickerOptions } from "@/client/hooks/useDeckPickerOptions";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { downloadDeckMarkdown } from "@/client/utils/deckMarkdown";
-import axios from "axios";
+import axios from "@/client/utils/http";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 

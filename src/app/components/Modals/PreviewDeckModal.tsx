@@ -2,7 +2,8 @@ import { useState } from "react";
 import Modal from "./Modal";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { closeImportDeckModal } from "@/client/redux/modalsSlice";
-import axios from "axios";
+import axios from "@/client/utils/http";
+import { isAxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
@@ -96,7 +97,7 @@ export default function PreviewDeckModal() {
       setLoading(false);
       setError("");
     } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
+      if (isAxiosError(err)) {
         // Axios error: response may contain server error details
         setError("Error: " + (err.response?.data ?? err.message));
       } else if (err instanceof Error) {
@@ -133,7 +134,7 @@ export default function PreviewDeckModal() {
       router.push(`/decks/${res.data.id}`);
       handleClose();
     } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
+      if (isAxiosError(err)) {
         // Axios error: response may contain server error details
         setError("Error importing deck: " + (err.response?.data ?? err.message));
       } else if (err instanceof Error) {

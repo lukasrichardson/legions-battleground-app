@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createRoomFromLobby, signInAs } from "./fixtures";
+import { createRoomFromLobby, csrfHeaders, signInAs } from "./fixtures";
 
 test.use({ hasTouch: true });
 test.beforeEach(({ page }) => page.setDefaultTimeout(15_000));
@@ -59,7 +59,7 @@ test("pile searches explain empty results and offer a reset", async ({ page }) =
 
 test("builder inspector shows per-target copy counts and save failures without closing", async ({ page }) => {
   await signInAs(page, "e2e-player-one");
-  const response = await page.request.post("/api/decks", { data: { name: `Usability deck ${Date.now()}`, legion: "E2E Legion" } });
+  const response = await page.request.post("/api/decks", { headers: await csrfHeaders(page), data: { name: `Usability deck ${Date.now()}`, legion: "E2E Legion" } });
   const { deck } = await response.json();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`/decks/${deck._id}`);
@@ -130,7 +130,7 @@ test("legacy moves also end the action dialog without retargeting the next pile 
 test("recent personal and published deck headings separate titles from counts on phones", async ({ page }) => {
   await signInAs(page, "e2e-player-one");
   for (let index = 0; index < 3; index++) {
-    const response = await page.request.post("/api/decks", { data: { name: `Heading fixture ${Date.now()} ${index}`, legion: "E2E Legion" } });
+    const response = await page.request.post("/api/decks", { headers: await csrfHeaders(page), data: { name: `Heading fixture ${Date.now()} ${index}`, legion: "E2E Legion" } });
     expect(response.ok()).toBe(true);
   }
   await page.setViewportSize({ width: 390, height: 844 });

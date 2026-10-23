@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createRoomFromLobby, signInAs } from "./fixtures";
+import { createRoomFromLobby, csrfHeaders, signInAs } from "./fixtures";
 import {
   expectControlsReachable,
   expectMinimumTouchTargets,
@@ -14,7 +14,7 @@ test.beforeEach(({ page }) => {
 });
 async function createDeck(page: Page) {
   await signInAs(page, "e2e-player-one");
-  const response = await page.request.post("/api/decks", {
+  const response = await page.request.post("/api/decks", { headers: await csrfHeaders(page),
     data: { name: `Touch regression ${Date.now()}`, legion: "E2E Legion" },
   });
   expect(response.status()).toBe(201);

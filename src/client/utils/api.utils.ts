@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "@/client/utils/http";
 import { appendQueryParams } from "./string.util";
 import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";

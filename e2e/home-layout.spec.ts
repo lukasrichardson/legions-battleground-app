@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signInAs } from "./fixtures";
+import { csrfHeaders, signInAs } from "./fixtures";
 
 test("populated home panels stay separate and reachable across responsive breakpoints", async ({ page, browser }) => {
   await signInAs(page, "e2e-player-one");
@@ -10,13 +10,13 @@ test("populated home panels stay separate and reachable across responsive breakp
 
   // Use real authenticated API data and Socket.IO room discovery, not DOM fixtures.
   for (let index = 0; index < 3; index += 1) {
-    const response = await page.request.post("/api/decks", {
+    const response = await page.request.post("/api/decks", { headers: await csrfHeaders(page),
       data: { name: `${prefix} recent deck ${index}`, legion: "E2E Legion" },
     });
     expect(response.status()).toBe(201);
   }
   for (let index = 0; index < 8; index += 1) {
-    const response = await page.request.post("/createRoom", {
+    const response = await page.request.post("/createRoom", { headers: await csrfHeaders(page),
       data: {
         roomName: `${prefix} room ${index} with a deliberately long name`,
         deckId: deck._id,

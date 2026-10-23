@@ -10,6 +10,7 @@ import { routes } from './network/routes';
 import next from 'next';
 import { connectToDatabase, closeDatabaseConnection, getDatabaseName } from './utils/database.util';
 import { ensureAliasIndexes } from './services/api/AliasService';
+import { createCsrfProtection } from './middleware/csrf';
 
 const uri = process.env.MONGO_URL;
 if (!uri) {
@@ -29,6 +30,7 @@ connectToDatabase().then(async () => {
     const app = express();
     app.use(cors({ origin: appOrigin }));
     app.use(cookieParser());
+    app.use(createCsrfProtection(appOrigin, process.env.NEXTAUTH_SECRET));
     app.use(bodyParser.json({ limit: "10mb", type: ["application/json", "application/json-patch+json"] }));
   
     const httpServer = createServer(app);

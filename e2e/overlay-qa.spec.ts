@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { signInAs, createRoomFromLobby, joinRoomFromLobby, newSignedInPage } from "./fixtures";
+import { csrfHeaders, signInAs, createRoomFromLobby, joinRoomFromLobby, newSignedInPage } from "./fixtures";
 
 // One viewport per layout constraint, including unusually short game dialogs.
 // Dedicated drag/resize and long-content tests retain their explicit sizes.
@@ -171,7 +171,7 @@ test.describe("touch overlay matrix", () => {
     await signInAs(page, "e2e-player-one");
     const decks = await (await page.request.get("/api/decks?view=summary")).json();
     const roomName = `Overlay lobby fixture ${Date.now()}`;
-    const response = await page.request.post("/createRoom", { data: { roomName, deckId: decks[0]._id, sandboxMode: true } });
+    const response = await page.request.post("/createRoom", { headers: await csrfHeaders(page), data: { roomName, deckId: decks[0]._id, sandboxMode: true } });
     expect(response.status()).toBe(201);
     for (const size of viewports) {
       await page.setViewportSize(size);

@@ -2,6 +2,15 @@ import { expect, type BrowserContext, type Page } from "@playwright/test";
 
 export type E2eUser = "e2e-player-one" | "e2e-player-two";
 
+/** API fixture writes must pass the same CSRF boundary as browser mutations. */
+export async function csrfHeaders(page: Page): Promise<Record<string, string>> {
+  const response = await page.request.get("/api/csrf");
+  expect(response.ok()).toBe(true);
+  const { csrfToken } = await response.json();
+  expect(typeof csrfToken).toBe("string");
+  return { "x-csrf-token": csrfToken };
+}
+
 export async function signInAs(page: Page, userId: E2eUser) {
   await page.goto("/api/auth/signin/e2e?callbackUrl=/");
   await page.getByLabel("Test user").fill(userId);

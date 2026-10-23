@@ -1,5 +1,6 @@
 "use client";
 
+import { csrfFetch } from "@/client/utils/http";
 import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
@@ -48,7 +49,7 @@ export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
     setSaving(true);
     setError("");
     try {
-      const response = await fetch("/api/me/alias", {
+      const response = await csrfFetch("/api/me/alias", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ alias }),

@@ -3,7 +3,7 @@ import Modal from "./Modal";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { setCreateRoomModalOpen } from "@/client/redux/modalsSlice";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import axios from "@/client/utils/http";
 import { Input } from "@/client/ui/input";
 import { useDeckPickerOptions } from "@/client/hooks/useDeckPickerOptions";
 import { useAuth } from "@/client/hooks/useAuth";
