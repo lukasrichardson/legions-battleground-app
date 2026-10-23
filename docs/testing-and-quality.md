@@ -3,6 +3,14 @@
 ## Automated checks
 
 ```bash
+npm run check
+```
+
+`check` runs lint with zero warnings allowed, both TypeScript checks, and all Vitest tests. GitHub Actions runs the same command for pull requests targeting `master` and pushes to `master`, independently of the browser suite. It needs no database or OAuth credentials.
+
+Individual checks and additional validation:
+
+```bash
 npm run lint
 npm run typecheck
 npm run typecheck:server
@@ -22,6 +30,8 @@ To use a different local test database, set `E2E_MONGO_URL` and `E2E_MONGO_DB_NA
 
 The suite signs in using a NextAuth credentials provider which is only present when `E2E_TEST_MODE=true` and `NODE_ENV` is not `production`. It exercises authenticated deck management, public-deck copying, browser-driven regular-room creation and joining, match-state synchronization and reconnecting, and sandbox entry.
 
+Page navigation has a separate 30-second timeout in `playwright.config.ts` because the development server compiles routes on first visit. This does not change the shorter control-action timeouts used by interaction tests.
+
 ### Mobile regression helpers
 
 Use `e2e/mobile.ts` in Playwright coverage for phone-sized routes and overlays. It provides the supported viewport matrix plus assertions for document-level horizontal overflow and visible interactive controls that extend outside the current viewport. Run the layout assertion only after the route has reached an observable ready state (for example, a heading, list, or dialog title), rather than using a timing delay.
@@ -37,6 +47,8 @@ The regression specs cover pending-save Undo invalidation, failed-save recovery,
 GitHub Actions runs this suite for pull requests targeting `master` and pushes to `master`. Failed runs retain the Playwright HTML report, traces, screenshots, and retry-only videos as artifacts.
 
 ## Current coverage scope
+
+`tests/deck-api.test.ts` starts an ephemeral Express listener and exercises the real deck controllers, services, validation, and error middleware with database calls mocked. It covers creation, duplication, copying, publication, ownership filters, legacy IDs, invalid input, missing decks, edit races, and safe infrastructure-error responses. Client API-message handling is covered in `tests/api-error.test.ts`. These tests do not verify MongoDB query execution or replace the browser suite.
 
 The automated suite covers deterministic utility behavior, card selection, ordinal formatting, HTML entity decoding, socket payload validation, R2 image-key migration, R2 service-worker routing, Toolbox deck-response parsing, and the critical Chromium user journeys above. It does not claim exhaustive card-rule, full game-engine, or cross-browser coverage.
 

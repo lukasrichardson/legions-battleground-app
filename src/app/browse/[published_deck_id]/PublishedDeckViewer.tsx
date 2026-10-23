@@ -11,6 +11,7 @@ import {
   copyPublishedDeck,
 } from "@/client/utils/api.utils";
 import { useBanlist } from "@/client/hooks/useBanlist";
+import { getApiErrorMessage } from "@/client/utils/apiError";
 import { Button } from "@/client/ui/button";
 import { InlineStatus } from "@/client/ui/inline-status";
 import { getCardStatus } from "@/app/components/Card/CardStatusBadge";
@@ -66,8 +67,8 @@ export default function PublishedDeckViewer() {
       if (result._id) router.push(`/decks/${result._id}`);
       else
         setCopyError("The deck copy could not be created. Please try again.");
-    } catch {
-      setCopyError("The deck copy could not be created. Please try again.");
+    } catch (error) {
+      setCopyError(getApiErrorMessage(error, "The deck copy could not be created. Please try again."));
     }
   };
 

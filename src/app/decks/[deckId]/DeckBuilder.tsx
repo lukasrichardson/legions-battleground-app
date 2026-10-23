@@ -6,6 +6,7 @@ import DeckGrid from "./components/DeckGrid";
 import SearchPane from "./components/SearchPane";
 import DeckEditorHeader from "./components/DeckEditorHeader";
 import { fetchDeckById, patchDeckById } from "@/client/utils/api.utils";
+import { getApiErrorMessage } from "@/client/utils/apiError";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { preloadDeckImages } from "@/client/utils/imagePreloader";
@@ -91,8 +92,7 @@ export default function DeckBuilder() {
         advanceRevision();
         recoveringDeck.current = request.deckId;
         const failedRevision = revision.current;
-        const message =
-          error instanceof Error ? error.message : "Unable to save deck.";
+        const message = getApiErrorMessage(error, "Unable to save deck.");
         setSaveError(message);
         const currentDeck = deckRef.current;
         if (!currentDeck) return;

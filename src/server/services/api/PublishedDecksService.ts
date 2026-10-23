@@ -1,22 +1,23 @@
 import { getDatabase } from "@/server/utils/database.util";
 import PublishedDeck from "@/shared/interfaces/PublishedDeck";
-import { ObjectId } from "mongodb";
-import { getDeckById } from "./DecksService";
+import { Filter } from "mongodb";
 import { normalizeDeck } from "@/shared/deckComposition";
-import { getAliasForUser } from "./AliasService";
 import { getHydratedDeck, hydrateDecks } from "./DeckHydrationService";
 import { getDeckListSummaries } from "./DeckListSummaryService";
 import { PublishedDeckListItem, PublishedDeckListResponse } from "@/shared/interfaces/DeckListItem";
+
+import { requireDeckObjectId } from "./DeckServiceError";
 
 export const insertOnePublishedDeck = async (deck: Omit<PublishedDeck, "_id">): Promise<PublishedDeck> => {
   const db = getDatabase();
   const result = await db.collection("published_decks").insertOne(deck);
   const createdDeck = await getPublishedDeckById(result.insertedId.toString());
+  if (!createdDeck) throw new Error("Published deck could not be loaded.");
   return createdDeck;
 }
 
 export const getPublishedDeckById = async (deckId: string): Promise<PublishedDeck | null> => {
-  const query = { _id: new ObjectId(deckId) };
+  const query = { _id: requireDeckObjectId(deckId) };
   const deck = await getHydratedDeck<PublishedDeck>("published_decks", query);
   return deck ? normalizeDeck(deck) : null;
 }
@@ -33,8 +34,8 @@ type PublishedDeckListOptions = {
   limit?: number;
 };
 
-export const getPublishedDecks = async (legion, options: PublishedDeckListOptions = {}): Promise<PublishedDeck[]> => {
-  const query = {};
+export const getPublishedDecks = async (legion: string | string[] | undefined, options: PublishedDeckListOptions = {}): Promise<PublishedDeck[]> => {
+  const query: Filter<PublishedDeck> = {};
   if (legion && typeof legion === 'string' && legion.trim() !== '') {
     query['legion'] = legion;
   } else if (legion && Array.isArray(legion)) {
@@ -85,27 +86,4 @@ export const getPublishedDeckFilterOptions = async (): Promise<{ legion: string[
   const db = getDatabase();
   const legion = await db.collection("published_decks").distinct("legion");
   return { legion };
-}
-
-export const publishDeck = async (user, deckId: string): Promise<PublishedDeck> => {
-  const existingDeck = await getDeckById({ id: user.id }, deckId);
-  if (!existingDeck) {
-    throw new Error("Deck not found");
-  }
-  const existingPublishedDeck = await getPublishedDeckByName(existingDeck.name);
-  if (existingPublishedDeck) {
-    throw new Error("A Published deck with this name already exists");
-  }
-  const alias = await getAliasForUser(user.id);
-
-  const newPublishedDeck: PublishedDeck = {
-    ...normalizeDeck(existingDeck),
-    name: existingDeck.name,
-    published_date: new Date(),
-    author: alias ?? user.name ?? user.email ?? "Unknown Author",
-  };
-  delete newPublishedDeck._id;
-  delete newPublishedDeck.cards;
-  const createdDeck = await insertOnePublishedDeck(newPublishedDeck);
-  return createdDeck;
 }

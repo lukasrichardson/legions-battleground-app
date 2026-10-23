@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/client/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/client/ui/select";
 import { createDeck, fetchFilterOptions } from "@/client/utils/api.utils";
+import { getApiErrorMessage } from "@/client/utils/apiError";
 import { InlineStatus } from "@/client/ui/inline-status";
 import AppIcon from "../AppIcon";
 import LoadingState from "../LoadingState";
@@ -75,7 +76,7 @@ export default function CreateDeckModal({
       closeModal();
     } catch (err) {
       console.error("Error creating deck:", err);
-      setError("Failed to create deck. Please try again.");
+      setError(getApiErrorMessage(err, "Failed to create deck. Please try again."));
     } finally {
       setLoading(false);
     }

@@ -111,6 +111,8 @@ docker run -p 3000:3000 --env-file .env legions-battleground
 
 ## Quality checks
 
+Run `npm run check` for lint (zero warnings), client/server type checks, and unit/API contract tests. The same command runs in CI on pull requests and pushes to `master`.
+
 ```bash
 npm run lint
 npm run typecheck

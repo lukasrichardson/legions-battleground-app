@@ -39,8 +39,7 @@ async function expectInsideViewport(page: Page, element: Locator) {
 }
 
 test.describe("app-wide control QA", () => {
-  test.use({ hasTouch: true });
-  test.beforeEach(({ page }) => page.setDefaultTimeout(10_000));
+  test.use({ hasTouch: true, actionTimeout: 10_000 });
 
   test("collection filter menus stay anchored, selectable and dismissible at every breakpoint", async ({ page }) => {
     test.setTimeout(180_000);

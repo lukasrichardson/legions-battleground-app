@@ -3,6 +3,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Button } from "@/client/ui/button";
 import { InlineStatus } from "@/client/ui/inline-status";
 import { createPublishedDeck } from "@/client/utils/api.utils";
+import { getApiErrorMessage } from "@/client/utils/apiError";
 import { useDeckPickerOptions } from "@/client/hooks/useDeckPickerOptions";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { downloadDeckMarkdown } from "@/client/utils/deckMarkdown";
@@ -69,6 +70,7 @@ export default function DeckEditorHeader({
       router.push("/decks");
     }).catch((err) => {
       console.error("Error deleting deck:", err);
+      setActionError(getApiErrorMessage(err, "Could not delete this deck. Please try again."));
     });
   };
 
@@ -82,7 +84,7 @@ export default function DeckEditorHeader({
       router.push(`/decks/${newDeckId}`);
     } catch (err) {
       console.error("Error duplicating deck:", err);
-      setActionError("Could not copy this deck. Please try again.");
+      setActionError(getApiErrorMessage(err, "Could not copy this deck. Please try again."));
     } finally {
       setActionPending(null);
     }
@@ -97,7 +99,7 @@ export default function DeckEditorHeader({
       router.push(`/browse/${publishedDeck._id}`);
     } catch (err) {
       console.error("Error publishing deck:", err);
-      setActionError("Could not publish this deck. Please try again.");
+      setActionError(getApiErrorMessage(err, "Could not publish this deck. Please try again."));
     } finally {
       setActionPending(null);
     }

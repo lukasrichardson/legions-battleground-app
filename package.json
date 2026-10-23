@@ -21,6 +21,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "typecheck:server": "tsc --project tsconfig.server.json --noEmit",
+    "check": "npm run lint -- --max-warnings=0 && npm run typecheck && npm run typecheck:server && npm test",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
