@@ -68,22 +68,64 @@ body {
   min-width: 0;
 }
 
-/* Keep the board's hit areas in viewport CSS pixels on compact screens. The
- * battlefield scrolls vertically; the local hand and phase actions stay pinned.
- * Six rows plus two hands cannot all have 44px targets inside a 320px height. */
+/* Keep touch text fields at the no-auto-zoom size, including narrow landscape
+ * phones whose width otherwise activates desktop typography utilities. */
+@media (any-pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Short landscape pages need a document scroll, rather than squeezing desktop
+ * panels between the navigation and the bottom of a phone viewport. Opt in
+ * content pages explicitly so gameplay and the desktop builder keep their
+ * workspace layout. */
+@media (orientation: landscape) and (max-height: 600px) and (max-width: 1100px) {
+  .short-landscape-scroll {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .short-landscape-flow {
+    height: auto;
+    min-height: 0;
+    flex-shrink: 0;
+    overflow: visible;
+  }
+  .home-layout {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+  .home-hero h1 {
+    margin-block: 0;
+    font-size: clamp(27px, 4vw, 36px);
+  }
+  .home-hero > div > span {
+    font-size: 12px;
+  }
+  .short-landscape-card-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .short-landscape-spacer {
+    display: none;
+  }
+}
+
+/* Compact play is a complete battlefield overview. Reserve space for the hand
+ * and phase controls, then share the remaining height between both boards.
+ * Board cells stay at least 24px high; detailed actions use larger controls. */
 [data-compact-game] .game-play-area {
   display: grid;
-  grid-template-rows: 60px minmax(168px, 1fr) 52px minmax(168px, 1fr) 100px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scroll-padding-block: 60px 156px;
+  grid-template-rows: 24px minmax(0, 1fr) 48px minmax(0, 1fr) 76px;
+  overflow: hidden;
 }
 [data-compact-game] [data-game-mode="sandbox"] .game-play-area {
-  grid-template-rows: 60px minmax(168px, 1fr) minmax(168px, 1fr) 100px;
+  grid-template-rows: 24px minmax(0, 1fr) minmax(0, 1fr) 76px;
 }
 [data-compact-game] .game-play-area > div {
   min-width: 0;
+  min-height: 0;
 }
 [data-compact-game] .game-play-area > .contents {
   display: block;
@@ -94,34 +136,40 @@ body {
 }
 [data-compact-game] .game-play-area > .grid {
   height: auto;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
 }
 [data-compact-game] .game-play-area > div:last-child {
-  position: sticky;
-  bottom: 0;
-  z-index: 25;
   background: #050a0e;
 }
 [data-compact-game] .game-play-area > section {
-  position: sticky;
-  top: calc(100% - 152px);
-  bottom: 100px;
-  z-index: 24;
   background: #09202d;
 }
 [data-compact-game] [data-game-zone] {
-  min-height: 44px;
-  min-width: 44px;
+  min-height: 24px;
+  min-width: 0;
   margin-inline: 1px;
   transition: none;
   transform: none;
 }
 [data-compact-game] [data-game-zone] .card-inner {
-  width: 44px;
-  height: 54px;
+  width: auto;
+  min-width: 24px;
+  height: calc(100% - 2px);
+  max-width: 100%;
+  aspect-ratio: 3 / 4;
 }
 [data-compact-game] [data-opponent-hand] {
-  width: 44px;
-  height: 54px;
+  width: 16px;
+  height: 22px;
+}
+[data-compact-game] [data-game-zone] > div:has(> .card-inner) {
+  height: 100%;
+  aspect-ratio: 3 / 4;
+}
+[data-compact-game] [data-mobile-overflow-exempt="hand-tray"] .card-inner {
+  width: 54px;
+  height: 72px;
 }
 [data-compact-game] .card-inner {
   box-sizing: border-box !important;
@@ -129,12 +177,52 @@ body {
 [data-compact-game] .card-inner > span {
   display: block;
   max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
   overflow-wrap: anywhere;
   font-size: 11px;
   line-height: 1.2;
 }
 [data-compact-game] .card-inner:hover {
   transform: none;
+}
+/* At short landscape heights, share the bottom row between hand and status
+ * rather than letting six minimum-height board rows overlap either surface. */
+@media (orientation: landscape) and (max-height: 300px) {
+  [data-compact-game] .game-play-area,
+  [data-compact-game] [data-game-mode="sandbox"] .game-play-area {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: 24px minmax(72px, 1fr) minmax(72px, 1fr) 48px;
+  }
+  [data-compact-game] .game-play-area > div {
+    grid-column: 1 / -1;
+  }
+  [data-compact-game] .game-play-area > .grid:nth-of-type(2) { grid-row: 2; }
+  [data-compact-game] .game-play-area > .grid:nth-of-type(3) { grid-row: 3; }
+  [data-compact-game] .game-play-area > section[aria-label="Regular match status"] {
+    grid-column: 2;
+    grid-row: 4;
+    padding-inline: 4px;
+  }
+  [data-compact-game] .game-play-area > section[aria-label="Regular match status"] > div {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px;
+    padding-inline: 0;
+  }
+  [data-compact-game] .game-play-area > section[aria-label="Regular match status"] > div > div:nth-child(2) { display: none; }
+  /* Use two text lines even when the wide-screen phase column is hidden. */
+  [data-compact-game] .game-play-area > section[aria-label="Regular match status"] > div > div:first-child > div:first-child { display: none; }
+  [data-compact-game] .game-play-area > section[aria-label="Regular match status"] > div > div:first-child > div[title] { display: block; }
+  [data-compact-game] .game-play-area > div:last-child {
+    grid-row: 4;
+    grid-column: 1;
+  }
+  [data-compact-game] [data-game-mode="sandbox"] .game-play-area > div:last-child { grid-column: 1 / -1; }
+  [data-compact-game] .game-play-area > div:last-child > div > div:last-child { display: none; }
+  [data-compact-game] [data-mobile-overflow-exempt="hand-tray"] .card-inner {
+    width: 44px;
+    height: 44px;
+  }
 }
 [data-compact-game] .game-play-area > aside {
   position: fixed;
@@ -147,7 +235,34 @@ body {
   min-height: 44px;
   min-width: 44px;
 }
+.game-card-submenu .ant-menu-sub {
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+}
+.game-card-submenu .ant-menu-item,
+.game-card-submenu .ant-menu-submenu-title {
+  height: auto;
+  min-height: 40px;
+  padding-block: 10px;
+  line-height: 1.4;
+  white-space: normal;
+}
 @media (max-width: 1100px) {
+  .game-card-dialog .ant-menu-item,
+  .game-card-dialog .ant-menu-submenu-title {
+    min-height: 44px;
+    height: auto;
+    padding-block: 10px;
+    line-height: 1.4;
+    white-space: normal;
+  }
+  .game-card-dialog .ant-menu-title-content {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    text-overflow: clip;
+  }
   .ant-popover .ant-menu-item, .ant-popover .ant-menu-submenu-title {
     min-height: 44px;
     height: auto;

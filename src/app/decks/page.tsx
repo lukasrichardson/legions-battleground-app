@@ -11,7 +11,7 @@ export default function BasePage() {
   return (
     <Suspense>
       <SessionProvider>
-        <FullPage showBreadcrumbs={false}>
+        <FullPage showBreadcrumbs={false} scrollOnShortLandscape>
           <DecksPageHeader />
           <DecksList />
         </FullPage>

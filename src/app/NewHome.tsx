@@ -26,7 +26,7 @@ const primaryButtonClass = [
 ].join(" ");
 
 const homeContainerClass = [
-  "mx-auto flex h-full min-h-0 flex-col overflow-y-auto",
+  "home-layout mx-auto flex h-full min-h-0 flex-col overflow-y-auto",
   "w-[calc(100%-24px)] gap-3 py-3 pb-[max(1rem,env(safe-area-inset-bottom))]",
   "md:h-[calc(100dvh-76px)] sm:w-[min(1380px,calc(100%-64px))] md:overflow-hidden",
   "sm:gap-[14px] sm:pb-8 sm:pt-[40px]",
@@ -37,15 +37,15 @@ const homeContainerClass = [
 export default function NewHome() {
   const dispatch = useAppDispatch();
   const { rooms } = useSocket();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   useBackgroundPreload();
 
   useEffect(() => { dispatch(closeHelpModal()); }, [dispatch]);
   const roomList = Object.values(rooms);
 
-  return <ArenaShell>
+  return <ArenaShell scrollOnShortLandscape>
     <div className={homeContainerClass}>
-      <section className="hidden w-full sm:flex flex-col text-shadow-[0_2px_5px_#000] md:flex-row md:items-end">
+      <section className="home-hero hidden w-full sm:flex flex-col text-shadow-[0_2px_5px_#000] md:flex-row md:items-end">
         <div className="w-full md:w-1/2">
           <h1 className="m-0 font-serif text-[27px] leading-[.98] tracking-[-.04em] sm:my-2.5 sm:text-[clamp(36px,5vw,66px)]">Legions Battleground</h1>
           <span className="hidden text-base leading-[1.55] sm:block">
@@ -53,13 +53,13 @@ export default function NewHome() {
           </span>
         </div>
       </section>
-      <div className="flex min-h-0 w-full shrink-0 flex-col py-2 md:shrink md:flex-row">
-        <section className="min-h-0 grow shrink md:h-full w-full md:w-3/5 px-0 sm:px-2">
-          <div className="flex flex-col items-start md:h-full md:overflow-y-auto md:[&>*]:shrink-0">
+      <div className="short-landscape-flow flex min-h-0 w-full shrink-0 flex-col py-2 md:shrink md:flex-row">
+        <section className="short-landscape-flow min-h-0 grow shrink md:h-full w-full md:w-3/5 px-0 sm:px-2">
+          <div className="short-landscape-flow flex flex-col items-start md:h-full md:overflow-y-auto md:[&>*]:shrink-0">
             <div className="flex w-full justify-center items-center">
-                <button className={`${primaryButtonClass} min-h-11 w-full max-w-md sm:w-auto`} type="button" onClick={() => session ? dispatch(setCreateRoomModalOpen(true)) : signIn()}>{session ? "Play" : "Enter The Battleground"} {session ? <Play size={26} /> : <LogIn size={26} />}</button>
+                <button className={`${primaryButtonClass} min-h-11 w-full max-w-md disabled:opacity-50 sm:w-auto`} type="button" disabled={status === "loading"} onClick={() => session ? dispatch(setCreateRoomModalOpen(true)) : signIn()}>{status === "loading" ? "Checking sign-in…" : session ? "Play" : "Enter The Battleground"} {session ? <Play size={26} /> : <LogIn size={26} />}</button>
             </div>
-            <div className="pt-2 shrink min-h-0 my-3 w-full border-b border-white/20 bg-[rgba(4,9,13,.66)] shadow-[0_15px_40px_rgba(0,0,0,.32)] backdrop-blur-[8px] md:overflow-y-auto">
+            <div className="short-landscape-flow pt-2 shrink min-h-0 my-3 w-full border-b border-white/20 bg-[rgba(4,9,13,.66)] shadow-[0_15px_40px_rgba(0,0,0,.32)] backdrop-blur-[8px] md:overflow-y-auto">
               <header className="flex items-center justify-between border-b border-white/15 p-2 sm:px-[17px] sm:py-[13px]">
                 <div>
                   <p className="m-0 text-[11px] font-bold uppercase tracking-[.16em] text-[#eef4fa]">Active Games</p>
@@ -77,7 +77,7 @@ export default function NewHome() {
                       </div>
                       <p className="m-0 truncate text-[13px] text-[#e9f0f6]" title={room.hostName || "Player"}>Hosted by {room.hostName || "Player"} · {room.playerCount} {room.playerCount === 1 ? "player" : "players"}</p>
                     </div>
-                    <button className="min-h-11 w-full cursor-pointer border border-[#4fa9ff] bg-[#246fb8] px-4 py-2 font-serif text-sm text-[#eaf5ff] shadow-[0_0_10px_rgba(79,169,255,.25)] transition-colors hover:bg-[#338de0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:w-auto" type="button" onClick={() => session ? dispatch(setJoinRoomModalOpen(room.id)) : signIn()}>Join</button>
+                    <button className="min-h-11 w-full cursor-pointer border border-[#4fa9ff] bg-[#246fb8] px-4 py-2 font-serif text-sm text-[#eaf5ff] shadow-[0_0_10px_rgba(79,169,255,.25)] transition-colors hover:bg-[#338de0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-50 sm:w-auto" type="button" disabled={status === "loading"} onClick={() => session ? dispatch(setJoinRoomModalOpen(room.id)) : signIn()}>Join</button>
                   </article>
                 )}
               </div> : <div className="space-y-3 p-4 text-sm text-[#e1e8ee]"><p className="m-0">No active games right now. Create one when you are ready to play.</p></div>}
@@ -85,7 +85,7 @@ export default function NewHome() {
             {session && <RecentDecksPanel />}
           </div>
         </section>
-        <section className="flex w-full mt-2 md:mt-0 min-h-[220px] flex-none justify-center px-0 sm:min-h-[130px] md:w-2/5 md:overflow-hidden md:px-2">
+        <section className="short-landscape-flow flex w-full mt-2 md:mt-0 min-h-[220px] flex-none justify-center px-0 sm:min-h-[130px] md:w-2/5 md:overflow-hidden md:px-2">
           <RecentPublishedDecksPanel />
         </section>
       </div>

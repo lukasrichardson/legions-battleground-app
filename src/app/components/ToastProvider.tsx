@@ -15,6 +15,9 @@ type Toast = {
   label: string;
   actionLabel?: string;
   onAction?: () => void;
+  placement?: "top" | "bottom";
+  passive?: boolean;
+  ariaLabel?: string;
 };
 
 type ToastOptions = Omit<Toast, "id"> & { duration?: number };
@@ -41,14 +44,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const showToast = useCallback(
     (options: ToastOptions) => {
       const id = nextId.current++;
-      // A second undo must replace the first: only the immediately prior deck
-      // mutation is reversible, and stacking actions makes that promise unclear.
+      // Latest feedback replaces the previous notice rather than stacking over
+      // a small screen. Repeated identical actions still get a fresh timer.
       setToasts([
         {
           id,
           label: options.label,
           actionLabel: options.actionLabel,
           onAction: options.onAction,
+          placement: options.placement,
+          passive: options.passive,
+          ariaLabel: options.ariaLabel,
         },
       ]);
       clearTimeout(timer.current);
@@ -66,16 +72,18 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <div
-        className="pointer-events-none fixed inset-x-3 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[90] flex flex-col items-center gap-2 sm:inset-x-auto sm:right-4 sm:items-end"
+        className={toasts[0]?.placement === "top" ? "pointer-events-none fixed left-1/2 top-[max(.5rem,env(safe-area-inset-top))] z-[1300] w-max max-w-[calc(100vw-7rem)] -translate-x-1/2" : "pointer-events-none fixed inset-x-3 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[90] flex flex-col items-center gap-2 sm:inset-x-auto sm:right-4 sm:items-end"}
+        role="status"
+        aria-label={toasts[0]?.ariaLabel ?? "Notification"}
         aria-live="polite"
         aria-atomic="true"
       >
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className="pointer-events-auto flex min-h-11 w-full max-w-md items-center gap-3 border border-sky-200/35 bg-slate-950/95 px-3 py-2 text-sm text-slate-100 shadow-xl backdrop-blur sm:w-auto"
+            className={`${toast.passive ? "pointer-events-none" : "pointer-events-auto"} flex min-h-11 w-full max-w-md items-center gap-3 border border-sky-200/35 bg-slate-950/95 px-3 py-2 text-sm text-slate-100 shadow-xl backdrop-blur sm:w-auto`}
           >
-            <span className="min-w-0 flex-1">{toast.label}</span>
+            <span className="min-w-0 flex-1 break-words">{toast.label}</span>
             {toast.actionLabel && toast.onAction && (
               <button
                 type="button"
@@ -88,14 +96,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 {toast.actionLabel}
               </button>
             )}
-            <button
+            {!toast.passive && <button
               type="button"
               className="grid size-11 shrink-0 place-items-center text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
               aria-label="Dismiss notification"
               onClick={() => dismiss(toast.id)}
             >
               ×
-            </button>
+            </button>}
           </div>
         ))}
       </div>

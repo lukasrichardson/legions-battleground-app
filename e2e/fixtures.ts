@@ -5,8 +5,10 @@ export type E2eUser = "e2e-player-one" | "e2e-player-two";
 export async function signInAs(page: Page, userId: E2eUser) {
   await page.goto("/api/auth/signin/e2e?callbackUrl=/");
   await page.getByLabel("Test user").fill(userId);
-  await page.getByRole("button", { name: /sign in with e2e test user/i }).click();
-  await page.waitForURL(/\/$/);
+  // A fresh development server may compile the home route during sign-in.
+  // Keep that navigation budget separate from short control-action timeouts.
+  await page.getByRole("button", { name: /sign in with e2e test user/i }).click({ timeout: 30_000 });
+  await page.waitForURL(/\/$/, { timeout: 30_000 });
   await expect.poll(() => page.evaluate(() => fetch("/api/auth/session").then((response) => response.json()).then((session) => session.user?.id))).toBe(userId);
 }
 

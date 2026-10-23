@@ -1,10 +1,14 @@
+"use client";
+
 import React, {
   CSSProperties,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import AppIcon from "@/app/components/AppIcon";
 
 type Option = { value: string; label: string };
@@ -34,38 +38,46 @@ export function MultiSelect({
   const listboxId = useId();
   const [menuStyle, setMenuStyle] = useState<CSSProperties>();
 
-  useEffect(() => {
-    if (!open || menuPlacement !== "viewport") return;
+  useLayoutEffect(() => {
+    if (!open || menuPlacement === "inline") return;
 
     const updateMenuPosition = () => {
       const button = buttonRef.current;
-      if (!button) return;
+      const menu = menuRef.current;
+      if (!button || !menu) return;
 
       const rect = button.getBoundingClientRect();
       const viewportPadding = 12;
       const gap = 8;
-      const preferredMenuHeight = 280;
-      const spaceBelow = window.innerHeight - rect.bottom - viewportPadding;
-      const spaceAbove = rect.top - viewportPadding;
-      const openAbove = spaceBelow < preferredMenuHeight && spaceAbove > 0;
-      const availableHeight = Math.max(
-        120,
-        Math.min(preferredMenuHeight, openAbove ? spaceAbove : spaceBelow),
-      );
-      const width = Math.min(
-        rect.width,
-        window.innerWidth - viewportPadding * 2,
-      );
+      const viewport = window.visualViewport;
+      const viewportTop = viewport?.offsetTop ?? 0;
+      const viewportLeft = viewport?.offsetLeft ?? 0;
+      const viewportWidth = viewport?.width ?? window.innerWidth;
+      const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
+      if (rect.bottom <= viewportTop || rect.top >= viewportBottom || rect.right <= viewportLeft || rect.left >= viewportLeft + viewportWidth) {
+        setOpen(false);
+        return;
+      }
+      const header = menu.firstElementChild as HTMLElement | null;
+      const list = menu.lastElementChild as HTMLElement | null;
+      // Measure the actual content, not a guessed menu height. Short option
+      // lists must stay next to the trigger even when they open upwards.
+      const preferredMenuHeight = Math.min(280, (header?.offsetHeight ?? 0) + Math.min(224, list?.scrollHeight ?? 0) + 2);
+      const spaceBelow = Math.max(0, viewportBottom - rect.bottom - viewportPadding - gap);
+      const spaceAbove = Math.max(0, rect.top - viewportTop - viewportPadding - gap);
+      const openAbove = spaceBelow < preferredMenuHeight && spaceAbove > spaceBelow;
+      const availableHeight = Math.min(preferredMenuHeight, openAbove ? spaceAbove : spaceBelow);
+      const width = Math.min(Math.max(rect.width, 200), viewportWidth - viewportPadding * 2);
 
       setMenuStyle({
         width,
         maxHeight: availableHeight,
         left: Math.max(
-          viewportPadding,
-          Math.min(rect.left, window.innerWidth - width - viewportPadding),
+          viewportLeft + viewportPadding,
+          Math.min(rect.left, viewportLeft + viewportWidth - width - viewportPadding),
         ),
         top: openAbove
-          ? Math.max(viewportPadding, rect.top - availableHeight - gap)
+          ? rect.top - availableHeight - gap
           : rect.bottom + gap,
       });
     };
@@ -73,9 +85,17 @@ export function MultiSelect({
     updateMenuPosition();
     window.addEventListener("resize", updateMenuPosition);
     window.addEventListener("scroll", updateMenuPosition, true);
+    window.visualViewport?.addEventListener("resize", updateMenuPosition);
+    window.visualViewport?.addEventListener("scroll", updateMenuPosition);
+    const observer = new ResizeObserver(updateMenuPosition);
+    if (buttonRef.current) observer.observe(buttonRef.current);
+    if (menuRef.current) observer.observe(menuRef.current);
     return () => {
       window.removeEventListener("resize", updateMenuPosition);
       window.removeEventListener("scroll", updateMenuPosition, true);
+      window.visualViewport?.removeEventListener("resize", updateMenuPosition);
+      window.visualViewport?.removeEventListener("scroll", updateMenuPosition);
+      observer.disconnect();
     };
   }, [menuPlacement, open]);
 
@@ -88,7 +108,7 @@ export function MultiSelect({
   // Close on outside click / Escape
   useEffect(() => {
     if (!open) return;
-    const onDocClick = (e: MouseEvent) => {
+    const onDocClick = (e: PointerEvent) => {
       if (
         !buttonRef.current?.contains(e.target as Node) &&
         !menuRef.current?.contains(e.target as Node)
@@ -97,6 +117,10 @@ export function MultiSelect({
       }
     };
     const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Tab" && menuPlacement !== "inline") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
       if (e.key === "Escape") {
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -104,13 +128,13 @@ export function MultiSelect({
         buttonRef.current?.focus();
       }
     };
-    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("pointerdown", onDocClick);
     document.addEventListener("keydown", onEsc, true);
     return () => {
-      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("pointerdown", onDocClick);
       document.removeEventListener("keydown", onEsc, true);
     };
-  }, [open]);
+  }, [menuPlacement, open]);
 
   const selectedLabels = options
     .filter((o) => value.includes(o.value))
@@ -138,7 +162,7 @@ export function MultiSelect({
     onChange(options.map((o) => o.value));
   };
 
-  const allSelected = value.length === options.length && options.length > 0;
+  const allSelected = options.length > 0 && options.every((option) => value.includes(option.value));
 
   return (
     <div className={`relative inline-block text-left ${className}`}>
@@ -170,30 +194,37 @@ export function MultiSelect({
           disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
         `}
       >
-        <span>{summary}</span>
+        <span className="min-w-0 truncate">{summary}</span>
         <AppIcon
           name="chevron-down"
-          className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 
-      {open && (
+      {open && renderMenu()}
+    </div>
+  );
+
+  function renderMenu() {
+    // In a keyboard-shortened viewport, let the whole menu scroll. A sticky
+    // action row must not consume the space needed to see a complete option.
+    const scrollWholeMenu = menuPlacement !== "inline" && Number(menuStyle?.maxHeight) < 120;
+    const menu = (
         <div
           ref={menuRef}
-          style={menuPlacement === "viewport" ? menuStyle : undefined}
+          style={menuPlacement !== "inline" ? { ...menuStyle, visibility: menuStyle ? "visible" : "hidden" } : undefined}
           className={
-            menuPlacement === "viewport"
-              ? "fixed z-[60] flex flex-col overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-lg"
-              : menuPlacement === "inline"
-                ? "relative z-50 mt-2 flex w-full flex-col overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-lg"
-                : "absolute z-50 mt-2 overflow-auto rounded-md border border-border bg-popover text-popover-foreground shadow-lg"
+            menuPlacement !== "inline"
+              ? `fixed z-[60] flex flex-col rounded-md border border-border bg-popover text-popover-foreground shadow-lg ${scrollWholeMenu ? "overflow-y-auto overscroll-contain" : "overflow-hidden"}`
+              : "relative z-50 mt-2 flex w-full flex-col overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-lg"
           }
         >
-          <div className="flex items-center justify-between border-b border-border px-2 py-1">
+          <div className="flex shrink-0 items-center justify-between border-b border-border px-2 py-1">
             <button
               type="button"
               className="min-h-11 min-w-11 w-full cursor-pointer rounded-sm px-2 py-1 text-xs hover:bg-accent"
               onClick={() => (allSelected ? clearAll() : selectAll())}
+              disabled={options.length === 0}
             >
               {allSelected ? "Clear all" : "Select all"}
             </button>
@@ -236,12 +267,9 @@ export function MultiSelect({
                 choices[next]?.focus();
               }
             }}
-            className={
-              menuPlacement === "viewport" || menuPlacement === "inline"
-                ? "max-h-56 min-h-0 flex-1 overflow-auto py-1"
-                : "max-h-56 overflow-auto py-1"
-            }
+            className={scrollWholeMenu ? "shrink-0 py-1" : "max-h-56 min-h-0 flex-1 overflow-auto overscroll-contain py-1"}
           >
+            {options.length === 0 && <li className="px-4 py-3 text-sm text-muted-foreground">No options available</li>}
             {options.map((opt) => {
               const isSelected = value.includes(opt.value);
               return (
@@ -263,9 +291,9 @@ export function MultiSelect({
                   }`}
                   onClick={() => toggle(opt.value)}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex min-w-0 items-center gap-2 [overflow-wrap:anywhere]">
                     <div
-                      className={`w-4 h-4 border rounded flex items-center justify-center ${
+                      className={`w-4 h-4 shrink-0 border rounded flex items-center justify-center ${
                         isSelected
                           ? "border-primary bg-primary text-primary-foreground"
                           : "border-input"
@@ -286,7 +314,10 @@ export function MultiSelect({
             })}
           </ul>
         </div>
-      )}
-    </div>
-  );
+    );
+    // Keep a dialog's options inside its focus boundary. These filter sheets
+    // are not transformed, so fixed coordinates still use the viewport.
+    const portalTarget = buttonRef.current?.closest('[role="dialog"]') ?? document.body;
+    return menuPlacement === "inline" ? menu : createPortal(menu, portalTarget);
+  }
 }

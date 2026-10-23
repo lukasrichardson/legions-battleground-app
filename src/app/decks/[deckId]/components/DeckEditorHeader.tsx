@@ -114,13 +114,13 @@ export default function DeckEditorHeader({
     }
   };
   const isCompact = useIsMobile(1024);
-  const actionsDisabled = saving || actionPending !== null;
+  const actionsDisabled = !deck || saving || actionPending !== null;
   return (
     <div className="sticky top-0 z-20 space-y-1 bg-slate-950/95 py-1 backdrop-blur">
       <div className="text-center flex flex-wrap">
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <Select value={deck?._id?.toString() ?? ""} onValueChange={handleDeckChange} disabled={loading || Boolean(error) || actionsDisabled}>
-            <SelectTrigger className="h-10 min-w-52 border-white/20 bg-white/10 text-sm text-white focus-visible:ring-2 focus-visible:ring-blue-400">
+          <Select value={deck?._id?.toString() ?? ""} onValueChange={handleDeckChange} disabled={loading || Boolean(error) || saving || actionPending !== null}>
+            <SelectTrigger aria-label="Select deck" className="h-10 min-w-52 border-white/20 bg-white/10 text-sm text-white focus-visible:ring-2 focus-visible:ring-blue-400">
               <SelectValue placeholder={loading ? "Loading decks…" : error ? "Decks unavailable" : "Select deck"} />
             </SelectTrigger>
             <SelectContent className="border-white/20 bg-slate-800 text-white">
@@ -139,10 +139,12 @@ export default function DeckEditorHeader({
               <div className="inline-flex flex-wrap items-center justify-center gap-2">
                 <input
                   type="text"
+                  aria-label="Deck name"
+                  autoComplete="off"
                   value={editedName}
                   onChange={(e) => onNameChange(e.target.value)}
                   onKeyDown={onNameKeyPress}
-                  className="h-9 rounded border border-white/30 bg-white/10 px-2 text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="min-h-11 min-w-0 max-w-full rounded border border-white/30 bg-white/10 px-2 text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   placeholder="Deck name"
                   autoFocus
                   disabled={actionsDisabled}

@@ -10,6 +10,8 @@ import { useAppSelector } from "@/client/redux/hooks";
 import CardImage from "./CardImage";
 import useHandlePlayerEvents from "@/client/hooks/useHandlePlayerEvents";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
+import useIsMobile from "@/client/hooks/useIsMobile";
+import MobileGameCardDialog from "./MobileGameCardDialog";
 
 const PILE_OFFSETS = {
   LEFT: 15,
@@ -102,6 +104,7 @@ export default function CardInner({
   onSelectForZone,
   selectForZoneLabel,
 }: CardInnerProps) {
+  const isCompact = useIsMobile(1101);
   const [canHover, setCanHover] = useState(false);
   useEffect(() => {
     const query = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -202,11 +205,30 @@ export default function CardInner({
     isBeingPlayed ? "border-yellow-400 border-4 animate-bounce duration-800" : "",
   ].join(" "), [cardInView, inPileView, inPileOfMinTwo, isPlayerHandCard, isBeingPlayed, compactHand, compactOpponentHand]);
 
+  const isDeck = !inPileView && (cardTarget === CARD_TARGET.P1_PLAYER_DECK || cardTarget === CARD_TARGET.P2_PLAYER_DECK);
+  const dialogCard = !hidden && !isDeck ? card : { ...card, name: isDeck ? "Deck" : "Face-down card", img: back_of_card.src, text: "" };
+  const compactActions = <>
+    {onSelectForZone && <button type="button" aria-label={selectForZoneLabel} onClick={onSelectForZone} className="mb-2 min-h-11 w-full border border-yellow-200/50 bg-yellow-300/15 px-3 font-semibold text-yellow-100 touch-feedback">Play card</button>}
+    <CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} inline />
+    {!hidden && <>
+      {!cardInView && index === 0 && faceUp && <>
+        <CounterControl label="Attack modifier" value={card.attackModifier ?? 0} decrease={handleDecreaseAttackModifier} increase={handleIncreaseAttackModifier} />
+        <CounterControl label="Counter" value={card.otherModifier ?? 0} decrease={handleDecreaseOtherModifier} increase={handleIncreaseOtherModifier} />
+      </>}
+      {hasCooldown && <CounterControl label="Cooldown" value={card.cooldown ?? 0} decrease={handleDecreaseCooldown} increase={handleIncreaseCooldown} />}
+      {isWarlord && <CounterControl label="DCM" value={p1Card ? playerHealth.p1 : playerHealth.p2} decrease={handleHealthDecrease} increase={handleHealthIncrease} />}
+      {isGuardian && <CounterControl label="AP" value={p1Card ? playerAP.p1 : playerAP.p2} decrease={handleAPDecrease} increase={handleAPIncrease} />}
+    </>}
+  </>;
+
   return (
+    <>
     <Popover
       classNames={{ root: "game-card-menu" }}
       getPopupContainer={() => document.body}
       zIndex={1100}
+      arrow={false}
+      align={{ offset: [0, 0], overflow: { adjustX: true, adjustY: true, shiftX: true, shiftY: true } }}
       styles={{
         container: {
           padding: 0,
@@ -225,21 +247,33 @@ export default function CardInner({
         </div>}
       </div>}
       title={null}
-      trigger={canHover && clientSettings.hoverMenu ? ["click", "contextMenu", "hover"] : ["click", "contextMenu"]}
+      trigger={isCompact ? [] : canHover && clientSettings.hoverMenu ? ["click", "contextMenu", "hover"] : ["click", "contextMenu"]}
       onOpenChange={handlePopoverVisibleChange}
-      open={isPopoverVisible && !isDragging && !cardForSelectingZone}
+      open={!isCompact && isPopoverVisible && !isDragging && !cardForSelectingZone}
       mouseEnterDelay={0.2}
       mouseLeaveDelay={0.1}
     >
 
       <div
           data-opponent-hand={compactOpponentHand || undefined}
+          role={isCompact && !hidden ? "button" : undefined}
+          tabIndex={isCompact && !hidden ? 0 : undefined}
+          aria-label={isCompact && !hidden ? (isDeck ? "Open deck actions" : `Inspect ${decodeHTMLEntities(dialogCard.name || "card")}`) : undefined}
           ref={(node) => { drag(node); }}
           className={cardClasses}
           style={cardStyles}
           onMouseEnter={handleCardHover}
           onMouseLeave={handleCardBlur}
-          onClick={handleCardRightClick}
+          onClick={(event) => {
+            handleCardRightClick?.(event);
+            if (isCompact) handlePopoverVisibleChange(true);
+          }}
+          onKeyDown={(event) => {
+            if (isCompact && (event.key === "Enter" || event.key === " ")) {
+              event.preventDefault();
+              handlePopoverVisibleChange(true);
+            }
+          }}
         >
           {card?.img ? (
             !isDragging && <>
@@ -269,18 +303,14 @@ export default function CardInner({
               {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true, isOnPlayersSide)}
               {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false, isOnPlayersSide)}
             </>)}
-          {onSelectForZone && (
-            <button
-              type="button"
-              aria-label={selectForZoneLabel}
-              className="absolute inset-x-0 bottom-0 z-20 hidden min-h-11 items-center justify-center border border-yellow-200/70 bg-slate-950/85 px-1 text-[10px] font-bold uppercase tracking-wide text-yellow-100 shadow-md backdrop-blur touch-feedback max-[1100px]:flex"
-              onClick={(event) => { event.stopPropagation(); onSelectForZone(); }}
-            >
-              Play
-            </button>
-          )}
         </div>
     </Popover>
+    {isCompact && isPopoverVisible && !isDragging && !cardForSelectingZone && (
+      <MobileGameCardDialog card={dialogCard} title={dialogCard.name || "Card"} onClose={() => handlePopoverVisibleChange(false)}>
+        {compactActions}
+      </MobileGameCardDialog>
+    )}
+    </>
   )
 }
 

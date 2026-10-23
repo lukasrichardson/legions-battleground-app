@@ -5,6 +5,7 @@ import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { useEffect, useState } from "react";
 import { useDrag } from "react-dnd";
+import { decodeHTMLEntities } from "@/client/utils/string.util";
 
 export type DeckCardListKey =
   | "cards_in_deck"
@@ -43,26 +44,22 @@ export const PLACEHOLDER =
 
 type DeckTileCard = Pick<HydratedDeckCard, "_id" | "title" | "featured_image">;
 
-export const renderCardTile = (card: DeckTileCard, index: number, onMouseEnter: (card: DeckTileCard) => void, lazyImage = false) => {
+export const renderCardTile = (card: DeckTileCard, index: number, onMouseEnter: (card: DeckTileCard) => void, lazyImage = false, onInspect?: () => void) => {
+  const image = <div className="aspect-[3/4] w-full h-full overflow-hidden rounded-lg relative">
+    <CardImage src={card?.featured_image} alt={card?.title || "DECK IMAGE"} className="object-contain transition-transform duration-200 group-hover:scale-[1.03]" loading={lazyImage ? "lazy" : "eager"} priority={!lazyImage} />
+  </div>;
+  if (onInspect) return <button type="button" key={card?._id.toString() + index} aria-label={`Inspect ${decodeHTMLEntities(card.title)}`} onClick={(event) => { event.stopPropagation(); onInspect(); }} className="block h-full w-full cursor-pointer overflow-hidden rounded-sm text-left shadow-sm transition hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-200">{image}</button>;
   return (<div
     key={card?._id.toString() + index}
     onMouseEnter={() => onMouseEnter(card)}
     onClick={() => onMouseEnter(card)}
     className="overflow-hidden rounded-sm text-left shadow-sm transition hover:shadow-md h-full w-full cursor-pointer"
   >
-    <div className="aspect-[3/4] w-full h-full overflow-hidden rounded-lg relative">
-      <CardImage
-        src={card?.featured_image}
-        alt={card?.title || "DECK IMAGE"}
-        className="object-contain transition-transform duration-200 group-hover:scale-[1.03]"
-        loading={lazyImage ? "lazy" : "eager"}
-        priority={!lazyImage}
-      />
-    </div>
+    {image}
   </div>)
 }
 
-export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped, readOnly = false, banlist, countInDeck, sourceList }: { card: HydratedDeckCard, index: number, removeCardFromDeck: (e: React.MouseEvent, card: HydratedDeckCard) => void, onMouseEnter: (card: HydratedDeckCard) => void, addCardToDeck: (card: HydratedDeckCard) => void, grouped: boolean, readOnly?: boolean, banlist: BanlistItem[], countInDeck: number, sourceList: DeckCardListKey }) => {
+export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, addCardToDeck, grouped, readOnly = false, banlist, countInDeck, sourceList, onInspectCard }: { card: HydratedDeckCard, index: number, removeCardFromDeck: (e: React.MouseEvent, card: HydratedDeckCard) => void, onMouseEnter: (card: HydratedDeckCard) => void, addCardToDeck: (card: HydratedDeckCard) => void, grouped: boolean, readOnly?: boolean, banlist: BanlistItem[], countInDeck: number, sourceList: DeckCardListKey, onInspectCard?: (card: HydratedDeckCard) => void }) => {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const handleOnMouseEnter = () => {
     const timeoutId = setTimeout(() => {
@@ -106,7 +103,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
           {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck)}
           <div key={card._id.toString() + index}>
             <div className="absolute top-1 right-2 z-50"><CardStatusBadge item={status} numeric /></div>
-            {renderCardTile(card, index, () => null)}
+            {renderCardTile(card, index, () => null, false, readOnly && onInspectCard ? () => onInspectCard(card) : undefined)}
           </div>
         </div>
       </div>
@@ -121,7 +118,7 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
           {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck)}
           <div onContextMenu={(e) => removeCardFromDeck(e, card)} key={card._id.toString() + index} onMouseLeave={handleOnMouseLeave}>
             <div className="absolute top-1 right-1 z-50"><CardStatusBadge item={status} numeric /></div>
-            {renderCardTile(card, index, () => null)}
+          {renderCardTile(card, index, () => null, false, readOnly && onInspectCard ? () => onInspectCard(card) : undefined)}
           </div>
         </div>
       </div>

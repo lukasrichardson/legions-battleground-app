@@ -158,8 +158,8 @@ export async function expectVisibleInteractiveElementsInViewport(page: Page) {
 
 /**
  * Checks the mobile touch-target contract. A compact visual icon may sit inside
- * a larger button, but the interactive element itself must remain at least
- * 44 CSS pixels in both directions.
+ * a larger button. Standard controls stay 44px; compact battlefield overview
+ * cells use 24px targets and open detailed actions with larger controls.
  */
 export async function expectMinimumTouchTargets(page: Page, minimumSize = 44) {
   await expect(async () => {
@@ -179,7 +179,8 @@ export async function expectMinimumTouchTargets(page: Page, minimumSize = 44) {
             rect.bottom > 0 &&
             rect.left < window.innerWidth &&
             rect.top < window.innerHeight;
-          if (!isVisible || (rect.width >= minimum && rect.height >= minimum))
+          const targetMinimum = htmlElement.closest('[data-compact-game] [data-game-zone]') ? 24 : minimum;
+          if (!isVisible || (rect.width >= targetMinimum && rect.height >= targetMinimum))
             return [];
 
           if (

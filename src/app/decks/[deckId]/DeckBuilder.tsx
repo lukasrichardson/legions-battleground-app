@@ -55,6 +55,9 @@ export default function DeckBuilder() {
   const activeDeckId = useRef<string | null>(params.deckId);
   activeDeckId.current = params.deckId;
   const banlist = useBanlist();
+  const inspectorMainField = specialDeckFieldForCardType(inspectedCard?.card_type?.names?.[0]) ?? "cards_in_deck";
+  const inspectorMainCount = (deck?.[inspectorMainField] ?? []).filter((id) => id.toString() === inspectedCard?._id.toString()).length;
+  const inspectorSideCount = (deck?.side_deck ?? []).filter((id) => id.toString() === inspectedCard?._id.toString()).length;
 
   const advanceRevision = useCallback(() => {
     revision.current += 1;
@@ -575,9 +578,9 @@ export default function DeckBuilder() {
     />
   );
   return (
-    <FullPage showBreadcrumbs={false}>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-2">
-        {isCompact && <div className="h-6 w-full" />}
+    <FullPage showBreadcrumbs={false} scrollOnShortLandscape={isCompact}>
+      <div className={`flex min-h-0 flex-1 flex-col gap-2 sm:gap-2 ${isCompact ? "short-landscape-flow" : ""}`}>
+        {isCompact && <div className="short-landscape-spacer h-6 w-full" />}
         {isCompact && <div className="h-auto">{deckHeader}</div>}
         {isCompact && saveError && (
           <InlineStatus variant="error" className="mb-2 text-center">
@@ -612,7 +615,7 @@ export default function DeckBuilder() {
         )}
 
         {/* Main Content Area - Takes remaining space */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto gap-2 lg:flex-row lg:overflow-hidden">
+        <div className={`flex min-h-0 flex-1 flex-col overflow-y-auto gap-2 lg:flex-row lg:overflow-hidden ${isCompact ? "short-landscape-flow" : ""}`}>
           {/* Deck Grid Pane - Full width on mobile, left side on large screens */}
           <div
             ref={attachDeckDropTarget}
@@ -725,6 +728,7 @@ export default function DeckBuilder() {
           modalContent={
             <CardGalleryInspector
               compact
+              withActionFooter
               card={inspectedCard}
               banlistItem={
                 inspectedCard
@@ -734,13 +738,19 @@ export default function DeckBuilder() {
             />
           }
           modalFooter={
-            <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-slate-200">
+                <p role="status" aria-label="Card copies in deck" aria-live="polite" aria-atomic="true">{inspectorMainCount} in {inspectorMainField === "cards_in_deck" ? "main deck" : "special cards"} · {inspectorSideCount} in side deck</p>
+                <span>{saving ? "Saving…" : saveError ? "Save failed" : "Saved"}</span>
+              </div>
+              {saveError && <InlineStatus variant="error">Save failed: {saveError}</InlineStatus>}
+              <div className="grid grid-cols-2 gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setInspectedCard(null)}
               >
-                Cancel
+                Done
               </Button>
               <Button
                 type="button"
@@ -754,6 +764,7 @@ export default function DeckBuilder() {
               >
                 Add to {addTarget === "side" ? "side deck" : "deck"}
               </Button>
+              </div>
             </div>
           }
         />

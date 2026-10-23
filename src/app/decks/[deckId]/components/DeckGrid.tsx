@@ -127,6 +127,7 @@ export default function DeckGrid({
       useGroupedView={deckbuild_groupedView}
       addCardToDeck={addCard}
       readOnly={readOnly}
+      onInspectCard={readOnly ? onInspectCard : undefined}
       sourceListForCard={sourceListForCard}
       banlist={banlist}
     />
@@ -206,7 +207,7 @@ export default function DeckGrid({
             className={
               readOnly
                 ? "grid grid-cols-3 gap-2 min-[360px]:grid-cols-4"
-                : "grid grid-cols-2 gap-2"
+                : "short-landscape-card-grid grid grid-cols-2 gap-2"
             }
           >
             {[...groups.values()].map((group) => {

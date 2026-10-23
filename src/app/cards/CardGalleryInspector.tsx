@@ -4,7 +4,7 @@ import { decodeHTMLEntities } from "@/client/utils/string.util";
 import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
 import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import CardStatusBadge from "@/app/components/Card/CardStatusBadge";
 
@@ -29,6 +29,7 @@ export default function CardGalleryInspector({
   compact = false,
   isPinned = false,
   onClearPinned,
+  withActionFooter = false,
 }: {
   card: InspectableCard | null;
   banlistItem: BanlistItem | null;
@@ -36,6 +37,7 @@ export default function CardGalleryInspector({
   compact?: boolean;
   isPinned?: boolean;
   onClearPinned?: () => void;
+  withActionFooter?: boolean;
 }) {
   const [imageExpanded, setImageExpanded] = useState(false);
   const closeImageButtonRef = useRef<HTMLButtonElement>(null);
@@ -125,9 +127,10 @@ export default function CardGalleryInspector({
         </button>
       )}
       <div
+        style={compact ? { "--inspector-image-limit": `calc(max(60px, 85dvh - ${withActionFooter ? "12rem" : "8rem"}) * .75)` } as CSSProperties : undefined}
         className={
           compact
-            ? "mx-auto w-full max-w-72 sm:max-w-[60%] md:max-w-[40%]"
+            ? "mx-auto w-full max-w-[min(18rem,var(--inspector-image-limit))] sm:max-w-[min(60%,var(--inspector-image-limit))] md:max-w-[min(40%,var(--inspector-image-limit))]"
             : "mx-auto w-full max-w-72"
         }
       >

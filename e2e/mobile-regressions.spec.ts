@@ -177,7 +177,7 @@ test("saved-card inspection and status warnings work after reloading and across 
   ).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(inspector).toBeVisible();
-  await inspector.getByRole("button", { name: "Cancel", exact: true }).click();
+  await inspector.getByRole("button", { name: "Done", exact: true }).click();
   await expectNoDocumentHorizontalOverflow(page);
   await page.setViewportSize({ width: 1280, height: 900 });
   for (const status of ["suspended", "restricted", "limited"])
@@ -194,7 +194,54 @@ test("saved-card inspection and status warnings work after reloading and across 
   expect(errors).toEqual([]);
 });
 
-test("compact landscape sandbox controls and all board zones retain real touch dimensions", async ({
+test("mobile battlefield overview shows both sides and the hand without scrolling", async ({ page }) => {
+  await signInAs(page, "e2e-player-one");
+  await setMobileViewport(page, "landscape");
+  await createRoomFromLobby(page, `overview-${Date.now()}`, true, "E2E Player 1 Deck");
+  for (const viewport of ["landscape", "landscapeWide"] as const) {
+    await setMobileViewport(page, viewport);
+    const measurements = await page.locator(".game-play-area").evaluate((board) => {
+      const hand = board.lastElementChild!.getBoundingClientRect();
+      const zones = Array.from(board.querySelectorAll("[data-game-zone]"));
+      return {
+        count: zones.length,
+        allVisible: zones.every((zone) => {
+          const bounds = zone.getBoundingClientRect();
+          return bounds.top >= 0 && bounds.left >= 0 &&
+            bounds.right <= innerWidth && bounds.bottom <= hand.top + 1 &&
+            bounds.height >= 24 && bounds.width >= 24;
+        }),
+        needsScroll: board.scrollHeight > board.clientHeight + 1,
+      };
+    });
+    expect(measurements.count).toBe(48);
+    expect(measurements.allVisible).toBe(true);
+    expect(measurements.needsScroll).toBe(false);
+  }
+  await page.locator('[data-mobile-overflow-exempt="hand-tray"] .card-inner').first().tap();
+  const inspector = page.getByRole("dialog", { name: "Card details and actions", exact: true });
+  await expect(inspector.getByText("A deterministic E2E fixture card.", { exact: true })).toBeVisible();
+  await inspector.getByRole("button", { name: /image full screen/ }).tap();
+  await expect(page.getByRole("button", { name: "Close full screen image", exact: true })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(inspector).toBeVisible();
+  await inspector.getByRole("button", { name: "Select warrior zone", exact: true }).tap();
+  const destination = page.locator('[data-game-zone="p1PlayerWarriors"]').first();
+  await destination.tap();
+  await expect(destination.locator(".card-inner")).toHaveCount(1);
+  await destination.locator(".card-inner").tap();
+  await expect(inspector).toBeVisible();
+  await expect(inspector.getByRole("menuitem", { name: "To Hand", exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(inspector).toHaveCount(0);
+  await page.locator('[data-game-zone="p1PlayerDeck"] .card-inner').tap();
+  await expect(inspector.getByRole("heading", { name: "Deck", exact: true })).toBeVisible();
+  await expect(inspector.getByText("A deterministic E2E fixture card.", { exact: true })).toHaveCount(0);
+  await expect(inspector.getByRole("menuitem", { name: "Draw", exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+});
+
+test("compact landscape sandbox controls and board zones remain reachable", async ({
   page,
 }, testInfo) => {
   await signInAs(page, "e2e-player-one");
@@ -224,7 +271,7 @@ test("compact landscape sandbox controls and all board zones retain real touch d
       await expect
         .poll(async () => {
           const rect = await zone.boundingBox();
-          return Boolean(rect && rect.width >= 44 && rect.height >= 44);
+          return Boolean(rect && rect.width >= 24 && rect.height >= 24);
         })
         .toBe(true);
     }
@@ -246,6 +293,9 @@ test("compact landscape sandbox controls and all board zones retain real touch d
   await deckCard.tap();
   await page.screenshot({ path: testInfo.outputPath("open-card-menu.png") });
   await page.getByRole("menuitem", { name: "Draw", exact: true }).tap();
+  await expect(page.getByRole("dialog", { name: "Card details and actions", exact: true })).toHaveCount(0);
+  const handCard = page.locator('[data-mobile-overflow-exempt="hand-tray"] .card-inner').first();
+  await handCard.tap();
   const play = page
     .getByRole("button", { name: "Select warrior zone", exact: true })
     .first();
@@ -264,26 +314,63 @@ test("compact landscape sandbox controls and all board zones retain real touch d
   await expect(
     page.getByRole("button", { name: "Cancel", exact: true }),
   ).toHaveCount(0);
+  await handCard.tap();
   await play.tap();
   const target = page.locator('[data-game-zone="p1PlayerWarriors"]').first();
   await target.tap();
   await expect(target.locator(".card-inner")).toHaveCount(1);
   await page.locator('[data-game-zone="p1PlayerWarlord"] .card-inner').tap();
-  const dcm = page.locator(".game-card-menu").getByText(/^DCM:/);
+  const dcm = page.getByRole("dialog", { name: "Card details and actions", exact: true }).getByText(/^DCM:/);
   const previousDcm = Number((await dcm.innerText()).split(":")[1]);
   await page.getByRole("button", { name: "Increase DCM", exact: true }).tap();
   await expect(dcm).toHaveText(`DCM: ${previousDcm + 1}`);
   await page.getByRole("button", { name: "Decrease DCM", exact: true }).tap();
   await expect(dcm).toHaveText(`DCM: ${previousDcm}`);
-  await page.getByRole("button", { name: "Inspect card", exact: true }).tap();
   await page.getByRole("button", { name: /image full screen/ }).tap();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Close full screen image" })).toBeFocused();
   await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "Close Card inspector", exact: true }).tap();
+  await page.getByRole("button", { name: "Close card details and actions", exact: true }).tap();
   await expect(
     page.getByRole("button", { name: "Cancel", exact: true }),
   ).toHaveCount(0);
+});
+
+test("short landscape pages keep home and deck cards fully reachable", async ({ page }) => {
+  await signInAs(page, "e2e-player-one");
+  for (const size of [
+    { width: 568, height: 320 },
+    { width: 667, height: 375 },
+    { width: 844, height: 390 },
+    { width: 1024, height: 568 },
+  ]) {
+    await page.setViewportSize(size);
+    for (const [route, label] of [
+      ["/", "Open published deck E2E Public Deck"],
+      ["/decks", "Edit deck E2E Player 1 Deck"],
+      ["/browse", "Open published deck E2E Public Deck"],
+      ["/cards", "Inspect E2E Warrior 8"],
+    ]) {
+      await page.goto(route);
+      const card = page.getByRole("button", { name: label, exact: true });
+      await card.scrollIntoViewIfNeeded();
+      await expect(card, `${route} at ${size.width}×${size.height}`).toBeInViewport({ ratio: 1 });
+      await card.click({ trial: true });
+      await expectNoDocumentHorizontalOverflow(page);
+    }
+    if (size.width < 1024) {
+      await page.goto("/decks");
+      await page.getByRole("button", { name: "Edit deck E2E Player 1 Deck", exact: true }).click();
+      await page.waitForURL(/\/decks\/[a-f\d]{24}$/);
+      await page.getByRole("tab", { name: "Find cards", exact: true }).click();
+      const add = page.getByRole("button", { name: "Add one E2E Warrior 1", exact: true });
+      await add.scrollIntoViewIfNeeded();
+      // Allow fractional-pixel rounding at the scrollport edge.
+      await expect(add).toBeInViewport({ ratio: 0.99 });
+      await add.click({ trial: true });
+      await expectNoDocumentHorizontalOverflow(page);
+    }
+  }
 });
 
 test("real portrait routes and filters have reachable touch controls at every supported phone width", async ({

@@ -111,7 +111,7 @@ test("the phone deck builder uses explicit quantity controls without a reversal 
   const inspector = page.getByRole("dialog", { name: "Card details" });
   await expect(inspector).toBeVisible();
   // Inspecting content must not mutate the deck; mutations have dedicated controls.
-  await inspector.getByRole("button", { name: "Cancel", exact: true }).click();
+  await inspector.getByRole("button", { name: "Done", exact: true }).click();
   await expect(inspect).toBeVisible();
 
   const add = page.getByRole("button", { name: "Add one E2E Warrior 1" });

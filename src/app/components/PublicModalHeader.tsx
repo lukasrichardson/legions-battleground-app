@@ -29,7 +29,7 @@ export default function PublicModalHeader({ title, icon, onClose, closeLabel, to
         onClick={onClose}
         aria-label={closeLabel}
         disabled={disabled}
-        className="cursor-pointer border border-transparent p-2 text-slate-400 transition-colors duration-200 hover:border-sky-200/35 hover:bg-blue-400/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+        className="grid size-11 shrink-0 cursor-pointer place-items-center border border-transparent text-slate-400 transition-colors duration-200 hover:border-sky-200/35 hover:bg-blue-400/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
       >
         <AppIcon name="close" size={24} />
       </button>

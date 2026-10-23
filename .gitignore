@@ -85,3 +85,5 @@ public/logo2.svg
 public/logo3black.svg
 decks_backup.json
 published_decks_backup.json
+/output/playwright/control-qa
+/output/playwright

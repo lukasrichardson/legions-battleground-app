@@ -40,9 +40,9 @@ export const CardGallery = () => {
   }, []);
 
   return (
-    <FullPage showBreadcrumbs={false}>
-      <div className="mx-auto flex min-h-0 w-full flex-1 gap-4 overflow-hidden bg-[rgba(4,9,14,.5)] p-2 backdrop-blur-[8px] sm:p-4">
-        <div className="min-h-0 min-w-0 flex-1">
+    <FullPage showBreadcrumbs={false} scrollOnShortLandscape>
+      <div className="short-landscape-flow mx-auto flex min-h-0 w-full flex-1 gap-4 overflow-hidden bg-[rgba(4,9,14,.5)] p-2 backdrop-blur-[8px] sm:p-4">
+        <div className="short-landscape-flow min-h-0 min-w-0 flex-1">
           <SearchPane
             setHoveredCard={handleHoveredCard}
             onSelectCard={handleSelectCard}

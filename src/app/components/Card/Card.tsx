@@ -1,7 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/client/redux/hooks';
 import { moveCard, flipCard } from '@/client/redux/gameStateSlice';
 import { setPileInView, setSelectionFeedback, setSelectingZone, setCardForSelectingZone } from '@/client/redux/clientGameStateSlice';
+import { gameZoneLabel } from '@/client/utils/gameZoneLabel';
+import { decodeHTMLEntities } from '@/client/utils/string.util';
+import { useToast } from '../ToastProvider';
 import { openPlunderModal } from '@/client/redux/modalsSlice';
 import IMenuItem, { INewMenuItem } from '@/client/interfaces/IMenuItem';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
@@ -27,6 +30,7 @@ export default function Card({
   compactOpponentHand = false,
 }: CardProps) {
   const dispatch = useAppDispatch();
+  const { showToast } = useToast();
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
   const { legacyMenu } = useAppSelector((state) => state.clientSettings);
@@ -51,6 +55,18 @@ export default function Card({
     setIsPopoverVisible(false);
   }, []);
 
+  useEffect(() => {
+    // Pile anchors are reused for the next top card. Do not silently retarget
+    // an already-open action dialog to a different card.
+    closePopover();
+  }, [card.id, closePopover]);
+
+  const announceMove = useCallback((target: string) => {
+    if (window.matchMedia("(min-width: 1101px)").matches) return;
+    const name = hidden || (!inPileView && cardTarget.includes("Deck")) ? "Card" : decodeHTMLEntities(card.name || "Card");
+    showToast({ label: `${name} moved to ${gameZoneLabel(target, side).toLowerCase()}.`, placement: "top", passive: true, duration: 3500, ariaLabel: "Game action feedback" });
+  }, [card.name, cardTarget, hidden, inPileView, side, showToast]);
+
   const handleNewMenuClick = useCallback((items: INewMenuItem[], key: string | number) => {
     const selectedMenuItem: INewMenuItem | undefined = items?.find((item) => 
       item.key === key || item.children?.find((child) => 
@@ -60,7 +76,9 @@ export default function Card({
     
     switch (selectedMenuItem?.menuAction) {
       case MenuItemAction.MOVE:
+        closePopover();
         handleMove(items, String(key));
+        if (selectedMenuItem?.target) announceMove(selectedMenuItem.target);
         break;
       case MenuItemAction.SHUFFLE:
         handleShuffle();
@@ -97,7 +115,7 @@ export default function Card({
       default:
         break;
     }
-  }, [handleMove, handleShuffle, handleView, handleConscript, handleActivate, handleSet, handleFlip, handleWisdom, dispatch, closePopover]);
+  }, [handleMove, handleShuffle, handleView, handleConscript, handleActivate, handleSet, handleFlip, handleWisdom, dispatch, closePopover, announceMove]);
 
   const handleLegacyMenuClick = useCallback((items: IMenuItem[], key: string | number) => {
     const selectedMenuItem: IMenuItem | undefined = items?.find((item) => 
@@ -138,6 +156,8 @@ export default function Card({
             bottom
           }
         });
+        closePopover();
+        if (typeof child?.title === "string") announceMove(child.title);
         break;
         
       case MenuItemAction.VIEW:
@@ -209,7 +229,7 @@ export default function Card({
       default:
         break;
     }
-  }, [card, cardTarget, dispatch, index, zoneIndex, p1, cardPileZone, closePopover]);
+  }, [card, cardTarget, dispatch, index, zoneIndex, p1, cardPileZone, closePopover, announceMove]);
 
   const handleMenuClick = useCallback((items: INewMenuItem[] | IMenuItem[], key: string | number) => {
     if (legacyMenu) {

@@ -1,7 +1,21 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 
 let openModalCount = 0;
 let bodyOverflowBeforeModal = "";
+const modalStack: symbol[] = [];
+
+function visibleFocusTargets(dialog: HTMLElement | null) {
+  return Array.from(dialog?.querySelectorAll<HTMLElement>("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])") ?? [])
+    .filter((element) => !element.hasAttribute("disabled") && element.tabIndex >= 0 && !element.closest('[aria-hidden="true"], [inert]') && element.getClientRects().length > 0 && getComputedStyle(element).visibility !== "hidden");
+}
+
+function boundedOffset(value: number, origin: number, extent: number, viewportStart: number, viewportExtent: number, scale: number) {
+  const minimum = (viewportStart - origin) / scale;
+  const maximum = (viewportStart + viewportExtent - extent - origin) / scale;
+  return Math.max(minimum, Math.min(value, Math.max(minimum, maximum)));
+}
 
 export default function Modal({
   open,
@@ -16,6 +30,8 @@ export default function Modal({
   closeOnEscape = true,
   dragThroughBackdrop = false,
   blurBackdrop = true,
+  overlayClassName = "",
+  showCloseButton = false,
 }: {
   open: boolean,
   closeModal: () => void,
@@ -30,6 +46,8 @@ export default function Modal({
   closeOnEscape?: boolean,
   dragThroughBackdrop?: boolean,
   blurBackdrop?: boolean,
+  overlayClassName?: string,
+  showCloseButton?: boolean,
 }) {
   const [isDesktop, setIsDesktop] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -41,6 +59,11 @@ export default function Modal({
     y: number;
     scaleX: number;
     scaleY: number;
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+    viewport: { left: number; top: number; width: number; height: number };
   } | null>(null);
   const isDraggable = isDesktop && variant === "dialog";
   const ref = useRef<HTMLDivElement>(null);
@@ -74,6 +97,12 @@ export default function Modal({
 
     const dialog = ref.current;
     const rect = dialog.getBoundingClientRect();
+    // Game dialogs live inside a scaled, clipped board. Its backdrop is the
+    // drag boundary, not the entire browser window outside that board.
+    const backdrop = dialog.parentElement!.getBoundingClientRect();
+    const visible = window.visualViewport;
+    const left = Math.max(backdrop.left, visible?.offsetLeft ?? 0);
+    const top = Math.max(backdrop.top, visible?.offsetTop ?? 0);
     // /play scales its board; pointer distances must be converted to local units.
     dragStart.current = {
       pointerId: event.pointerId,
@@ -83,6 +112,15 @@ export default function Modal({
       y: offset.y,
       scaleX: rect.width / dialog.offsetWidth || 1,
       scaleY: rect.height / dialog.offsetHeight || 1,
+      left: rect.left - offset.x * (rect.width / dialog.offsetWidth || 1),
+      top: rect.top - offset.y * (rect.height / dialog.offsetHeight || 1),
+      width: rect.width,
+      height: rect.height,
+      viewport: {
+        left, top,
+        width: Math.max(0, Math.min(backdrop.right, (visible?.offsetLeft ?? 0) + (visible?.width ?? innerWidth)) - left),
+        height: Math.max(0, Math.min(backdrop.bottom, (visible?.offsetTop ?? 0) + (visible?.height ?? innerHeight)) - top),
+      },
     };
     event.currentTarget.setPointerCapture(event.pointerId);
     event.preventDefault();
@@ -92,10 +130,32 @@ export default function Modal({
     const start = dragStart.current;
     if (!start || start.pointerId !== event.pointerId) return;
     setOffset({
-      x: start.x + (event.clientX - start.clientX) / start.scaleX,
-      y: start.y + (event.clientY - start.clientY) / start.scaleY,
+      x: boundedOffset(start.x + (event.clientX - start.clientX) / start.scaleX, start.left, start.width, start.viewport.left, start.viewport.width, start.scaleX),
+      y: boundedOffset(start.y + (event.clientY - start.clientY) / start.scaleY, start.top, start.height, start.viewport.top, start.viewport.height, start.scaleY),
     });
   };
+
+  useEffect(() => {
+    if (!open || !isDraggable || !ref.current) return;
+    const dialog = ref.current;
+    const keepOnScreen = () => {
+      dragStart.current = null;
+      // Re-center after layout changes rather than carrying coordinates from a
+      // different viewport (or a differently scaled game board).
+      setOffset({ x: 0, y: 0 });
+    };
+    const observer = new ResizeObserver(keepOnScreen);
+    observer.observe(dialog);
+    window.addEventListener("resize", keepOnScreen);
+    window.visualViewport?.addEventListener("resize", keepOnScreen);
+    window.visualViewport?.addEventListener("scroll", keepOnScreen);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", keepOnScreen);
+      window.visualViewport?.removeEventListener("resize", keepOnScreen);
+      window.visualViewport?.removeEventListener("scroll", keepOnScreen);
+    };
+  }, [open, isDraggable]);
 
   const handleHeaderPointerEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (dragStart.current?.pointerId !== event.pointerId) return;
@@ -109,6 +169,8 @@ export default function Modal({
     if (!open) return;
 
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const identity = Symbol("modal");
+    modalStack.push(identity);
     if (openModalCount === 0) {
       bodyOverflowBeforeModal = document.body.style.overflow;
     }
@@ -116,11 +178,14 @@ export default function Modal({
     document.body.style.overflow = "hidden";
 
     const focusModal = requestAnimationFrame(() => {
-      const focusable = ref.current?.querySelector<HTMLElement>("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
-      (focusable ?? ref.current)?.focus();
+      if (modalStack.at(-1) === identity) (visibleFocusTargets(ref.current)[0] ?? ref.current)?.focus();
     });
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || modalStack.at(-1) !== identity) return;
+      // External popup menus own their keys. Inline menus remain part of this
+      // dialog; their unhandled Escape/Tab must retain its keyboard safeguards.
+      if (e.target instanceof Element && !ref.current?.contains(e.target) && e.target.closest('[role="listbox"], [role="menu"]')) return;
       if (e.key === "Escape" && closeOnEscape) {
         e.preventDefault();
         requestClose();
@@ -128,8 +193,7 @@ export default function Modal({
       }
       if (e.key !== "Tab" || !ref.current) return;
 
-      const focusable = Array.from(ref.current.querySelectorAll<HTMLElement>("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"))
-        .filter((element) => !element.hasAttribute("disabled"));
+      const focusable = visibleFocusTargets(ref.current);
       if (focusable.length === 0) {
         e.preventDefault();
         ref.current.focus();
@@ -137,10 +201,21 @@ export default function Modal({
       }
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
+      const active = document.activeElement;
+      // Arrow-key menus focus items with tabindex=-1. Resume sequential focus
+      // relative to that item instead of allowing Tab to escape the dialog.
+      if (active && ref.current.contains(active) && !focusable.includes(active as HTMLElement)) {
+        const next = e.shiftKey
+          ? focusable.filter((element) => active.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_PRECEDING).at(-1)
+          : focusable.find((element) => active.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING);
+        e.preventDefault();
+        (next ?? (e.shiftKey ? last : first)).focus();
+        return;
+      }
+      if (e.shiftKey && (document.activeElement === first || !ref.current.contains(document.activeElement))) {
         e.preventDefault();
         last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
+      } else if (!e.shiftKey && (document.activeElement === last || !ref.current.contains(document.activeElement))) {
         e.preventDefault();
         first.focus();
       }
@@ -149,19 +224,21 @@ export default function Modal({
 
     return () => {
       cancelAnimationFrame(focusModal);
+      const wasTopmost = modalStack.at(-1) === identity;
+      modalStack.splice(modalStack.indexOf(identity), 1);
       openModalCount = Math.max(0, openModalCount - 1);
       if (openModalCount === 0) {
         document.body.style.overflow = bodyOverflowBeforeModal;
       }
       document.removeEventListener("keydown", handleKeyDown);
-      previouslyFocused?.focus();
+      if (wasTopmost && previouslyFocused?.isConnected) previouslyFocused.focus();
     };
   }, [closeOnEscape, open, requestClose]);
 
   if (!open) return null;
 
-  return (
-      <div className={["fixed inset-0 z-50 flex items-end bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.78)] px-0 pt-[env(safe-area-inset-top)] sm:items-center sm:justify-center sm:p-4", blurBackdrop ? "backdrop-blur-sm" : ""].join(" ")} style={{ pointerEvents: dragThroughBackdrop ? "none" : undefined }} onPointerDown={(event) => { if (closeOnBackdrop && event.target === event.currentTarget) requestClose(); }}>
+  const dialog = (
+      <div className={["fixed inset-0 z-50 flex items-end bg-[radial-gradient(circle_at_top,rgba(52,136,205,.22),transparent_42%),rgba(1,5,10,.78)] px-0 pt-[env(safe-area-inset-top)] sm:items-center sm:justify-center sm:p-4", blurBackdrop ? "backdrop-blur-sm" : "", overlayClassName].join(" ")} style={{ pointerEvents: dragThroughBackdrop ? "none" : undefined }} onPointerDown={(event) => { if (closeOnBackdrop && event.target === event.currentTarget) requestClose(); }}>
           <div
             ref={ref}
             role="dialog"
@@ -176,7 +253,7 @@ export default function Modal({
           >
             <>
               <div
-                className={["shrink-0 border-b border-sky-200/20 bg-[linear-gradient(90deg,rgba(79,169,255,.13),transparent_60%)] px-4 sm:px-6", isDraggable ? "cursor-grab active:cursor-grabbing" : ""].join(" ")}
+                className={["max-h-[50dvh] shrink-0 overflow-y-auto border-b border-sky-200/20 bg-[linear-gradient(90deg,rgba(79,169,255,.13),transparent_60%)] px-4 sm:px-6", showCloseButton ? "flex items-center gap-3" : "", isDraggable ? "cursor-grab active:cursor-grabbing" : ""].join(" ")}
                 style={{ touchAction: isDraggable ? "none" : undefined }}
                 onPointerDown={handleHeaderPointerDown}
                 onPointerMove={handleHeaderPointerMove}
@@ -184,7 +261,7 @@ export default function Modal({
                 onPointerCancel={handleHeaderPointerEnd}
                 onLostPointerCapture={handleHeaderPointerEnd}
               >
-                {modalHeader}
+                {showCloseButton ? <><div className="min-w-0 flex-1 break-words">{modalHeader}</div><button type="button" aria-label={`Close ${ariaLabel}`} onClick={requestClose} className="grid size-11 shrink-0 place-items-center text-slate-200 hover:bg-blue-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"><X size={20} /></button></> : modalHeader}
               </div>
 
               <div className={["flex-1 min-h-0 overflow-x-hidden overflow-y-auto bg-[linear-gradient(145deg,rgba(8,21,33,.96),rgba(3,10,18,.98))]", transparentOnBlur ? "opacity-5 hover:opacity-100" : ""].join(" ")}>
@@ -192,9 +269,12 @@ export default function Modal({
                   {modalContent}
                 </div>
               </div>
-              {modalFooter && <div className="shrink-0 border-t border-sky-200/20 bg-slate-950/90 p-3 pb-[max(.75rem,env(safe-area-inset-bottom))] sm:px-6">{modalFooter}</div>}
+              {modalFooter && <div className="max-h-[40dvh] shrink-0 overflow-y-auto border-t border-sky-200/20 bg-slate-950/90 p-3 pb-[max(.75rem,env(safe-area-inset-bottom))] sm:px-6">{modalFooter}</div>}
             </>
           </div>
       </div>
   );
+  // Sheets must be viewport-relative, not trapped inside a blurred/scrolled
+  // gallery panel. Game dialogs intentionally retain their local drag surface.
+  return variant === "dialog" ? dialog : createPortal(dialog, document.body);
 }

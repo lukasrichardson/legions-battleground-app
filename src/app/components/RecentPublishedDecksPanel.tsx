@@ -5,6 +5,7 @@ import { LEGIONS } from "@/client/constants/legions.constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/client/ui/card";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import DeckSummaryHeading from "./DeckSummaryHeading";
 import { useEffect, useState } from "react";
 import LoadingState from "./LoadingState";
 import { PublishedDeckListItem } from "@/shared/interfaces/DeckListItem";
@@ -71,7 +72,7 @@ export default function RecentPublishedDecksPanel() {
   }, []);
 
   return (
-    <Card className="flex h-full min-h-0 w-full mx-auto min-w-0 flex-col border-white/20 bg-white/10 text-white">
+    <Card className="short-landscape-flow flex h-full min-h-0 w-full mx-auto min-w-0 flex-col border-white/20 bg-white/10 text-white">
       <CardHeader className="shrink-0 flex flex-row items-center justify-between p-2 pb-1 md:p-4 md:pb-2">
         <CardTitle className="text-md md:text-lg">Recently Published Decks</CardTitle>
         <Button
@@ -85,7 +86,7 @@ export default function RecentPublishedDecksPanel() {
       </CardHeader>
 
       <CardContent
-        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4 pt-0"
+        className="short-landscape-flow min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4 pt-0"
       >
         {status === "loading" && (
           <LoadingState label="Loading published decks…" className="h-full border-0" />
@@ -126,11 +127,7 @@ export default function RecentPublishedDecksPanel() {
                     )}
 
                       <span className="min-w-0 flex-1">
-                      <span className="flex min-w-0 items-center gap-1.5">
-                        <span className="min-w-0 flex-1 truncate text-sm font-bold text-white">{deck.name}</span>
-                        <span className="shrink-0 text-xs text-white">Main: {deck.mainDeckSize}</span>
-                        <span className="shrink-0 text-xs text-white">Side: {deck.sideDeckSize}</span>
-                      </span>
+                      <DeckSummaryHeading name={deck.name} mainCount={deck.mainDeckSize} sideCount={deck.sideDeckSize} />
                       <span className="mt-0.5 block truncate text-xs text-gray-400">by {deck.author || "Unknown Author"}</span>
                       <span className="mt-1 flex min-w-0 items-center gap-2">
                         <span

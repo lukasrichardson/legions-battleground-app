@@ -29,12 +29,14 @@ export const DecksList = () => {
   };
 
   useEffect(() => {
+    let active = true;
     setLoading(true);
     setLoadError("");
     void fetchDeckListSummaries(legion)
-      .then(setDecks)
-      .catch(() => setLoadError("Could not load your decks. Please try again."))
-      .finally(() => setLoading(false));
+      .then((nextDecks) => { if (active) setDecks(nextDecks); })
+      .catch(() => { if (active) setLoadError("Could not load your decks. Please try again."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [legion]);
 
   useEffect(() => {
@@ -67,7 +69,7 @@ export const DecksList = () => {
     setLegion([]);
   };
   return (
-    <div className="min-h-0 flex-1">
+    <div className="short-landscape-flow min-h-0 flex-1">
       <DeckCollectionPanel
         variant={variant}
         title="Your Decks"

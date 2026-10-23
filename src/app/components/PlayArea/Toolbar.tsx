@@ -121,9 +121,10 @@ export default function Toolbar() {
   };
 
   const handleChatKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key !== "Enter") return;
+    if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
     event.preventDefault();
-    emitGameEvent({ type: GAME_EVENT.sendChatMessage, data: { message: event.currentTarget.value, side } });
+    const message = event.currentTarget.value.trim();
+    if (message) emitGameEvent({ type: GAME_EVENT.sendChatMessage, data: { message, side } });
     event.currentTarget.value = "";
   };
 
@@ -207,7 +208,7 @@ export default function Toolbar() {
   );
 
   const desktopToolbar = (
-    <div className="flex h-full w-full flex-col gap-2 max-[1100px]:hidden">
+    <div className="flex h-full w-full flex-col gap-2 overflow-y-auto overscroll-contain max-[1100px]:hidden">
       <section className="min-h-[250px] flex-1 overflow-hidden border border-sky-200/15 bg-slate-950/40"><CardPreview /></section>
       <section className={`${activityHeight} shrink-0 flex flex-col overflow-hidden`}>
         <button type="button" onClick={() => setActivityCollapsed((collapsed) => !collapsed)} className="flex h-8 shrink-0 items-center justify-between border border-sky-200/15 bg-slate-950/60 px-2 text-[10px] font-semibold uppercase tracking-[.12em] text-sky-100/70">

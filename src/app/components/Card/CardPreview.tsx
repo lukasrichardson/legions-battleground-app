@@ -6,17 +6,19 @@ import AppIcon from "../AppIcon";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { CardState } from "@/shared/interfaces/CardState";
 
 //preview for toolbar in game. deck builder and gallery have their own versions of preview
-export default function CardPreview({ detailsCollapsed = false, onToggleDetails }: { detailsCollapsed?: boolean; onToggleDetails?: () => void }) {
+export default function CardPreview({ detailsCollapsed = false, onToggleDetails, card }: { detailsCollapsed?: boolean; onToggleDetails?: () => void; card?: CardState | null }) {
   const [imageExpanded, setImageExpanded] = useState(false);
   const closeImageButtonRef = useRef<HTMLButtonElement>(null);
-  const cardToShow = useAppSelector((state) => {
+  const focusedCard = useAppSelector((state) => {
     const { cardInFocus, previousCardInFocus, side } = state.clientGameState;
     const selectedCards = side === "p1" ? state.gameState.p1SelectedCards : state.gameState.p2SelectedCards;
     const lastSelectedCard = selectedCards[selectedCards.length - 1];
     return lastSelectedCard || cardInFocus || previousCardInFocus;
   });
+  const cardToShow = card === undefined ? focusedCard : card;
 
   useEffect(() => {
     if (!imageExpanded) return;

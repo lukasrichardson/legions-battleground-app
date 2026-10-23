@@ -54,19 +54,23 @@ test("populated home panels stay separate and reachable across responsive breakp
               const lobbyBounds = lobby.firstElementChild!.getBoundingClientRect();
               const publishedBounds = published.getBoundingClientRect();
               const stacked = getComputedStyle(panels).flexDirection === "column";
+              const shortLandscape = matchMedia("(orientation: landscape) and (max-height: 600px) and (max-width: 1100px)").matches;
+              // Short landscape pages now deliberately grow inside the shell's
+              // main scrollport instead of keeping a tiny nested home scroller.
+              const scrollOwner = shortLandscape ? home.closest("main")! : home;
               return {
                 stacked,
                 overlapping: stacked && lobbyBounds.bottom > publishedBounds.top + 1,
-                homeWithinShell: home.getBoundingClientRect().bottom <= innerHeight + 1,
+                homeWithinShell: (shortLandscape ? scrollOwner : home).getBoundingClientRect().bottom <= innerHeight + 1,
                 horizontalOverflow: document.documentElement.scrollWidth > innerWidth + 1,
-                canScroll: getComputedStyle(home).overflowY === "auto",
+                canScroll: getComputedStyle(scrollOwner).overflowY === "auto",
               };
             })).toEqual({
               stacked: width < 768,
               overlapping: false,
               homeWithinShell: true,
               horizontalOverflow: false,
-              canScroll: width < 768,
+              canScroll: width < 768 || (width > height && height <= 600 && width <= 1100),
             });
 
             // Scroll into view, then hit-test: visible DOM alone misses clipped

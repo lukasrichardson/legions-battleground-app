@@ -415,8 +415,8 @@ export default function SearchPane({
   };
 
   return (
-    <Card className={gallery ? "h-full rounded-[2px] border-white/20 bg-[rgba(4,9,14,.68)] text-white shadow-xl shadow-black/20" : "flex flex-col border-white/20 bg-white/10 text-white lg:h-full"}>
-      <CardContent className={gallery ? "flex h-full flex-col overflow-hidden p-3 sm:p-4" : "flex flex-col p-2 pt-0 lg:h-full lg:overflow-hidden"}>
+    <Card className={gallery ? "short-landscape-flow h-full rounded-[2px] border-white/20 bg-[rgba(4,9,14,.68)] text-white shadow-xl shadow-black/20" : "flex flex-col border-white/20 bg-white/10 text-white lg:h-full"}>
+      <CardContent className={gallery ? "short-landscape-flow flex h-full flex-col overflow-hidden p-3 sm:p-4" : "flex flex-col p-2 pt-0 lg:h-full lg:overflow-hidden"}>
         <div className={gallery ? "mb-2 space-y-1 border-b border-white/15 pb-2.5" : "mb-2 space-y-1"}>
           <div className={gallery ? "flex" : "flex flex-col"}>
 
@@ -495,9 +495,9 @@ export default function SearchPane({
         </div>
 
         {/* Cards List - Scrollable with smaller card sizes to match deck */}
-        <div ref={scrollRef} onScroll={handleVerticalScroll} className={gallery ? "grow overflow-auto shadow-black shadow-2xl" : "min-h-[220px] lg:min-h-0 lg:grow lg:overflow-auto shadow-black shadow-2xl"}>
+        <div ref={scrollRef} onScroll={handleVerticalScroll} className={gallery ? "short-landscape-flow grow overflow-auto shadow-black shadow-2xl" : "min-h-[220px] lg:min-h-0 lg:grow lg:overflow-auto shadow-black shadow-2xl"}>
           {loadingCards ? (
-            gallery ? <div aria-label="Loading cards" className="grid grid-cols-2 gap-2 p-1 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:gap-4 xl:grid-cols-5 2xl:grid-cols-6">
+            gallery ? <div aria-label="Loading cards" className="short-landscape-card-grid grid grid-cols-2 gap-2 p-1 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:gap-4 xl:grid-cols-5 2xl:grid-cols-6">
               {Array.from({ length: 12 }, (_, index) => <div key={index} className="aspect-[3/4] animate-pulse rounded-xl border border-white/5 bg-slate-800/80" />)}
             </div> : <LoadingState label="Loading cards…" className="h-full" />
           ) : cardLoadError ? (
@@ -512,7 +512,7 @@ export default function SearchPane({
           ) : (
             <div
             >
-              {gallery ? <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:gap-4 xl:grid-cols-5 2xl:grid-cols-6">
+              {gallery ? <div className="short-landscape-card-grid grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:gap-4 xl:grid-cols-5 2xl:grid-cols-6">
                 {cards.map((card, index) => (
                   <div
                     key={card._id}
@@ -557,13 +557,13 @@ export default function SearchPane({
                 {cards.map((card, index) => (
                   <div
                     key={card.toString() + index}
-                    className="bg-white/10 hover:bg-white/20 inline-flex flex-col lg:flex-row w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-full max-h-full lg:flex justify-start items-center overflow-hidden rounded pr-0.5 border-b-white border-b-2 relative "
+                    className="bg-white/10 hover:bg-white/20 inline-flex h-[calc(100%-1rem)] flex-col lg:h-auto lg:flex-row w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-full max-h-full lg:flex justify-start items-center overflow-hidden rounded pr-0.5 border-b-white border-b-2 relative "
                     style={{ backgroundColor: legionColours[card.legion.names[0]] ? `${legionColours[card.legion.names[0]]}` : "", color: [LEGIONS.ANGELS.toString(), LEGIONS.TITANS.toString()].includes(card.legion.names[0]) ? "black" : "white"}}
                   >
                     <button
                       type="button"
                       aria-label={`Inspect ${decodeHTMLEntities(card.title)}`}
-                      className="touch-feedback aspect-[3/4] w-full lg:aspect-auto lg:w-1/7 xl:w-1/8 lg:h-full relative z-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+                      className="touch-feedback min-h-0 flex-1 aspect-[3/4] w-full lg:flex-none lg:aspect-auto lg:w-1/7 xl:w-1/8 lg:h-full [&>div]:h-full relative z-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
                       onClick={() => onInspectCard ? onInspectCard(card) : setHoveredCard(card, getBanlistItem(card))}
                     >
                       {suspendedCards[card.title] && (
