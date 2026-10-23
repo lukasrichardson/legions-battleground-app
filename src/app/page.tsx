@@ -8,7 +8,7 @@ import { useUiVariant } from "./components/arena/uiVariant";
 import HelpModal from "./components/Modals/HelpModal";
 import PreviewDeckModal from "./components/Modals/PreviewDeckModal";
 import { SessionProvider } from 'next-auth/react';
-import axios from 'axios';
+import axios from "@/client/utils/http";
 import { useRouter } from 'next/navigation';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';

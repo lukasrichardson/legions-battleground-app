@@ -22,6 +22,7 @@ interface ClientGameState {
     name: string;
     zoneIndex?: number;
   } | null;
+  selectionFeedback: string | null;
   wisdoming: boolean;
   room?: RoomStateForMembers;
   gameHistory: GameEventLog[];
@@ -39,6 +40,7 @@ const initialState: ClientGameState =
   side: "p1",
   selectingZone: null,
   cardForSelectingZone: null,
+  selectionFeedback: null,
   wisdoming: false,
   gameHistory: [],
   undoneHistory: []
@@ -97,6 +99,9 @@ const clientGameStateSlice = createSlice({
     setCardForSelectingZone: (state, action) => {
       state.cardForSelectingZone = action.payload;
     },
+    setSelectionFeedback: (state, action) => {
+      state.selectionFeedback = action.payload;
+    },
     setWisdoming: (state, action) => {
       state.wisdoming = action.payload;
     },
@@ -128,6 +133,7 @@ export const {
   setPileInView,
   setSelectingZone,
   setCardForSelectingZone,
+  setSelectionFeedback,
   setWisdoming,
   setRoom,
   setHistoryState

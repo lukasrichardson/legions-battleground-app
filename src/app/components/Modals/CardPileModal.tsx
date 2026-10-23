@@ -1,6 +1,7 @@
 import { CardState } from "@/shared/interfaces/CardState";
 import Card from "@/app/components/Card/Card";
 import { MouseEventHandler, useEffect, useState } from "react";
+import { useDragLayer } from "react-dnd";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import Modal from "./Modal";
 import { emitGameEvent } from "@/client/utils/emitEvent";
@@ -10,6 +11,7 @@ import useClientSettings from "@/client/hooks/useClientSettings";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
 import { moveCard } from "@/client/redux/gameStateSlice";
 import { setWisdoming } from "@/client/redux/clientGameStateSlice";
+import { gameZoneLabel } from "@/client/utils/gameZoneLabel";
 
 const ModalConstants = {
   ShuffleBtnText: "shuffle",
@@ -31,6 +33,9 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   const clientGameState = useAppSelector((state) => state.clientGameState);
   const sequenceState = useAppSelector((state) => state.sequenceState);
   const { transparentOnBlur } = useClientSettings();
+  const isDraggingCard = useDragLayer((monitor) =>
+    monitor.isDragging() && monitor.getItemType() === "card"
+  );
 
   const { side, topXCards, pileInViewTarget, pileInViewIndex, pileInViewLimit, wisdoming } = clientGameState;
   const { sequences, resolving } = sequenceState;
@@ -38,6 +43,8 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   const resolvingEffectStep = sequences?.[0]?.items?.[0]?.effect?.[0];
   const waitingForUserInput = (p1 && resolving && resolvingEffectStep?.waitingForInput?.p1) || (!p1 && resolving && resolvingEffectStep?.waitingForInput?.p2);
   const open = !!pileInViewTarget || waitingForUserInput;
+  const dragThroughBackdrop = isDraggingCard && !waitingForUserInput && !wisdoming;
+  const pileLabel = gameZoneLabel(pileInViewTarget, side, pileInViewIndex);
   const {
     ShuffleBtnText,
     CloseShuffleBtnText,
@@ -121,24 +128,25 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   }
 
   const renderModalHeader = () => wisdoming ? <div className="w-full text-center">Wisdom: Select a card to keep.</div> : !waitingForUserInput ? (
-    <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-wrap gap-3 py-3 sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
         <button
           className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10"
           onClick={shuffle as MouseEventHandler<HTMLButtonElement>}
         >
           {ShuffleBtnText}
         </button>
-        <span className="text-sm sm:text-base font-semibold text-white/90">
-          {pileInViewLimit && "Top of "}{pileInViewTarget + (pileInViewIndex != undefined ? ` column ${pileInViewIndex}` : "")}
+        <span className="min-w-0 break-words text-sm sm:text-base font-semibold text-white/90">
+          {pileInViewLimit ? `Viewing ${pileInViewLimit} cards · ` : ""}{pileLabel}
         </span>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
         <input
           placeholder="Search..."
+          aria-label="Search card pile"
           onChange={handleSearchChange}
           value={search}
-          className="w-44 border border-sky-200/20 bg-slate-950/45 px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-sky-300/70 focus:ring-2 focus:ring-sky-300/15 sm:w-56"
+          className="min-h-11 min-w-0 flex-1 basis-36 border border-sky-200/20 bg-slate-950/45 px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-sky-300/70 focus:ring-2 focus:ring-sky-300/15"
         />
         <button
           className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10"
@@ -247,8 +255,8 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
       )
     }
     return (
-      <div className="relative max-h-[25vh]">
-        {!wisdoming && <div className="flex gap-4 relative -top-2">
+      <div className="relative">
+        {!wisdoming && <div className="mb-2 flex flex-wrap items-center gap-2">
           <span>Filter By: </span>
           {renderTab("All")}
           {renderTab("Warrior")}
@@ -256,6 +264,10 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
           {renderTab("Fortified")}
         </div>}
         <div className={waitingForUserInput ? "pb-20" : "pb-0"}>
+          {filteredPile.length === 0 && <div className="space-y-3 py-5 text-center text-sm text-slate-300" role="status">
+            <p>{cardPile.length === 0 ? "This pile is empty." : "No cards match your search or filters."}</p>
+            {(search || tab !== "All") && <button type="button" onClick={() => { setSearch(""); setTab("All"); }} className="min-h-11 border border-sky-200/35 px-3 text-sky-100">Clear search and filters</button>}
+          </div>}
           <div className={["grid grid-cols-2 gap-1", !wisdoming ? "xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-10 " : ""].join(" ")}>
             {filteredPile.map((card, index) => {
               const isSelected = !!selected?.find(c => c.id === card.id);
@@ -311,6 +323,6 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   }
 
   return (
-    <Modal open={open} closeModal={handleCloseModal} modalHeader={renderModalHeader()} modalContent={renderModalContent()} transparentOnBlur={transparentOnBlur} />
+    <Modal open={open} ariaLabel={wisdoming ? "Wisdom selection" : waitingForUserInput ? "Card selection" : pileLabel} closeModal={handleCloseModal} modalHeader={renderModalHeader()} modalContent={renderModalContent()} transparentOnBlur={transparentOnBlur} dragThroughBackdrop={dragThroughBackdrop} blurBackdrop={false} />
   )
 }

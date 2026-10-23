@@ -11,6 +11,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type WheelEvent, useEffect, useState } from "react";
 import LoadingState from "./LoadingState";
+import DeckSummaryHeading from "./DeckSummaryHeading";
 
 const getLegionLabelStyle = (legion: string) => {
   const legionName = Object.values(LEGIONS).find(
@@ -151,11 +152,7 @@ export default function RecentDecksPanel() {
                   >
                     <DeckImage deck={deck} />
                     <span className="min-w-0 flex-1">
-                        <span className="flex min-w-0 items-center gap-1.5">
-                          <span className="min-w-0 flex-1 truncate text-sm font-bold text-white">{deck.name}</span>
-                          <span className="shrink-0 text-xs text-white">Main: {deck.mainDeckSize}</span>
-                          <span className="shrink-0 text-xs text-white">Side: {deck.sideDeckSize}</span>
-                        </span>
+                        <DeckSummaryHeading name={deck.name} mainCount={deck.mainDeckSize} sideCount={deck.sideDeckSize} />
                         <span className="mt-1 flex min-w-0 items-center gap-2">
                           <span
                             className="shrink-0 rounded-full border border-white/20 px-2 py-0.5 text-xs font-medium capitalize"

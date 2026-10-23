@@ -1,14 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { getToken } from 'next-auth/jwt';
 import { IncomingMessage } from 'http';
+import { AuthenticatedUser } from '../interfaces/AuthenticatedUser';
 
 // Extend Express Request to include user information
 export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email?: string;
-    name?: string;
-  };
+  user?: AuthenticatedUser;
 }
 
 // Middleware that requires authentication

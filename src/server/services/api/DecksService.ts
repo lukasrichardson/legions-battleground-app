@@ -1,23 +1,26 @@
 import { getDatabase } from "@/server/utils/database.util";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
-import PublishedDeck from "@/shared/interfaces/PublishedDeck";
-import { getPublishedDeckById } from "./PublishedDecksService";
-import { ObjectId } from "mongodb";
+import { Filter } from "mongodb";
 import { normalizeDeck } from "@/shared/deckComposition";
 import { getHydratedDeck, hydrateDecks } from "./DeckHydrationService";
 import { getDeckListSummaries } from "./DeckListSummaryService";
 import { DeckListItem, RecentDeckListItem } from "@/shared/interfaces/DeckListItem";
 
+import { AuthenticatedUser } from "@/server/interfaces/AuthenticatedUser";
+import { DeckServiceError, requireDeckObjectId } from "./DeckServiceError";
+import { DeckUpdateInput, parseDeckCreateInput } from "./DeckValidationService";
+
 export const insertOneDeck = async (deck: Omit<DeckResponse, "_id">): Promise<DeckResponse> => {
   const db = getDatabase();
   const result = await db.collection("decks").insertOne(deck);
   const createdDeck = await getDeckById({ id: deck.userId }, result.insertedId.toString());
+  if (!createdDeck) throw new Error("Created deck could not be loaded.");
   return createdDeck;
 }
 
-export const getDecksForPlayer = async (user, legion): Promise<DeckResponse[]> => {
+export const getDecksForPlayer = async (user: AuthenticatedUser, legion: string | string[] | undefined): Promise<DeckResponse[]> => {
   const db = getDatabase();
-  const query = { userId: user?.id };
+  const query: Filter<DeckResponse> = { userId: user.id };
 
   if (legion && typeof legion === 'string' && legion.trim() !== '') {
     query['legion'] = legion;
@@ -30,8 +33,8 @@ export const getDecksForPlayer = async (user, legion): Promise<DeckResponse[]> =
 }
 
 /** Compact data for grids and pickers; use getDeckById for a full hydrated deck. */
-export const getDeckListSummariesForPlayer = async (user, legion): Promise<DeckListItem[]> => {
-  const query: Record<string, unknown> = { userId: user?.id };
+export const getDeckListSummariesForPlayer = async (user: AuthenticatedUser, legion: string | string[] | undefined): Promise<DeckListItem[]> => {
+  const query: Record<string, unknown> = { userId: user.id };
   if (legion && typeof legion === 'string' && legion.trim() !== '') {
     query.legion = legion;
   } else if (legion && Array.isArray(legion)) {
@@ -41,54 +44,46 @@ export const getDeckListSummariesForPlayer = async (user, legion): Promise<DeckL
 };
 
 /** Compact, bounded Home data. The edited timestamp is included only for this recency surface. */
-export const getRecentDeckListSummariesForPlayer = async (user): Promise<RecentDeckListItem[]> =>
+export const getRecentDeckListSummariesForPlayer = async (user: AuthenticatedUser): Promise<RecentDeckListItem[]> =>
   getDeckListSummaries(
     "decks",
-    { userId: user?.id },
+    { userId: user.id },
     { sort: { updated_at: -1, _id: -1 }, limit: 3, includeUpdatedAt: true },
   ) as Promise<RecentDeckListItem[]>;
 
-export const getFilterOptionsForPlayerDecks = async (user): Promise<string[]> => {
+export const getFilterOptionsForPlayerDecks = async (user: AuthenticatedUser): Promise<string[]> => {
   const db = getDatabase();
-  const query = { userId: user?.id };
+  const query = { userId: user.id };
   const legion = await db.collection("decks").distinct("legion", query);
   return legion;
 }
 
-export const getDeckById = async (user, deckId: string): Promise<DeckResponse | null> => {
-  let query;
-  if (deckId.length > 6) {
-    query = user?.id
-      ? { _id: new ObjectId(deckId), userId: user.id }
-      : { _id: new ObjectId(deckId) };
-  } else {
-    query = user?.id
-      ? { id: deckId, userId: user.id }
-      : { id: deckId };
-  }
+export const getDeckById = async (user: AuthenticatedUser, deckId: string): Promise<DeckResponse | null> => {
+  // Toolbox imports historically used short external IDs; keep these owner-scoped.
+  const query: Filter<DeckResponse> = deckId.length <= 6
+    ? { id: deckId, userId: user.id }
+    : { _id: requireDeckObjectId(deckId), userId: user.id };
   const deck = await getHydratedDeck<DeckResponse>("decks", query);
   return deck ? normalizeDeck(deck) : null;
 }
 
-export const getDeckByName = async (user, deckName: string): Promise<DeckResponse | null> => {
+export const getDeckByName = async (user: AuthenticatedUser, deckName: string): Promise<DeckResponse | null> => {
   const db = getDatabase();
-  const query = user?.id
-    ? { name: deckName, userId: user.id }
-    : { name: deckName };
+  const query = { name: deckName, userId: user.id };
   const deck = await db.collection<DeckResponse>("decks").findOne(query);
   return deck ? getHydratedDeck<DeckResponse>("decks", { _id: deck._id }) : null;
 }
 
-export const updateDeckById = async (user, deckId: string, updateData: Partial<DeckResponse>): Promise<DeckResponse | null> => {
+export const updateDeckById = async (user: AuthenticatedUser, deckId: string, updateData: DeckUpdateInput): Promise<DeckResponse | null> => {
   const db = getDatabase();
-  const updates = {
+  const updates: Partial<DeckResponse> = {
     ...updateData,
     updated_at: new Date(),
   };
   delete updates._id;
 
   const updatedDeck = await db.collection<DeckResponse>("decks").findOneAndUpdate({
-    _id: new ObjectId(deckId),
+    _id: requireDeckObjectId(deckId),
     userId: user.id,
   }, {
     $set: updates,
@@ -96,16 +91,15 @@ export const updateDeckById = async (user, deckId: string, updateData: Partial<D
     returnDocument: "after",
   });
   if (!updatedDeck) {
-    throw new Error("Deck not found or you don't have permission to edit this deck");
+    throw new DeckServiceError("not_found", "Deck not found or you don't have permission to edit this deck");
   }
   return getHydratedDeck<DeckResponse>("decks", { _id: updatedDeck._id, userId: user.id });
 }
 
-export const duplicateDeckById = async (user, deckId: string): Promise<DeckResponse> => {
-  const db = getDatabase();
+export const duplicateDeckById = async (user: AuthenticatedUser, deckId: string): Promise<DeckResponse> => {
   const existingDeck = await getDeckById(user, deckId);
   if (!existingDeck) {
-    throw new Error("Deck not found or you don't have permission to duplicate this deck");
+    throw new DeckServiceError("not_found", "Deck not found or you don't have permission to duplicate this deck");
   }
   const newDeck: DeckResponse = {
     ...normalizeDeck(existingDeck),
@@ -115,23 +109,14 @@ export const duplicateDeckById = async (user, deckId: string): Promise<DeckRespo
   };
   delete newDeck._id;
   delete newDeck.cards;
-  // Insert the deck into MongoDB
-  const result = await db.collection("decks").insertOne(newDeck);
-  const duplicateDeck = await getDeckById(user, result.insertedId.toString());
-  return duplicateDeck;
+  return insertOneDeck(newDeck);
 }
 
-export const createNewDeck = async (user, deckData: { name: string; subtitle?: string; legion: string }): Promise<DeckResponse> => {
-  if (!deckData.name || typeof deckData.name !== 'string' || deckData.name.trim() === '') {
-    throw new Error("Deck name is required and must be a non-empty string");
-  }
-  if (!deckData.legion || typeof deckData.legion !== 'string' || deckData.legion.trim() === '') {
-    throw new Error("Legion is required and must be a non-empty string");
-  }
-
-  const existingDeck = await getDeckByName(user, deckData.name.trim());
+export const createNewDeck = async (user: AuthenticatedUser, value: unknown): Promise<DeckResponse> => {
+  const deckData = parseDeckCreateInput(value);
+  const existingDeck = await getDeckByName(user, deckData.name);
   if (existingDeck) {
-    throw new Error("You already have a deck with this name. Please choose a different name.");
+    throw new DeckServiceError("conflict", "You already have a deck with this name. Please choose a different name.");
   }
 
   const newDeck = {
@@ -154,37 +139,16 @@ export const createNewDeck = async (user, deckData: { name: string; subtitle?: s
   return createdDeck;
 }
 
-export const copyPublishedDeck = async (user, publishedDeckId: string): Promise<DeckResponse> => {
-  const existingDeck: PublishedDeck = await getPublishedDeckById(publishedDeckId);
-  if (!existingDeck) {
-    throw new Error("Published deck not found");
-  }
-  const newDeck: PublishedDeck = {
-    ...normalizeDeck(existingDeck),
-    name: existingDeck.name + " Copy",
-    userId: user.id,
-    created_at: new Date(),
-    updated_at: new Date(),
-  };
-  delete newDeck._id;
-  delete newDeck.cards;
-  delete newDeck.published_date;
-  delete newDeck.author;
-
-  const insertedDeck = await insertOneDeck(newDeck);
-  return insertedDeck;
-}
-
-export const deleteDeckById = async (user, deckId: string): Promise<void> => {
+export const deleteDeckById = async (user: AuthenticatedUser, deckId: string): Promise<void> => {
   if (!deckId) {
-    throw new Error("Deck ID is required");
+    throw new DeckServiceError("invalid_input", "Deck ID is required");
   }
   const db = getDatabase();
   const result = await db.collection("decks").deleteOne({
-    _id: new ObjectId(deckId),
+    _id: requireDeckObjectId(deckId),
     userId: user.id
   });
   if (result.deletedCount === 0) {
-    throw new Error("Deck not found or you don't have permission to delete this deck");
+    throw new DeckServiceError("not_found", "Deck not found or you don't have permission to delete this deck");
   }
 }

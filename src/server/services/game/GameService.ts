@@ -1,7 +1,9 @@
 import {
   games,
 } from '../../game/game';
-import { fetchInitialDecks, resetPlayersCards, fetchPlayerDeckById } from '../../utils/game.util';
+import { fetchInitialDecks, resetPlayersCards } from '../../utils/game.util';
+import { getDeckById } from '../api/DecksService';
+import { ObjectId } from 'mongodb';
 import { rooms } from '../../network/roomRegistry';
 import { addGameLog } from '../../utils/generateGameLog';
 import { createInitialGameState } from '@/shared/constants/initialGameState';
@@ -69,7 +71,7 @@ export class GameService {
     return game;
   }
 
-  async resetGame(roomId: string, options?: { p2DeckId?: string; p1DeckId?: string }): Promise<GameStateData> {
+  async resetGame(roomId: string, options?: { p2DeckId?: string; p1DeckId?: string }, userId?: string): Promise<GameStateData> {
     if (!games[roomId]) {
       throw new Error(`Game ${roomId} not found`);
     }
@@ -77,20 +79,30 @@ export class GameService {
     const gameState = this.getGameState(roomId);
     const currentSandboxMode = gameState.sandboxMode;
 
+    // Authorize every replacement before mutating either deck or the current match.
+    // Room membership alone does not authorize reading another account's private deck.
+    const loadReplacement = async (deckId: unknown, currentId: string | undefined) => {
+      if (typeof deckId !== 'string' || !ObjectId.isValid(deckId) || !userId) {
+        throw new Error('A valid owned deck is required to change decks.');
+      }
+      if (deckId === currentId) return undefined;
+      const deck = await getDeckById({ id: userId }, deckId);
+      if (!deck) throw new Error('Deck not found or you do not have permission to use it.');
+      return deck;
+    };
+    const p1Replacement = options?.p1DeckId !== undefined
+      ? await loadReplacement(options.p1DeckId, gameState.p1DeckFromServer?._id?.toString()) : undefined;
+    const p2Replacement = options?.p2DeckId !== undefined
+      ? await loadReplacement(options.p2DeckId, gameState.p2DeckFromServer?._id?.toString()) : undefined;
+    if (p1Replacement) gameState.p1DeckFromServer = p1Replacement;
+    if (p2Replacement) gameState.p2DeckFromServer = p2Replacement;
+
     games[roomId].sandboxMode = currentSandboxMode;
     games[roomId].gameLog = addGameLog([], "Game Started");
     games[roomId].p2PlayerAP = 0;
     games[roomId].p1PlayerAP = 0;
     games[roomId].p2PlayerHealth = 0;
     games[roomId].p1PlayerHealth = 0;
-    if (options?.p2DeckId && gameState.p2DeckFromServer?.id !== options.p2DeckId) {
-      games[roomId].p2DeckFromServer = await fetchPlayerDeckById({ deckId: options.p2DeckId });
-    }
-
-    if (options?.p1DeckId && gameState.p1DeckFromServer?.id !== options.p1DeckId) {
-      games[roomId].p1DeckFromServer = await fetchPlayerDeckById({ deckId: options.p1DeckId });
-    }
-
     resetPlayersCards(roomId, gameState.p1DeckFromServer!, gameState.p2DeckFromServer!);
 
     games[roomId].gameLog = addGameLog(gameState.gameLog, "Game Restarted");

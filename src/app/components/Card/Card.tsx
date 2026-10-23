@@ -1,7 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/client/redux/hooks';
 import { moveCard, flipCard } from '@/client/redux/gameStateSlice';
-import { setPileInView } from '@/client/redux/clientGameStateSlice';
+import { setPileInView, setSelectionFeedback, setSelectingZone, setCardForSelectingZone } from '@/client/redux/clientGameStateSlice';
+import { gameZoneLabel } from '@/client/utils/gameZoneLabel';
+import { decodeHTMLEntities } from '@/client/utils/string.util';
+import { useToast } from '../ToastProvider';
 import { openPlunderModal } from '@/client/redux/modalsSlice';
 import IMenuItem, { INewMenuItem } from '@/client/interfaces/IMenuItem';
 import { CARD_TARGET } from '@/shared/enums/CardTarget';
@@ -13,6 +16,8 @@ import useHandleCardEvents from '@/client/hooks/useHandleCardEvents';
 import useMenuItemClick from '@/client/hooks/useMenuItemClick';
 import { emitGameEvent } from '@/client/utils/emitEvent';
 import { getMenuItemsForCard, getMenuItemsForCardLegacy } from '@/client/utils/cardMenu.utils';
+import { CARD_TYPE } from '@/shared/enums/CardType';
+import { MatchStatus } from '@/shared/enums/Match';
 
 export default function Card({ 
   card, 
@@ -25,6 +30,7 @@ export default function Card({
   compactOpponentHand = false,
 }: CardProps) {
   const dispatch = useAppDispatch();
+  const { showToast } = useToast();
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
   const { legacyMenu } = useAppSelector((state) => state.clientSettings);
@@ -49,6 +55,18 @@ export default function Card({
     setIsPopoverVisible(false);
   }, []);
 
+  useEffect(() => {
+    // Pile anchors are reused for the next top card. Do not silently retarget
+    // an already-open action dialog to a different card.
+    closePopover();
+  }, [card.id, closePopover]);
+
+  const announceMove = useCallback((target: string) => {
+    if (window.matchMedia("(min-width: 1101px)").matches) return;
+    const name = hidden || (!inPileView && cardTarget.includes("Deck")) ? "Card" : decodeHTMLEntities(card.name || "Card");
+    showToast({ label: `${name} moved to ${gameZoneLabel(target, side).toLowerCase()}.`, placement: "top", passive: true, duration: 3500, ariaLabel: "Game action feedback" });
+  }, [card.name, cardTarget, hidden, inPileView, side, showToast]);
+
   const handleNewMenuClick = useCallback((items: INewMenuItem[], key: string | number) => {
     const selectedMenuItem: INewMenuItem | undefined = items?.find((item) => 
       item.key === key || item.children?.find((child) => 
@@ -58,7 +76,9 @@ export default function Card({
     
     switch (selectedMenuItem?.menuAction) {
       case MenuItemAction.MOVE:
+        closePopover();
         handleMove(items, String(key));
+        if (selectedMenuItem?.target) announceMove(selectedMenuItem.target);
         break;
       case MenuItemAction.SHUFFLE:
         handleShuffle();
@@ -95,7 +115,7 @@ export default function Card({
       default:
         break;
     }
-  }, [handleMove, handleShuffle, handleView, handleConscript, handleActivate, handleSet, handleFlip, handleWisdom, dispatch, closePopover]);
+  }, [handleMove, handleShuffle, handleView, handleConscript, handleActivate, handleSet, handleFlip, handleWisdom, dispatch, closePopover, announceMove]);
 
   const handleLegacyMenuClick = useCallback((items: IMenuItem[], key: string | number) => {
     const selectedMenuItem: IMenuItem | undefined = items?.find((item) => 
@@ -136,6 +156,8 @@ export default function Card({
             bottom
           }
         });
+        closePopover();
+        if (typeof child?.title === "string") announceMove(child.title);
         break;
         
       case MenuItemAction.VIEW:
@@ -207,7 +229,7 @@ export default function Card({
       default:
         break;
     }
-  }, [card, cardTarget, dispatch, index, zoneIndex, p1, cardPileZone, closePopover]);
+  }, [card, cardTarget, dispatch, index, zoneIndex, p1, cardPileZone, closePopover, announceMove]);
 
   const handleMenuClick = useCallback((items: INewMenuItem[] | IMenuItem[], key: string | number) => {
     if (legacyMenu) {
@@ -235,6 +257,27 @@ export default function Card({
   const isP1Selected = Boolean(p1SelectedCards?.find(c => c.id === card.id));
   const isP2Selected = Boolean(p2SelectedCards?.find(c => c.id === card.id));
   const focused = cardInFocus?.id === card.id;
+  const selectionLabelByType: Partial<Record<CARD_TYPE, string>> = {
+    [CARD_TYPE.WARRIOR]: "Select warrior zone",
+    [CARD_TYPE.UNIFIED]: "Select unified zone",
+    [CARD_TYPE.FORTIFIED]: "Select fortified zone",
+  };
+  const isLocalHand = cardTarget === (p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND);
+  const selectForZoneLabel = !isHidden && isOnPlayerSide && isLocalHand && gameState.matchStatus !== MatchStatus.Completed
+    ? selectionLabelByType[card.type]
+    : undefined;
+  const handleSelectForZone = useCallback(() => {
+    setIsPopoverVisible(false);
+    dispatch(setSelectionFeedback(null));
+    if (clientGameState.cardForSelectingZone?.id === card.id) {
+      dispatch(setSelectingZone(null));
+      dispatch(setCardForSelectingZone(null));
+      return;
+    }
+    if (card.type === CARD_TYPE.WARRIOR) handleConscript();
+    if (card.type === CARD_TYPE.UNIFIED) handleActivate();
+    if (card.type === CARD_TYPE.FORTIFIED) handleSet();
+  }, [card.id, card.type, clientGameState.cardForSelectingZone?.id, dispatch, handleConscript, handleActivate, handleSet]);
 
   const {
     handleDecreaseCooldown,
@@ -263,9 +306,9 @@ export default function Card({
     handleCardBlur,
   };
 
-  const handlePopoverVisibleChange = () => {
-    if (isHidden) return;
-    setIsPopoverVisible(!isPopoverVisible);
+  const handlePopoverVisibleChange = (open: boolean) => {
+    if (isHidden || clientGameState.selectingZone) return;
+    setIsPopoverVisible(open);
   };
 
   return (
@@ -285,6 +328,8 @@ export default function Card({
       handlePopoverVisibleChange={handlePopoverVisibleChange}
       compactHand={compactHand}
       compactOpponentHand={compactOpponentHand}
+      onSelectForZone={selectForZoneLabel ? handleSelectForZone : undefined}
+      selectForZoneLabel={selectForZoneLabel}
       onMenuItemClick={handleMenuClick}
       {...interactionHandlers}
       {...modifierHandlers}

@@ -33,7 +33,9 @@ export default async function globalSetup() {
     const db = client.db(environment.MONGO_DB_NAME);
     await db.dropDatabase();
 
-    const cards = Array.from({ length: 8 }, (_, index) => card(new ObjectId(), index + 1));
+    const cards = Array.from({ length: 8 }, (_, index) =>
+      card(new ObjectId(), index + 1),
+    );
     await db.collection("cards").insertMany(cards);
     const now = new Date();
     const deck = (userId: string, name: string) => ({
@@ -43,12 +45,29 @@ export default async function globalSetup() {
       legion: "E2E Legion",
       userId,
       cards_in_deck: cards.map(({ _id }) => _id),
-      side_deck: [], warlords: [], synergies: [], veilRealms: [], guardians: [], tokens: [],
-      created_at: now, updated_at: now,
+      side_deck: [],
+      warlords: [],
+      synergies: [],
+      veilRealms: [],
+      guardians: [],
+      tokens: [],
+      created_at: now,
+      updated_at: now,
     });
-    await db.collection("decks").insertMany(users.map((userId, index) => deck(userId, `E2E Player ${index + 1} Deck`)));
+    await db
+      .collection("decks")
+      .insertMany(
+        users.map((userId, index) =>
+          deck(userId, `E2E Player ${index + 1} Deck`),
+        ),
+      );
     await db.collection("published_decks").insertOne({
       ...deck("e2e-publisher", "E2E Public Deck"),
+      cards_in_deck: [
+        cards[0]._id,
+        cards[0]._id,
+        ...cards.slice(1).map(({ _id }) => _id),
+      ],
       author: "E2E Publisher",
       published_date: now,
     });

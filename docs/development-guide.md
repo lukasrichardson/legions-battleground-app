@@ -15,6 +15,15 @@
 4. Apply `requireAuth` or `optionalAuth` from `src/server/middleware/auth.ts` where the route needs session context.
 5. Update [the API reference](./api-reference.md).
 
+### Deck API conventions
+
+- Keep private-deck persistence in `DecksService` and public-deck persistence in `PublishedDecksService`. Workflows that use both belong in `DeckPublicationService`; the persistence services must not import each other.
+- Service functions take an `AuthenticatedUser`, rather than an Express request. Private reads and writes always include its user ID in the database query.
+- Accept untrusted request bodies as `unknown` and parse them before database work. Creation and editing share text constraints in `DeckValidationService`.
+- Throw `DeckServiceError` for expected invalid-input, not-found, and conflict failures. Keep HTTP status mapping in `controllers/deckResponses.ts`. Express 5 forwards rejected route promises to the error middleware mounted after each deck controller's routes.
+- Use `sendCreatedDeck` for private create/copy/duplicate responses and `getApiErrorMessage` to display public API errors in the client.
+- Cover changed HTTP behavior in `tests/deck-api.test.ts`, which exercises real routes and services with a mocked database. This complements the database-backed browser smoke tests.
+
 ## Adding a game action or Socket.IO event
 
 1. Define or update shared event and payload types in `src/shared/`.

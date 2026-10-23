@@ -1,12 +1,13 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { csrfFetch } from "@/client/utils/http";
+import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/client/ui/card";
 import { InlineStatus } from "@/client/ui/inline-status";
 import AppIcon from "../AppIcon";
 import LoadingState from "../LoadingState";
+import Modal from "../Modals/Modal";
 
 type AliasResponse = { alias: string | null; error?: string };
 
@@ -16,7 +17,6 @@ type AliasEditorProps = {
 };
 
 export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
   const [alias, setAlias] = useState("");
   const [savedAlias, setSavedAlias] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -44,23 +44,12 @@ export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
     void loadAlias();
   }, []);
 
-  useEffect(() => {
-    const closeOnOutsidePointerDown = (event: PointerEvent) => {
-      if (editorRef.current && !editorRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    document.addEventListener("pointerdown", closeOnOutsidePointerDown);
-    return () => document.removeEventListener("pointerdown", closeOnOutsidePointerDown);
-  }, [onClose]);
-
   const saveAlias = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
     setError("");
     try {
-      const response = await fetch("/api/me/alias", {
+      const response = await csrfFetch("/api/me/alias", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ alias }),
@@ -100,29 +89,19 @@ export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
     }
   };
 
-  return (
-    <Card
-      ref={editorRef}
-      role="dialog"
-      aria-label="Set Battleground username"
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-          onClose();
-        }
-      }}
-      className="absolute right-0 top-full mt-3 w-[min(22rem,calc(100vw-1rem))] overflow-hidden rounded-sm border border-sky-200/40 bg-[linear-gradient(145deg,rgba(15,31,48,.98),rgba(3,10,18,.98))] text-white shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_25px_rgba(79,169,255,.18)] backdrop-blur-xl"
-    >
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 border-b border-sky-200/20 bg-[linear-gradient(90deg,rgba(79,169,255,.12),transparent_65%)] p-4">
+  return <Modal open closeModal={onClose} ariaLabel="Set Battleground username" closeOnBackdrop={!confirmingDelete && !saving} closeOnEscape={!confirmingDelete && !saving}
+    modalHeader={
+      <div className="flex min-h-14 flex-row items-center justify-between gap-3 py-2">
         <div className="flex items-center gap-3">
           <div>
-          <CardTitle className="text-base font-semibold tracking-wide text-white">Battleground username</CardTitle>
+          <h2 className="text-base font-semibold tracking-wide text-white">Battleground username</h2>
           </div>
         </div>
-        <button type="button" onClick={onClose} className="cursor-pointer border border-transparent p-1 text-slate-400 transition-colors hover:border-sky-200/35 hover:bg-blue-400/10 hover:text-white" aria-label="Close username editor">
+        <button type="button" onClick={onClose} disabled={confirmingDelete || saving} className="grid size-11 cursor-pointer place-items-center border border-transparent text-slate-400 transition-colors hover:border-sky-200/35 hover:bg-blue-400/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Close username editor">
           <AppIcon name="close" size={16} />
         </button>
-      </CardHeader>
-      <CardContent className="p-4 pt-4">
+      </div>}
+    modalContent={<>
         {loading ? <LoadingState label="Loading username…" className="min-h-0 py-5" /> : <form className="space-y-3" onSubmit={saveAlias}>
           <label className="block text-sm font-semibold text-white">
             Username
@@ -142,9 +121,9 @@ export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
             {saving ? "Saving…" : savedAlias ? "Update username" : "Set username"}
           </Button>
         </form>}
-      </CardContent>
-      {savedAlias && (
-        <CardFooter className="block border-t border-sky-200/15 p-4 pt-3">
+      </>}
+    modalFooter={savedAlias ? (
+      <div>
           {confirmingDelete ? (
             <div className="rounded-lg border border-red-400/30 bg-red-950/40 p-3 text-xs">
               <p className="text-red-100">Remove this username and use your provider name instead?</p>
@@ -158,8 +137,7 @@ export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
               Remove username
             </Button>
           )}
-        </CardFooter>
-      )}
-    </Card>
-  );
+      </div>
+    ) : undefined}
+  />;
 }

@@ -20,7 +20,7 @@ export class EventHandler {
   private gameHistoryService = new GameHistoryService();
   private regularMatchService = new RegularMatchService();
 
-  async handleGameEvent(roomId: string, eventType: GAME_EVENT, data: unknown, player: IPlayer, io: IOServer, isRedo: boolean = false) {
+  async handleGameEvent(roomId: string, eventType: GAME_EVENT, data: unknown, player: IPlayer, io: IOServer, isRedo: boolean = false, userId?: string) {
     try {
       const room = this.roomService.getRoom(roomId);
       const game = this.gameService.getGameState(roomId);
@@ -81,7 +81,7 @@ export class EventHandler {
         case GAME_EVENT.declineDrawOffer: this.regularMatchService.declineDrawOffer(roomId, side); break;
         case GAME_EVENT.resetGame: {
           if (isRegular) throw new Error("Regular matches cannot be reset");
-          await this.gameService.resetGame(roomId, data);
+          await this.gameService.resetGame(roomId, data, userId);
           this.gameHistoryService.clearGameHistory(roomId);
           break;
         }
@@ -172,7 +172,7 @@ export class EventHandler {
             break;
           }
           const lastUndone = undoneHistory[undoneHistory.length - 1];
-          return this.handleGameEvent(roomId, lastUndone.event.type, lastUndone.event.data, { id: player.id , name: lastUndone.playerName, p1: lastUndone.p1 }, io, true);
+          return this.handleGameEvent(roomId, lastUndone.event.type, lastUndone.event.data, { id: player.id , name: lastUndone.playerName, p1: lastUndone.p1 }, io, true, userId);
         }
         default: {
           // Use existing event handlers for everything else

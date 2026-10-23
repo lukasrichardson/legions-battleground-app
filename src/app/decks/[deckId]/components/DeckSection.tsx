@@ -1,15 +1,9 @@
 import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { DeckCardListKey, DeckCardTile } from "./CardTile";
-import { useEffect, useState } from "react";
 import BanlistItem from "@/shared/interfaces/BanlistItem.mongo";
-import { fetchBanlist } from "@/client/utils/api.utils";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
 
-export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck, readOnly = false, sourceListForCard }: { cards: HydratedDeckCard[], removeCardFromDeck: (e: React.MouseEvent, card: HydratedDeckCard) => void, setHoveredCard: (card: HydratedDeckCard) => void, useGroupedView: boolean, addCardToDeck: (card: HydratedDeckCard) => void, readOnly?: boolean, sourceListForCard: (card: HydratedDeckCard) => DeckCardListKey }) {
-  const [banlist, setBanlist] = useState<BanlistItem[]>([]);
-  useEffect(() => {
-    void fetchBanlist().then(setBanlist).catch((error) => console.warn("[DeckSection] Banlist request failed:", error));
-  }, []);
+export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard, useGroupedView, addCardToDeck, readOnly = false, sourceListForCard, banlist, onInspectCard }: { cards: HydratedDeckCard[], removeCardFromDeck: (e: React.MouseEvent, card: HydratedDeckCard) => void, setHoveredCard: (card: HydratedDeckCard) => void, useGroupedView: boolean, addCardToDeck: (card: HydratedDeckCard) => void, readOnly?: boolean, sourceListForCard: (card: HydratedDeckCard) => DeckCardListKey, banlist: BanlistItem[], onInspectCard?: (card: HydratedDeckCard) => void }) {
 
   // Group cards by name to apply grouping styling
   const groupedCards = cards.reduce((groups: Record<string, HydratedDeckCard[]>, card) => {
@@ -29,7 +23,7 @@ export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard,
           {cardGroup.map((card, index) => {
             const countInDeck = cardGroup.length;
             return (
-              <DeckCardTile key={card._id.toString() + index} readOnly={readOnly} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped banlist={banlist} countInDeck={countInDeck} sourceList={sourceListForCard(card)} />
+              <DeckCardTile onInspectCard={onInspectCard} key={card._id.toString() + index} readOnly={readOnly} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped banlist={banlist} countInDeck={countInDeck} sourceList={sourceListForCard(card)} />
             )
           })}
         </div>
@@ -40,7 +34,7 @@ export default function DeckSection({ cards, removeCardFromDeck, setHoveredCard,
       {cards.map((card, index) => {
         const countInDeck = groupedCards[decodeHTMLEntities(card.title)]?.length || 1;
         return (
-          <DeckCardTile readOnly={readOnly} key={card._id.toString() + index} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped={false} banlist={banlist} countInDeck={countInDeck} sourceList={sourceListForCard(card)} />
+          <DeckCardTile onInspectCard={onInspectCard} readOnly={readOnly} key={card._id.toString() + index} card={card} index={index} removeCardFromDeck={removeCardFromDeck} onMouseEnter={setHoveredCard} addCardToDeck={addCardToDeck} grouped={false} banlist={banlist} countInDeck={countInDeck} sourceList={sourceListForCard(card)} />
         )
       })}
     </>

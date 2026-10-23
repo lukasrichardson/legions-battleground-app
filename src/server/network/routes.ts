@@ -2,9 +2,9 @@ import { DeckResponse } from '../../shared/interfaces/DeckResponse';
 import { ObjectId } from 'mongodb';
 import {Request, Response} from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
+import { requireBanlistAdmin } from '../middleware/banlistAdmin';
 import { getDatabase } from '../utils/database.util';
-import { getSrlStatusOptions, getSrlTitleFilter, updateBanlistEntry } from '../services/api/BanlistService';
-import { BanlistStatus } from '../../shared/interfaces/BanlistItem.mongo';
+import { BanlistInputError, getSrlStatusOptions, getSrlTitleFilter, updateBanlistEntry } from '../services/api/BanlistService';
 import { ExpressApp } from '../interfaces/ExpressTypes';
 import decksController from '../controllers/decks.controller';
 import publishedDecksController from '../controllers/publishedDecks.controller';
@@ -55,8 +55,11 @@ export const routes = (app: ExpressApp) => {
   });
 
   app.post("/createRoom", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.body.roomName) {
-      return res.status(400).send("roomName is required");
+    if (typeof req.body?.roomName !== "string" || !req.body.roomName.trim() || req.body.roomName.length > 100) {
+      return res.status(400).send("roomName must be a non-empty string of at most 100 characters");
+    }
+    if (req.body.roomPassword !== undefined && (typeof req.body.roomPassword !== "string" || req.body.roomPassword.length > 200)) {
+      return res.status(400).send("roomPassword must be a string of at most 200 characters");
     }
     const playerName = await getAliasForUser(req.user!.id) ?? req.user!.name ?? req.user!.email ?? "Player";
     if (roomService.getRoom(req.body.roomName)) {
@@ -93,8 +96,11 @@ export const routes = (app: ExpressApp) => {
   });
   
   app.post("/joinRoom", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.body.roomName) {
-      return res.status(400).send("roomName is required");
+    if (typeof req.body?.roomName !== "string" || !req.body.roomName.trim() || req.body.roomName.length > 100) {
+      return res.status(400).send("roomName must be a non-empty string of at most 100 characters");
+    }
+    if (req.body.roomPassword !== undefined && (typeof req.body.roomPassword !== "string" || req.body.roomPassword.length > 200)) {
+      return res.status(400).send("roomPassword must be a string of at most 200 characters");
     }
     const playerName = await getAliasForUser(req.user!.id) ?? req.user!.name ?? req.user!.email ?? "Player";
     if (!roomService.getRoom(req.body.roomName)) {
@@ -186,11 +192,27 @@ export const routes = (app: ExpressApp) => {
   );
 
   app.post("/api/importDecks", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.body.name) {
-      return res.status(400).send("name is required");
+    if (typeof req.body?.name !== "string" || !req.body.name.trim() || req.body.name.length > 120) {
+      return res.status(400).send("name must be a non-empty string of at most 120 characters");
     }
-    if (!req.body.cards_in_deck || req.body.cards_in_deck.length < 1) {
-      return res.status(400).send("At least one card is required in the deck");
+    if (typeof req.body.id !== "string" || !req.body.id.trim() || req.body.id.length > 100) {
+      return res.status(400).send("A valid Toolbox deck ID is required");
+    }
+    if (!Array.isArray(req.body.cards_in_deck) || req.body.cards_in_deck.length < 1 || req.body.cards_in_deck.length > 500) {
+      return res.status(400).send("An import must contain between 1 and 500 cards");
+    }
+    const invalidCard = req.body.cards_in_deck.some((card: unknown) => {
+      if (!card || typeof card !== "object" || Array.isArray(card)) return true;
+      const { code, name } = card as Record<string, unknown>;
+      return (code !== undefined && (typeof code !== "string" || code.length > 100))
+        || (name !== undefined && (typeof name !== "string" || name.length > 200))
+        || (!code && !name);
+    });
+    if (invalidCard) {
+      return res.status(400).send("Each imported card must have a string code or name");
+    }
+    if (req.body.subtitle !== undefined && (typeof req.body.subtitle !== "string" || req.body.subtitle.length > 500)) {
+      return res.status(400).send("subtitle must be a string of at most 500 characters");
     }
     
     const db = getDatabase();
@@ -205,7 +227,7 @@ export const routes = (app: ExpressApp) => {
     }
     // if legion is "mythical-beasts" change it to "Mythical Beasts"  otherwise capitalize first letter and lowercase the rest
     let legion = null;
-    if (!req.body.legion || typeof req.body.legion !== 'string') {
+    if (typeof req.body.legion !== 'string' || !req.body.legion.trim() || req.body.legion.length > 100) {
       return res.status(400).send("legion is required and must be a string");
     }
     if (req.body.legion.toLowerCase() === "mythical-beasts") {
@@ -268,18 +290,14 @@ export const routes = (app: ExpressApp) => {
   }
   );
 
-  app.post("/api/banlist", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.body.name) {
-      return res.status(400).send("name is required");
+  app.post("/api/banlist", requireAuth, requireBanlistAdmin, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const updatedBanlist = await updateBanlistEntry(getDatabase(), req.body?.name, req.body?.status);
+      return res.send(updatedBanlist);
+    } catch (error) {
+      if (error instanceof BanlistInputError) return res.status(400).send(error.message);
+      throw error;
     }
-    if (!req.body.status) {
-      return res.status(400).send("status is required");
-    }
-    if (!Object.values(BanlistStatus).includes(req.body.status)) {
-      return res.status(400).send("status is invalid");
-    }
-    const updatedBanlist = await updateBanlistEntry(getDatabase(), req.body.name, req.body.status);
-    return res.send(updatedBanlist);
   }
   );
 

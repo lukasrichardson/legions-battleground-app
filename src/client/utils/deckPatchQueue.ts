@@ -8,7 +8,7 @@ type QueuedPatch<T, TRequest> = {
 /** Serializes deck saves so each patch is applied to the result of the previous one. */
 export const createDeckPatchQueue = <T, TRequest = DeckPatchOperation[]>(
   send: (request: TRequest) => Promise<T>,
-  onError: (error: unknown) => void,
+  onError: (error: unknown, request: TRequest) => void | Promise<void>,
 ) => {
   const pending: QueuedPatch<T, TRequest>[] = [];
   const idleResolvers: Array<() => void> = [];
@@ -29,7 +29,7 @@ export const createDeckPatchQueue = <T, TRequest = DeckPatchOperation[]>(
         next.onSuccess?.(result);
       } catch (error) {
         pending.splice(0);
-        onError(error);
+        await onError(error, next.request);
       }
     }
     sending = false;

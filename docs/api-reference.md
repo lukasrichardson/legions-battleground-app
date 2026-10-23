@@ -1,6 +1,6 @@
 # API and Socket.IO Reference
 
-This reference is derived from `src/server/network/routes.ts`, the two controllers, and `src/server/network/socketHandler.ts`. It does not claim rate limits, custom status formats, or payload fields not implemented in source.
+This reference is derived from `src/server/network/routes.ts`, the deck controllers, and `src/server/network/socketHandler.ts`. It documents behavior implemented in source.
 
 ## Route ownership
 
@@ -18,8 +18,14 @@ This reference is derived from `src/server/network/routes.ts`, the two controlle
 | `POST /joinRoom` | Public | Validates a room, player name, deck, and optional room password. |
 | `GET /api/cards` | Public | Lists cards; supports `query`, `legion`, `type`, `rarity`, `set`, `srlStatus`, `page`, and `pageSize`. `srlStatus` accepts active banlist values plus `unrestricted`, which returns cards with no banlist record. |
 | `GET /api/cards/filterOptions` | Public | Returns card filter values. |
-| `GET, POST /api/banlist` | GET public; POST authenticated | Reads or updates active banlist entries. POST accepts `suspended`, `restricted`, `limited`, or `unrestricted`; posting `unrestricted` removes the card's entry because it is the implicit default. |
+| `GET, POST /api/banlist` | GET public; POST authenticated administrator | Reads or updates active banlist entries. POST requires an account ID in `BANLIST_ADMIN_USER_IDS` and accepts `suspended`, `restricted`, `limited`, or `unrestricted`; posting `unrestricted` removes the card's entry because it is the implicit default. |
 | `/api/decks` and `/api/published_decks` | Controller-defined | Deck-library and published-deck operations. |
+
+### Deck inputs and errors
+
+Deck creation accepts `name` (1–120 characters) and `legion` (1–100 characters), both trimmed. Ownership, timestamps, subtitle, and initial card lists are server-managed. Editing applies the same name and legion constraints.
+
+Deck APIs return `{ error, message }` for validation (400), missing or inaccessible decks (404), duplicate names (409), oversized bodies (413), unsupported body encodings (415), recognized database connectivity failures (503), and unexpected failures (500). Unexpected errors are logged on the server and return a generic public message. Authentication failures retain `{ error }` with status 401. Legacy short private-deck IDs remain readable; ObjectId-based operations reject malformed IDs with status 400. Name-conflict checks are application checks, not a database uniqueness guarantee under concurrent requests.
 
 ### Personal deck JSON Patch
 

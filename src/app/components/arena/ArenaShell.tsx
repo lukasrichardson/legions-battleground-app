@@ -2,7 +2,7 @@
 
 import ArenaNavigation from "./ArenaNavigation";
 
-export default function ArenaShell({ children }: { children: React.ReactNode }) {
+export default function ArenaShell({ children, scrollOnShortLandscape = false }: { children: React.ReactNode; scrollOnShortLandscape?: boolean }) {
   return (
     <div className="relative flex h-dvh min-h-dvh flex-col overflow-hidden bg-[#050a0e] bg-[url('/chris-stenger-DTMhL0OpXjQ-unsplash.jpg')] bg-cover bg-center bg-fixed text-[#edf5ff]">
       <div
@@ -11,7 +11,7 @@ export default function ArenaShell({ children }: { children: React.ReactNode }) 
       />
       <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
         <ArenaNavigation />
-        <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
+        <main className={`min-h-0 flex-1 overflow-hidden ${scrollOnShortLandscape ? "short-landscape-scroll" : ""}`}>{children}</main>
       </div>
     </div>
   );

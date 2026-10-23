@@ -15,12 +15,9 @@ export const CardGallery = () => {
   const preview = selectedCard ?? hoveredCard;
   const clearSelectedCard = useCallback(() => setSelectedCard(null), []);
   const handleSelectCard = useCallback((card: CardDocument, banlistItem: BanlistItem | null) => {
-    if (selectedCard?.card._id === card._id) {
-      setSelectedCard(null);
-    } else {
-      setSelectedCard({ card, banlistItem });
-    }
-  }, [selectedCard]);
+    // A gallery-card tap always inspects. It never toggles closed or mutates a deck.
+    setSelectedCard({ card, banlistItem });
+  }, []);
   const handleHoveredCard = useCallback(
     (card: CardDocument | null, banlistItem?: BanlistItem | null) => setHoveredCard(card ? { card, banlistItem: banlistItem ?? null } : null),
     [],
@@ -43,9 +40,9 @@ export const CardGallery = () => {
   }, []);
 
   return (
-    <FullPage showBreadcrumbs={false}>
-      <div className="mx-auto flex h-full min-h-0 w-full flex-1 gap-4 overflow-hidden bg-[rgba(4,9,14,.5)] p-3 backdrop-blur-[8px] sm:p-4">
-        <div className="min-h-0 min-w-0 flex-1">
+    <FullPage showBreadcrumbs={false} scrollOnShortLandscape>
+      <div className="short-landscape-flow mx-auto flex min-h-0 w-full flex-1 gap-4 overflow-hidden bg-[rgba(4,9,14,.5)] p-2 backdrop-blur-[8px] sm:p-4">
+        <div className="short-landscape-flow min-h-0 min-w-0 flex-1">
           <SearchPane
             setHoveredCard={handleHoveredCard}
             onSelectCard={handleSelectCard}

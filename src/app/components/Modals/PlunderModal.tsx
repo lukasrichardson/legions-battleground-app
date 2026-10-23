@@ -6,6 +6,7 @@ import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { moveCard } from "@/client/redux/gameStateSlice";
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import styles from "@/app/styles/modals.module.css";
+import { Input } from "@/client/ui/input";
 
 const ModalConstants = {
   CloseBtnText: "close",
@@ -25,6 +26,7 @@ export default function PlunderModal({ closeModal }: { closeModal: () => void })
   const { p1PlayerDeck, p2PlayerDeck } = gameState;
   const p1 = side === "p1";
   const deckSize = p1 ? p1PlayerDeck.length : p2PlayerDeck.length;
+  const validCardNumber = Number.isInteger(cardToTake) && cardToTake >= 2 && cardToTake <= deckSize;
   const {
     CloseBtnText,
     PlunderBtnText,
@@ -33,13 +35,28 @@ export default function PlunderModal({ closeModal }: { closeModal: () => void })
   } = ModalConstants;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCardToTake((Number(e.target.value) || null) as number);
+    setCardToTake(e.target.value === "" ? null : Number(e.target.value));
   }
 
   const handleRandomNumber = () => {
     const min = 2;
     const max = deckSize;
-    setCardToTake(Math.floor(Math.random() * (max - min + 1) + min));
+    const range = max - min + 1;
+
+    if (range <= 0) {
+      return;
+    }
+
+    const randomBuffer = new Uint32Array(1);
+    const maxUnbiased = Math.floor(0x100000000 / range) * range;
+    let randomValue: number;
+
+    do {
+      window.crypto.getRandomValues(randomBuffer);
+      randomValue = randomBuffer[0];
+    } while (randomValue >= maxUnbiased);
+
+    setCardToTake(min + (randomValue % range));
   }
 
   const handleHalf = () => {
@@ -49,8 +66,7 @@ export default function PlunderModal({ closeModal }: { closeModal: () => void })
   }
 
   const handlePlunder = () => {
-    if (!cardToTake) return;
-    if (typeof Number(cardToTake) === "number" && cardToTake >= 2 && cardToTake <= deckSize) {
+    if (validCardNumber) {
       const cardToMove = p1 ? p1PlayerDeck[cardToTake - 1] : p2PlayerDeck[cardToTake - 1];
       dispatch(moveCard({
         id: cardToMove.id,
@@ -99,18 +115,19 @@ export default function PlunderModal({ closeModal }: { closeModal: () => void })
       <button className={styles.modalCloseButton} onClick={handleCloseModal as MouseEventHandler<HTMLButtonElement>}>{CloseBtnText}</button>
       {deckSize >=2 ? 
         <>
-        <div className="flex">
-          <label className="mr-2">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 pr-16">
+          <label htmlFor="plunder-card-number">
             {LabelBtnText}
           </label>
-          <input className="min-w-48 border border-sky-200/25 bg-slate-950/45 px-2 text-white outline-none focus:border-sky-300/70" name="plunderinput" type={"number"} defaultValue={undefined} placeholder="enter a number to cut to" onChange={handleInputChange} value={cardToTake || undefined} min={2} max={deckSize}/>
+          <Input id="plunder-card-number" aria-describedby="plunder-number-hint" aria-invalid={cardToTake !== null && !validCardNumber} className="min-w-0 flex-1 basis-40 border-sky-200/25 bg-slate-950/45 text-white focus:border-sky-300/70" name="plunderinput" type="number" inputMode="numeric" placeholder={`2–${deckSize}`} onChange={handleInputChange} value={cardToTake ?? ""} min={2} max={deckSize} step={1}/>
           {renderDrawSuffix()}
         </div>
-        <div className="flex gap-6">
+        <p id="plunder-number-hint" className="text-sm text-slate-300">Enter a whole card position from 2 to {deckSize}.</p>
+        <div className="flex flex-wrap justify-center gap-3">
           <div><button className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-sm text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10" onClick={handleRandomNumber}>{RandomBtnText}</button></div>
           <div><button className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-sm text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10" onClick={handleHalf}>Set as half the deck</button></div>
         </div>
-        <button className="cursor-pointer border border-sky-200/45 bg-[#246fb8] px-6 py-2 font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0]" onClick={handlePlunder}>{PlunderBtnText}</button>
+        <button disabled={!validCardNumber} className="min-h-11 cursor-pointer border border-sky-200/45 bg-[#246fb8] px-6 py-2 font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0] disabled:cursor-not-allowed disabled:opacity-50" onClick={handlePlunder}>{PlunderBtnText}</button>
       </> : "not enough cards to plunder"
       }
     </div>
@@ -124,6 +141,7 @@ export default function PlunderModal({ closeModal }: { closeModal: () => void })
   return (
     <Modal
       open={open}
+      ariaLabel="Plunder"
       closeModal={handleCloseModal}
       modalHeader={renderModalHeader()}
       modalContent={renderModalContent()}

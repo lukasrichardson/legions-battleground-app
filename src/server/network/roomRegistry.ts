@@ -19,4 +19,4 @@ export interface PrivateRoomInfo {
 
 export type PrivateRoomsCollection = Record<string, PrivateRoomInfo>;
 
-export const rooms: PrivateRoomsCollection = {};
+export const rooms: PrivateRoomsCollection = Object.create(null);

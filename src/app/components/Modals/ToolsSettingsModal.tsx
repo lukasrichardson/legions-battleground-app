@@ -102,6 +102,8 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
   return (
     <Modal
       open={toolsSettingsModalOpen}
+      ariaLabel="Tools & Settings"
+      showCloseButton
       closeModal={closeModal}
       modalHeader={<span>{ModalHeaderText}</span>}
       modalContent={
@@ -111,16 +113,16 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {renderToolButton(ChangeDeckButtonText, "change-decks", () => setShowDeckSelector((prev) => !prev), "border-sky-200/45 bg-[#246fb8] hover:bg-[#338de0]")}
               {renderToolButton(EditDeckButtonText, "edit-deck", handleEditDeck, "border-sky-200/30 bg-slate-950/35 hover:border-sky-200/60 hover:bg-blue-400/10")}
-              {renderToolButton(ResetGameButtonText, "reset-game", () => emitGameEvent({ type: GAME_EVENT.resetGame, data: { p2DeckId: p2DeckFromServer?.id, p1DeckId: p1DeckFromServer?.id } }), "border-amber-200/35 bg-amber-400/10 text-amber-100 hover:bg-amber-400/20")}
+              {renderToolButton(ResetGameButtonText, "reset-game", () => emitGameEvent({ type: GAME_EVENT.resetGame }), "border-amber-200/35 bg-amber-400/10 text-amber-100 hover:bg-amber-400/20")}
             </div>
             {showDeckSelector && (
               <div className="mt-2 grid grid-cols-1 gap-2 border border-sky-200/15 bg-slate-950/35 p-3 sm:grid-cols-3">
                 <div>
-                  <label className="block text-xs font-semibold text-white mb-1">
+                  <label htmlFor="settings-player-one-deck" className="block text-xs font-semibold text-white mb-1">
                     {p1DeckLabel}
                   </label>
                   <Select value={p1DeckId || ""} onValueChange={setP1DeckId}>
-                    <SelectTrigger className="h-8 w-full border-sky-200/20 bg-slate-950/45 text-xs text-white">
+                    <SelectTrigger id="settings-player-one-deck" className="h-8 w-full border-sky-200/20 bg-slate-950/45 text-xs text-white">
                       <SelectValue placeholder="Select deck" />
                     </SelectTrigger>
                     <SelectContent>
@@ -135,11 +137,11 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
                   </Select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-white mb-1">
+                  <label htmlFor="settings-player-two-deck" className="block text-xs font-semibold text-white mb-1">
                     {p2DeckLabel}
                   </label>
                   <Select value={p2DeckId || ""} onValueChange={setP2DeckId}>
-                    <SelectTrigger className="h-8 w-full border-sky-200/20 bg-slate-950/45 text-xs text-white">
+                    <SelectTrigger id="settings-player-two-deck" className="h-8 w-full border-sky-200/20 bg-slate-950/45 text-xs text-white">
                       <SelectValue placeholder="Select deck" />
                     </SelectTrigger>
                     <SelectContent>

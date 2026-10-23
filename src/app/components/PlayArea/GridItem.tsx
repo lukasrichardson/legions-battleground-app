@@ -6,7 +6,7 @@ import { CARD_TYPE } from "@/shared/enums/CardType";
 import { moveCard } from "@/client/redux/gameStateSlice";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
-import { setCardForSelectingZone, setSelectingZone } from "@/client/redux/clientGameStateSlice";
+import { setCardForSelectingZone, setSelectingZone, setSelectionFeedback } from "@/client/redux/clientGameStateSlice";
 import { CardState } from "@/shared/interfaces/CardState";
 import { MatchStatus } from "@/shared/enums/Match";
 
@@ -126,6 +126,11 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
       }
       dispatch(setSelectingZone(null));
       dispatch(setCardForSelectingZone(null));
+      dispatch(setSelectionFeedback(null));
+      return;
+    }
+    if (selectingZone) {
+      dispatch(setSelectionFeedback(`Choose an empty ${selectingZone} zone on your side.`));
     }
   }
   const handleCancelZoneSelect = (e: React.MouseEvent) => {
@@ -133,17 +138,24 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
       e.preventDefault();
       dispatch(setSelectingZone(null));
       dispatch(setCardForSelectingZone(null));
+      dispatch(setSelectionFeedback(null));
     }
   }
   return (
       <div
+        data-game-zone={cardTarget}
+        data-zone-index={targetIndex}
+        role={selectingZone ? "button" : undefined}
+        tabIndex={selectingZone ? 0 : undefined}
+        aria-label={selectingZone ? `${cardTarget} zone ${targetIndex ?? ""}` : undefined}
+        onKeyDown={(event) => { if (selectingZone && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); handleZoneSelect(); } }}
         ref={(node) => { drop(node); }}
         className={[
           "relative flex items-center justify-center rounded md:rounded-lg border transition-all duration-200",
           "border-gray-300",
           "hover:scale-[1.02]",
           "mx-1",
-          selecting ? "border-yellow-400 bg-yellow-400/50 hover:bg-yellow-300/80 cursor-pointer" : "",
+          selecting ? "border-yellow-400 bg-yellow-400/50 hover:bg-yellow-300/80 cursor-pointer ring-2 ring-yellow-300/60" : "",
           isOver && canDrop ? "border-green-400 bg-green-400/50 scale-[1.02]" : "",
           isOver && !canDrop ? "border-red-400 bg-red-400/10" : "",
           canDrop && !isOver ? "border-green-400 bg-blue-400/10" : "",

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "@/client/utils/http";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   fetchDeckListSummaries,
@@ -7,7 +7,7 @@ import {
   fetchRecentPublishedDecks,
 } from "@/client/utils/api.utils";
 
-vi.mock("axios", () => ({ default: { get: vi.fn() } }));
+vi.mock("@/client/utils/http", () => ({ default: { get: vi.fn() } }));
 
 describe("client API contracts", () => {
   beforeEach(() => vi.clearAllMocks());

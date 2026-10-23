@@ -60,7 +60,7 @@ The frontend and Express server run as one deployable Node.js process. Shared ga
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 24.22.1 or a newer patched Node 24 release (see `.nvmrc`)
 - A MongoDB instance
 - OAuth credentials for any sign-in providers you want to enable
 
@@ -110,6 +110,8 @@ docker run -p 3000:3000 --env-file .env legions-battleground
 ```
 
 ## Quality checks
+
+Run `npm run check` for lint (zero warnings), client/server type checks, and unit/API contract tests. The same command runs in CI on pull requests and pushes to `master`.
 
 ```bash
 npm run lint

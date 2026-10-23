@@ -3,10 +3,11 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Button } from "@/client/ui/button";
 import { InlineStatus } from "@/client/ui/inline-status";
 import { createPublishedDeck } from "@/client/utils/api.utils";
+import { getApiErrorMessage } from "@/client/utils/apiError";
 import { useDeckPickerOptions } from "@/client/hooks/useDeckPickerOptions";
 import { DeckResponse } from "@/shared/interfaces/DeckResponse";
 import { downloadDeckMarkdown } from "@/client/utils/deckMarkdown";
-import axios from "axios";
+import axios from "@/client/utils/http";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -15,6 +16,7 @@ interface DeckEditorHeaderProps {
   isEditingName: boolean;
   editedName: string;
   saving: boolean;
+  saveStatus?: string;
   onStartEditingName: () => void;
   onCancelEditingName: () => void;
   onSaveDeckName: () => void;
@@ -28,6 +30,7 @@ export default function DeckEditorHeader({
   isEditingName,
   editedName,
   saving,
+  saveStatus,
   onStartEditingName,
   onCancelEditingName,
   onSaveDeckName,
@@ -67,6 +70,7 @@ export default function DeckEditorHeader({
       router.push("/decks");
     }).catch((err) => {
       console.error("Error deleting deck:", err);
+      setActionError(getApiErrorMessage(err, "Could not delete this deck. Please try again."));
     });
   };
 
@@ -80,7 +84,7 @@ export default function DeckEditorHeader({
       router.push(`/decks/${newDeckId}`);
     } catch (err) {
       console.error("Error duplicating deck:", err);
-      setActionError("Could not copy this deck. Please try again.");
+      setActionError(getApiErrorMessage(err, "Could not copy this deck. Please try again."));
     } finally {
       setActionPending(null);
     }
@@ -95,7 +99,7 @@ export default function DeckEditorHeader({
       router.push(`/browse/${publishedDeck._id}`);
     } catch (err) {
       console.error("Error publishing deck:", err);
-      setActionError("Could not publish this deck. Please try again.");
+      setActionError(getApiErrorMessage(err, "Could not publish this deck. Please try again."));
     } finally {
       setActionPending(null);
     }
@@ -111,14 +115,14 @@ export default function DeckEditorHeader({
       setActionError("Could not download this deck. Please try again.");
     }
   };
-  const isMobile = useIsMobile();
-  const actionsDisabled = saving || actionPending !== null;
+  const isCompact = useIsMobile(1024);
+  const actionsDisabled = !deck || saving || actionPending !== null;
   return (
-    <div className="space-y-1">
+    <div className="sticky top-0 z-20 space-y-1 bg-slate-950/95 py-1 backdrop-blur">
       <div className="text-center flex flex-wrap">
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <Select value={deck?._id?.toString()} onValueChange={handleDeckChange} disabled={loading || Boolean(error) || actionsDisabled}>
-            <SelectTrigger className="h-10 min-w-52 border-white/20 bg-white/10 text-sm text-white focus-visible:ring-2 focus-visible:ring-blue-400">
+          <Select value={deck?._id?.toString() ?? ""} onValueChange={handleDeckChange} disabled={loading || Boolean(error) || saving || actionPending !== null}>
+            <SelectTrigger aria-label="Select deck" className="h-10 min-w-52 border-white/20 bg-white/10 text-sm text-white focus-visible:ring-2 focus-visible:ring-blue-400">
               <SelectValue placeholder={loading ? "Loading decks…" : error ? "Decks unavailable" : "Select deck"} />
             </SelectTrigger>
             <SelectContent className="border-white/20 bg-slate-800 text-white">
@@ -137,10 +141,12 @@ export default function DeckEditorHeader({
               <div className="inline-flex flex-wrap items-center justify-center gap-2">
                 <input
                   type="text"
+                  aria-label="Deck name"
+                  autoComplete="off"
                   value={editedName}
                   onChange={(e) => onNameChange(e.target.value)}
                   onKeyDown={onNameKeyPress}
-                  className="h-9 rounded border border-white/30 bg-white/10 px-2 text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="min-h-11 min-w-0 max-w-full rounded border border-white/30 bg-white/10 px-2 text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   placeholder="Deck name"
                   autoFocus
                   disabled={actionsDisabled}
@@ -187,9 +193,9 @@ export default function DeckEditorHeader({
             <Button type="button" variant="outline" onClick={handlePublishDeckClick} className="h-9 border-green-500/50 bg-green-500/10 text-green-300 hover:bg-green-500/20 hover:text-green-200" disabled={actionsDisabled}>
               {actionPending === "publish" ? "Publishing…" : "Publish"}
             </Button>
-        {!isMobile && (<span className="text-sm text-gray-400">Click or Drag to add / remove cards from deck</span>)}
-
+        {!isCompact && (<span className="text-sm text-gray-400">Click or Drag to add / remove cards from deck</span>)}
       </div>
+      {saveStatus && <p aria-live="polite" className={`px-1 text-center text-xs ${saveStatus === "Save failed" ? "text-rose-200" : "text-white/60"}`}>{saveStatus}</p>}
       {error && <InlineStatus variant="error">{error}</InlineStatus>}
       {actionError && <InlineStatus variant="error">{actionError}</InlineStatus>}
     </div>

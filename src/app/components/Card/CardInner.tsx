@@ -2,7 +2,7 @@ import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CardState } from "@/shared/interfaces/CardState";
 import { Popover } from "antd";
 import back_of_card from "PUBLIC/back_of_card.jpg";
-import { MouseEventHandler, useMemo } from "react";
+import { MouseEventHandler, useEffect, useMemo, useState } from "react";
 import { useDrag } from 'react-dnd';
 import CardMenuComponent from '@/app/components/Card/CardMenu';
 import IMenuItem from "@/client/interfaces/IMenuItem";
@@ -10,6 +10,8 @@ import { useAppSelector } from "@/client/redux/hooks";
 import CardImage from "./CardImage";
 import useHandlePlayerEvents from "@/client/hooks/useHandlePlayerEvents";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
+import useIsMobile from "@/client/hooks/useIsMobile";
+import MobileGameCardDialog from "./MobileGameCardDialog";
 
 const PILE_OFFSETS = {
   LEFT: 15,
@@ -52,7 +54,7 @@ interface CardInnerProps {
   zoneIndex?: number;
   p1Selected?: boolean;
   p2Selected?: boolean;
-  handlePopoverVisibleChange: () => void;
+  handlePopoverVisibleChange: (open: boolean) => void;
   onMenuItemClick?: (items: IMenuItem[], key: string | number) => void;
   handleCardHover?: () => void;
   handleCardBlur?: () => void;
@@ -69,6 +71,8 @@ interface CardInnerProps {
   handleAPIncrease?: () => void;
   compactHand?: boolean;
   compactOpponentHand?: boolean;
+  onSelectForZone?: () => void;
+  selectForZoneLabel?: string;
 }
 
 export default function CardInner({
@@ -97,7 +101,18 @@ export default function CardInner({
   handleDecreaseCooldown,
   compactHand = false,
   compactOpponentHand = false,
+  onSelectForZone,
+  selectForZoneLabel,
 }: CardInnerProps) {
+  const isCompact = useIsMobile(1101);
+  const [canHover, setCanHover] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setCanHover(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
   const gameState = useCardGameState(cardTarget);
   const clientSettings = useAppSelector(state => state.clientSettings);
 
@@ -190,29 +205,75 @@ export default function CardInner({
     isBeingPlayed ? "border-yellow-400 border-4 animate-bounce duration-800" : "",
   ].join(" "), [cardInView, inPileView, inPileOfMinTwo, isPlayerHandCard, isBeingPlayed, compactHand, compactOpponentHand]);
 
+  const isDeck = !inPileView && (cardTarget === CARD_TARGET.P1_PLAYER_DECK || cardTarget === CARD_TARGET.P2_PLAYER_DECK);
+  const dialogCard = !hidden && !isDeck ? card : { ...card, name: isDeck ? "Deck" : "Face-down card", img: back_of_card.src, text: "" };
+  const compactActions = <>
+    {onSelectForZone && <button type="button" aria-label={selectForZoneLabel} onClick={onSelectForZone} className="mb-2 min-h-11 w-full border border-yellow-200/50 bg-yellow-300/15 px-3 font-semibold text-yellow-100 touch-feedback">Play card</button>}
+    <CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} inline />
+    {!hidden && <>
+      {!cardInView && index === 0 && faceUp && <>
+        <CounterControl label="Attack modifier" value={card.attackModifier ?? 0} decrease={handleDecreaseAttackModifier} increase={handleIncreaseAttackModifier} />
+        <CounterControl label="Counter" value={card.otherModifier ?? 0} decrease={handleDecreaseOtherModifier} increase={handleIncreaseOtherModifier} />
+      </>}
+      {hasCooldown && <CounterControl label="Cooldown" value={card.cooldown ?? 0} decrease={handleDecreaseCooldown} increase={handleIncreaseCooldown} />}
+      {isWarlord && <CounterControl label="DCM" value={p1Card ? playerHealth.p1 : playerHealth.p2} decrease={handleHealthDecrease} increase={handleHealthIncrease} />}
+      {isGuardian && <CounterControl label="AP" value={p1Card ? playerAP.p1 : playerAP.p2} decrease={handleAPDecrease} increase={handleAPIncrease} />}
+    </>}
+  </>;
+
   return (
+    <>
     <Popover
+      classNames={{ root: "game-card-menu" }}
+      getPopupContainer={() => document.body}
+      zIndex={1100}
+      arrow={false}
+      align={{ offset: [0, 0], overflow: { adjustX: true, adjustY: true, shiftX: true, shiftY: true } }}
       styles={{
         container: {
           padding: 0,
         }
       }}
-      content={<CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} />}
+      content={<div className="game-card-menu-content max-h-[calc(100dvh-24px)] overflow-y-auto">
+        <CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} />
+        {!hidden && <div className="hidden max-[1100px]:block">
+          {!cardInView && index === 0 && faceUp && <>
+            <CounterControl label="Attack modifier" value={card.attackModifier ?? 0} decrease={handleDecreaseAttackModifier} increase={handleIncreaseAttackModifier} />
+            <CounterControl label="Counter" value={card.otherModifier ?? 0} decrease={handleDecreaseOtherModifier} increase={handleIncreaseOtherModifier} />
+          </>}
+          {hasCooldown && <CounterControl label="Cooldown" value={card.cooldown ?? 0} decrease={handleDecreaseCooldown} increase={handleIncreaseCooldown} />}
+          {isWarlord && <CounterControl label="DCM" value={p1Card ? playerHealth.p1 : playerHealth.p2} decrease={handleHealthDecrease} increase={handleHealthIncrease} />}
+          {isGuardian && <CounterControl label="AP" value={p1Card ? playerAP.p1 : playerAP.p2} decrease={handleAPDecrease} increase={handleAPIncrease} />}
+        </div>}
+      </div>}
       title={null}
-      trigger={clientSettings.hoverMenu ? ["click", "contextMenu", "hover"] : ["click", "contextMenu"]}
+      trigger={isCompact ? [] : canHover && clientSettings.hoverMenu ? ["click", "contextMenu", "hover"] : ["click", "contextMenu"]}
       onOpenChange={handlePopoverVisibleChange}
-      open={isPopoverVisible && !isDragging}
+      open={!isCompact && isPopoverVisible && !isDragging && !cardForSelectingZone}
       mouseEnterDelay={0.2}
       mouseLeaveDelay={0.1}
     >
 
       <div
+          data-opponent-hand={compactOpponentHand || undefined}
+          role={isCompact && !hidden ? "button" : undefined}
+          tabIndex={isCompact && !hidden ? 0 : undefined}
+          aria-label={isCompact && !hidden ? (isDeck ? "Open deck actions" : `Inspect ${decodeHTMLEntities(dialogCard.name || "card")}`) : undefined}
           ref={(node) => { drag(node); }}
           className={cardClasses}
           style={cardStyles}
           onMouseEnter={handleCardHover}
           onMouseLeave={handleCardBlur}
-          onClick={handleCardRightClick}
+          onClick={(event) => {
+            handleCardRightClick?.(event);
+            if (isCompact) handlePopoverVisibleChange(true);
+          }}
+          onKeyDown={(event) => {
+            if (isCompact && (event.key === "Enter" || event.key === " ")) {
+              event.preventDefault();
+              handlePopoverVisibleChange(true);
+            }
+          }}
         >
           {card?.img ? (
             !isDragging && <>
@@ -226,12 +287,12 @@ export default function CardInner({
           {!isDragging && (
             <>{(!cardInView && index === 0 && faceUp) && (
               <>
-                <div className={`absolute top-0 right-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
+                <div className={`absolute top-0 right-0 rounded flex max-[1100px]:hidden items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
                   {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseAttackModifier?.() }}>↓</span>}
                   {(attackModifierExists || focused) && <span className=" mx-auto">{attackModifierExists && <span>{attackModifierNegative ? "" : "+"}{card.attackModifier}</span>}atk</span>}
                   {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseAttackModifier?.() }}>↑</span>}
                 </div>
-                <div className={`absolute bottom-0 left-0 rounded flex items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
+                <div className={`absolute bottom-0 left-0 rounded flex max-[1100px]:hidden items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
                   {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseOtherModifier?.() }}>↓</span>}
                   {(otherModifierExists || focused) && <span className="mx-auto">cnt{otherModifierExists && <span>{card.otherModifier}</span>}</span>}
                   {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseOtherModifier?.() }}>↑</span>}
@@ -244,13 +305,27 @@ export default function CardInner({
             </>)}
         </div>
     </Popover>
+    {isCompact && isPopoverVisible && !isDragging && !cardForSelectingZone && (
+      <MobileGameCardDialog card={dialogCard} title={dialogCard.name || "Card"} onClose={() => handlePopoverVisibleChange(false)}>
+        {compactActions}
+      </MobileGameCardDialog>
+    )}
+    </>
   )
 }
 
 const renderCardAddOn = (handleDecrease, handleIncrease, text, top, isOnPlayersSide) => (
-  <div className={`absolute ${top ? "top-0" : "bottom-0"} bg-[#f5f5f576] rounded flex items-center justify-between text-black w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
+  <div className={`absolute ${top ? "top-0" : "bottom-0"} bg-[#f5f5f576] rounded flex max-[1100px]:hidden items-center justify-between text-black w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
     {<span className="cursor-pointer" onClick={handleDecrease}>↓</span>}
     <span>{text}</span>
     {<span className="cursor-pointer" onClick={handleIncrease}>↑</span>}
   </div>
 )
+
+function CounterControl({ label, value, decrease, increase }: { label: string; value: number; decrease?: MouseEventHandler<HTMLButtonElement>; increase?: MouseEventHandler<HTMLButtonElement> }) {
+  return <div className="flex items-center justify-between gap-2 border-t border-white/15 px-2 text-sm" onClick={(event) => event.stopPropagation()}>
+    <button type="button" aria-label={`Decrease ${label}`} className="size-11 shrink-0" onClick={decrease}>−</button>
+    <span>{label}: {value}</span>
+    <button type="button" aria-label={`Increase ${label}`} className="size-11 shrink-0" onClick={increase}>+</button>
+  </div>;
+}

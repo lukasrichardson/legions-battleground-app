@@ -1,11 +1,11 @@
-import {
-  // useAppDispatch, 
-  useAppSelector } from "@/client/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { MatchStatus } from "@/shared/enums/Match";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { emitGameEvent } from "@/client/utils/emitEvent";
+import { setCardForSelectingZone, setSelectingZone, setSelectionFeedback } from "@/client/redux/clientGameStateSlice";
 import MatchStatusBar from "./MatchStatusBar";
+import useIsMobile from "@/client/hooks/useIsMobile";
 // import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import {
   // renderAP,
@@ -21,6 +21,8 @@ import {
 // import { emitGameEvent } from "@/client/utils/emitEvent";
 
 export default function PlayArea({ }) {
+  const dispatch = useAppDispatch();
+  const compactScreen = useIsMobile(1101);
   // const dispatch = useAppDispatch();
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
@@ -58,6 +60,7 @@ export default function PlayArea({ }) {
     p1PlayerRevealed,
   } = gameState;
   const { side } = clientGameState;
+  const { selectingZone, cardForSelectingZone, selectionFeedback } = clientGameState;
   const p1 = side === "p1";
   const regularMode = !gameState.sandboxMode;
   const openingHandsPending = !gameState.sandboxMode && !gameState.started && [MatchStatus.ReadyCheck, MatchStatus.Rps, MatchStatus.FirstPlayerChoice].includes(gameState.matchStatus);
@@ -67,9 +70,15 @@ export default function PlayArea({ }) {
   // const nextPhaseMap = rpsWinner === "p1" ? NextPhaseP1Wins : NextPhaseP2Wins;
 
   return (
-    <div className={regularMode ? "relative grid h-full w-[calc(100%-248px)] max-[1100px]:w-[calc(100%-56px)] grid-rows-[60px_minmax(0,1fr)_64px_minmax(0,1fr)_60px] overflow-visible" : "relative flex h-full w-[calc(100%-248px)] max-[1100px]:w-[calc(100%-56px)] flex-col overflow-visible"}>
+    <div className={(regularMode ? "relative grid h-full w-[calc(100%-248px)] max-[1100px]:w-[calc(100%-56px)] grid-rows-[60px_minmax(0,1fr)_64px_minmax(0,1fr)_60px] overflow-visible" : "relative flex h-full w-[calc(100%-248px)] max-[1100px]:w-[calc(100%-56px)] flex-col overflow-visible") + " game-play-area"} aria-label="Battlefield">
+      {selectingZone && cardForSelectingZone && (
+        <aside aria-live="polite" className="absolute right-2 top-2 z-40 hidden max-w-[min(21rem,calc(100%-1rem))] border border-yellow-200/55 bg-slate-950/95 p-2 text-xs text-yellow-50 shadow-xl backdrop-blur max-[1100px]:flex max-[1100px]:items-center max-[1100px]:gap-2">
+          <div className="min-w-0"><strong className="block truncate">{cardForSelectingZone.name}</strong><span>{selectionFeedback || `Choose an empty ${selectingZone} zone.`}</span></div>
+          <button type="button" className="min-h-11 shrink-0 border border-yellow-100/50 px-3 font-semibold touch-feedback" onClick={() => { dispatch(setSelectingZone(null)); dispatch(setCardForSelectingZone(null)); dispatch(setSelectionFeedback(null)); }}>Cancel</button>
+        </aside>
+      )}
       <div className={regularMode ? "relative min-h-0" : "contents"}>
-        {openingHandsPending ? <OpeningHandPlaceholder compact={regularMode} opponent /> : <RenderHand compact={regularMode} items={p1 ? p2PlayerHand : p1PlayerHand} cardTarget={p1 ? CARD_TARGET.P2_PLAYER_HAND : CARD_TARGET.P1_PLAYER_HAND} p1={p1} />}
+        {openingHandsPending ? <OpeningHandPlaceholder compact={regularMode} opponent /> : <RenderHand compact={regularMode || compactScreen} items={p1 ? p2PlayerHand : p1PlayerHand} cardTarget={p1 ? CARD_TARGET.P2_PLAYER_HAND : CARD_TARGET.P1_PLAYER_HAND} p1={p1} />}
       </div>
       <div className={regularMode ? "grid min-h-0 w-full grid-rows-3 grid-cols-8" : "h-[40%] w-full grid grid-rows-3 grid-cols-8"}>
 
@@ -129,7 +138,7 @@ export default function PlayArea({ }) {
         {renderCardZone(p1 ? p1PlayerEradication : p2PlayerEradication, p1 ? CARD_TARGET.P1_PLAYER_ERADICATION : CARD_TARGET.P2_PLAYER_ERADICATION, "Eradication")}
       </div>
       <div className={regularMode ? "relative min-h-0" : "contents"}>
-        {openingHandsPending ? <OpeningHandPlaceholder compact={regularMode} /> : <RenderHand compact={regularMode} items={p1 ? p1PlayerHand : p2PlayerHand} cardTarget={p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND} p1={p1} />}
+        {openingHandsPending ? <OpeningHandPlaceholder compact={regularMode} /> : <RenderHand compact={regularMode || compactScreen} items={p1 ? p1PlayerHand : p2PlayerHand} cardTarget={p1 ? CARD_TARGET.P1_PLAYER_HAND : CARD_TARGET.P2_PLAYER_HAND} p1={p1} />}
       </div>
     </div>
   )

@@ -1,11 +1,11 @@
-FROM node:20-alpine AS build
+FROM node:24.22.1-alpine AS build
 WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:20-alpine AS runtime
+FROM node:24.22.1-alpine AS runtime
 WORKDIR /usr/src/app
 ENV NODE_ENV=production
 COPY package.json package-lock.json ./
@@ -14,7 +14,8 @@ COPY --from=build /usr/src/app/.next ./.next
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/public ./public
 COPY --from=build /usr/src/app/next.config.ts ./next.config.ts
-RUN chown -R node:node /usr/src/app
+# Only the runtime cache is writable; application code and dependencies stay root-owned.
+RUN mkdir -p /usr/src/app/.next/cache && chown node:node /usr/src/app/.next/cache
 USER node
 EXPOSE 3000
 CMD ["npm", "start"]

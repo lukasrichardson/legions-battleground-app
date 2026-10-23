@@ -7,7 +7,7 @@ const useIsMobile = (breakpoint = 768) => {
     // Check if window is defined (for Server-Side Rendering compatibility)
     if (typeof window === 'undefined') return;
 
-    const mql = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const mql = window.matchMedia(`(width < ${breakpoint}px)`);
     
     const handleMediaQueryChange = (event) => {
       setIsMobile(event.matches);

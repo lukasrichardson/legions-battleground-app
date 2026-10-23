@@ -1,4 +1,5 @@
 import NextAuth, { type NextAuthOptions } from "next-auth";
+import { randomUUID } from "node:crypto";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import DiscordProvider from "next-auth/providers/discord";
@@ -53,6 +54,14 @@ const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
+    jwt: async ({ token, user }) => {
+      // NextAuth rotates jti when re-encoding a JWT, even for the same login.
+      // Keep a separate identity until the next sign-in for session-bound CSRF.
+      if (user || typeof token.csrfSessionId !== "string" || !token.csrfSessionId) {
+        token.csrfSessionId = randomUUID();
+      }
+      return token;
+    },
     session: async ({ session, token }) => {
       // Add user ID to session
       if (token.sub && session.user) {

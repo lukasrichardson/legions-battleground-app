@@ -78,6 +78,8 @@ export default function HelpModal () {
   return (
     <Modal
       open={helpModalOpen}
+      ariaLabel="Help"
+      showCloseButton
       closeModal={() => dispatch(closeHelpModal())}
       modalHeader={<span>{ModalHeaderText}</span>}
       modalContent={renderModalContent()}

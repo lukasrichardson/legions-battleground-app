@@ -27,6 +27,8 @@ export interface RoomEventPayload {
 
 export interface CustomSocket extends SocketIOSocket {
   room?: string;
+  /** Account identity from the server-issued admission grant, never from event payloads. */
+  userId?: string;
 }
 
 export type IOServer = Server;

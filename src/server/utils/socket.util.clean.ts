@@ -52,6 +52,7 @@ export const handleSocketJoinGame = async (
       roomService.joinOrResumeRegularRoom(roomName, grant, socket.id);
       gameService.createRegularLobbyGame(roomName);
       socket.room = roomName;
+      socket.userId = grant.userId;
       socket.join(roomName);
       io.emit("rooms", roomService.getPublicRooms());
       io.to(roomName).emit("roomEvent", roomService.toRoomStateForMembers(roomService.getRoom(roomName)!));
@@ -70,6 +71,7 @@ export const handleSocketJoinGame = async (
 
     // Set up socket
     socket.room = roomName;
+    socket.userId = grant.userId;
     socket.join(roomName);
 
     // Start or get game
@@ -129,7 +131,9 @@ export const handleSocketGameEvent = async (
       payload.type as GAME_EVENT,
       payload.data,
       player,
-      io
+      io,
+      false,
+      socket.userId
     );
 
   } catch (error) {

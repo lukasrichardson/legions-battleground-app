@@ -2,7 +2,8 @@ import { useState } from "react";
 import Modal from "./Modal";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { closeImportDeckModal } from "@/client/redux/modalsSlice";
-import axios from "axios";
+import axios from "@/client/utils/http";
+import { isAxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { Button } from "@/client/ui/button";
 import { Input } from "@/client/ui/input";
@@ -96,7 +97,7 @@ export default function PreviewDeckModal() {
       setLoading(false);
       setError("");
     } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
+      if (isAxiosError(err)) {
         // Axios error: response may contain server error details
         setError("Error: " + (err.response?.data ?? err.message));
       } else if (err instanceof Error) {
@@ -133,7 +134,7 @@ export default function PreviewDeckModal() {
       router.push(`/decks/${res.data.id}`);
       handleClose();
     } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
+      if (isAxiosError(err)) {
         // Axios error: response may contain server error details
         setError("Error importing deck: " + (err.response?.data ?? err.message));
       } else if (err instanceof Error) {
@@ -148,7 +149,7 @@ export default function PreviewDeckModal() {
   }
 
   const renderDeckPreview = () => deck && (
-    <div className="mt-8">
+    <div className="mt-8 min-w-0 break-words">
       <h4 className="text-xl font-semibold text-white mb-3">Deck Preview</h4>
       <div className="text-gray-300 mb-4 space-y-1">
         <div><span className="font-medium text-white">Name:</span> {deck.name}</div>
@@ -159,7 +160,7 @@ export default function PreviewDeckModal() {
         <div className="sticky top-0 z-10 py-2">
           <Button
             onClick={handleImportDeckClick}
-            className="w-full border border-sky-200/45 bg-[#246fb8] py-4 text-base font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0]"
+            className="h-auto min-h-11 w-full whitespace-normal border border-sky-200/45 bg-[#246fb8] py-3 text-base font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0]"
           >
             {ImportButtonText}
           </Button>
@@ -172,7 +173,7 @@ export default function PreviewDeckModal() {
           {([warlord, realm, synergy, guardian, ...(warriors || []), ...(unifieds || []), ...(fortifieds || [])] as ToolboxCard[])
             .map((card, index) => (
               card ? (
-                <div key={card.id ?? 'card' + index.toString()} className="w-[90px] h-[120px] relative">
+                <div key={`${card.id ?? 'card'}-${index}`} className="w-[90px] h-[120px] relative">
                   <CardImage
                     src={card.thumb || card.image}
                     alt={`Card ${index + 1}`}

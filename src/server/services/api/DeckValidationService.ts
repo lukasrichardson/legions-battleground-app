@@ -19,6 +19,8 @@ export class DeckValidationError extends Error {
 
 export type DeckUpdateInput = Partial<Pick<DeckResponse, "name" | "subtitle" | "legion" | "cards_in_deck" | "side_deck" | typeof SPECIAL_DECK_FIELDS[number]>>;
 
+export type DeckCreateInput = Pick<DeckResponse, "name" | "legion">;
+
 export class DeckUpdateInputError extends Error {
   constructor(message: string) {
     super(message);
@@ -135,6 +137,15 @@ const optionalText = (value: unknown, field: string, maxLength: number): string 
   if (value.length > maxLength) throw new DeckUpdateInputError(`${field} must be at most ${maxLength} characters.`);
   return value;
 };
+
+/** Creation shares text constraints with editing; ownership and card lists are server-managed. */
+export function parseDeckCreateInput(value: unknown): DeckCreateInput {
+  if (!isRecord(value)) throw new DeckUpdateInputError("Request body must be an object.");
+  return {
+    name: requireText(value.name, "name", MAX_NAME_LENGTH),
+    legion: requireText(value.legion, "legion", MAX_LEGION_LENGTH),
+  };
+}
 
 const cardList = (value: unknown, field: string): ObjectId[] => {
   if (!Array.isArray(value) || !value.every((item) => typeof item === "string")) {
