@@ -34,6 +34,10 @@ The suite signs in using a NextAuth credentials provider which is only present w
 
 Page navigation has a separate 30-second timeout in `playwright.config.ts` because the development server compiles routes on first visit. This does not change the shorter control-action timeouts used by interaction tests.
 
+Keep functional journeys at one representative viewport unless input mode changes the behavior (for example, touch versus desktop dragging). The control and overlay suites use six representative viewports each; focused breakpoint, resize, and long-content regressions retain their specific edge cases. Avoid replaying a whole journey at every supported phone width or adding a separate test for an assertion that fits an existing journey. Keep unique security, persistence, error-recovery, accessibility, and multiplayer assertions when consolidating tests.
+
+Each run writes an HTML report to `playwright-report/` and machine-readable timings to `test-results/results.json`. Compare complete runs with the same worker count and retry settings, and account for cold route compilation and machine load before attributing a duration change to a test edit.
+
 ### Mobile regression helpers
 
 Use `e2e/mobile.ts` in Playwright coverage for phone-sized routes and overlays. It provides the supported viewport matrix plus assertions for document-level horizontal overflow and visible interactive controls that extend outside the current viewport. Run the layout assertion only after the route has reached an observable ready state (for example, a heading, list, or dialog title), rather than using a timing delay.

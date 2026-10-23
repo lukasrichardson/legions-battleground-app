@@ -10,8 +10,10 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   timeout: 120_000,
+  // Stop gracefully before the CI job deadline so reporters can save evidence.
+  globalTimeout: process.env.CI ? 20 * 60_000 : undefined,
   retries: process.env.CI ? 1 : 0,
-  reporter: [["html", { open: "never" }], ["list"]],
+  reporter: [["html", { open: "never" }], ["list"], ["json", { outputFile: "test-results/results.json" }]],
   use: {
     baseURL: env.NEXTAUTH_URL,
     // Cold Next.js routes compile on first navigation; keep this separate from control-action timeouts.

@@ -198,6 +198,8 @@ test("mobile battlefield overview shows both sides and the hand without scrollin
   await signInAs(page, "e2e-player-one");
   await setMobileViewport(page, "landscape");
   await createRoomFromLobby(page, `overview-${Date.now()}`, true, "E2E Player 1 Deck");
+  await expect(page.getByTestId("game-board").last()).toHaveAttribute("data-game-mode", "sandbox");
+  await expect(page.getByRole("heading", { name: "Ready Up" })).toHaveCount(0);
   for (const viewport of ["landscape", "landscapeWide"] as const) {
     await setMobileViewport(page, viewport);
     const measurements = await page.locator(".game-play-area").evaluate((board) => {
@@ -440,31 +442,4 @@ test("real portrait routes and filters have reachable touch controls at every su
     ).toBeVisible();
     await expectControlsReachable(page);
   }
-});
-
-test("filter options support keyboard selection and Escape closes only the options", async ({
-  page,
-}) => {
-  await setMobileViewport(page, "narrow");
-  await page.goto("/cards");
-  await page.getByRole("button", { name: /Filters/ }).click();
-  const filters = page.getByRole("dialog", { name: "Card filters" });
-  const type = filters.getByRole("button", { name: "Type", exact: true });
-  const typeId = await type.getAttribute("aria-controls");
-  await type.press("ArrowDown");
-  const warrior = filters.getByRole("option", { name: "Warrior", exact: true });
-  await expect(warrior).toBeFocused();
-  await warrior.press("Space");
-  await expect(warrior).toHaveAttribute("aria-selected", "true");
-  await warrior.press("Escape");
-  await expect(filters).toBeVisible();
-  await expect(
-    filters.locator(`button[aria-controls="${typeId}"]`),
-  ).toBeFocused();
-  await expectControlsReachable(page);
-  await filters.getByRole("button", { name: "Apply (1)", exact: true }).click();
-  await expect(filters).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "Inspect E2E Warrior 1", exact: true }),
-  ).toBeVisible();
 });

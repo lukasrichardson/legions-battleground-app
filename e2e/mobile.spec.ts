@@ -79,26 +79,6 @@ test("the card gallery opens and closes an inspector from a phone tap", async ({
   await expect(inspector).toHaveCount(0);
 });
 
-test("public phone routes remain bounded across the supported portrait widths", async ({
-  page,
-}) => {
-  await setMobileViewport(page, "wide");
-  await page.goto("/browse");
-  await expect(
-    page.getByRole("button", { name: "Open published deck E2E Public Deck" }),
-  ).toBeVisible();
-  await expectNoDocumentHorizontalOverflow(page);
-
-  await page
-    .getByRole("button", { name: "Open published deck E2E Public Deck" })
-    .click();
-  await page.waitForURL(/\/browse\/[a-f\d]{24}$/, { timeout: 30_000 });
-  await expect(
-    page.getByRole("heading", { name: "E2E Public Deck" }),
-  ).toBeVisible();
-  await expectNoDocumentHorizontalOverflow(page);
-});
-
 test("the phone deck builder uses explicit quantity controls without a reversal action", async ({
   page,
 }) => {

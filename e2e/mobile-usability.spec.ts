@@ -13,38 +13,36 @@ async function discardHandCard(page: Page) {
   return name;
 }
 
-for (const size of [{ width: 568, height: 320 }, { width: 844, height: 390 }]) {
-  test(`mobile card moves dismiss the action dialog, retain the pile browser and announce the move (${size.width})`, async ({ page }) => {
-    await signInAs(page, "e2e-player-one");
-    await page.setViewportSize(size);
-    await createRoomFromLobby(page, `mobile-usability-${size.width}-${Date.now()}`, true, "E2E Player 1 Deck");
-    const first = await discardHandCard(page);
-    const second = await discardHandCard(page);
-    const discard = page.locator('[data-game-zone="p1PlayerDiscard"]');
-    await discard.getByRole("button", { name: `Inspect ${second}`, exact: true }).tap();
-    await page.getByRole("menuitem", { name: "To Hand", exact: true }).tap();
-    const actions = page.getByRole("dialog", { name: "Card details and actions", exact: true });
-    await expect(actions).toHaveCount(0);
-    await expect(page.getByRole("status", { name: "Game action feedback", exact: true })).toContainText(`${second} moved to your hand`);
-    await discard.getByRole("button", { name: `Inspect ${first}`, exact: true }).tap();
-    await page.getByRole("menuitem", { name: "View", exact: true }).tap();
-    const pile = page.getByRole("dialog", { name: "Your discard", exact: true });
-    await expect(pile).toBeVisible();
-    await pile.getByRole("button", { name: `Inspect ${first}`, exact: true }).tap();
-    await actions.getByRole("menuitem", { name: "To Hand", exact: true }).tap();
-    await expect(actions).toHaveCount(0);
-    await expect(pile).toBeVisible();
-    await expect(pile.getByText("This pile is empty.", { exact: true })).toBeVisible();
-    await pile.getByRole("button", { name: "close", exact: true }).tap();
-    await page.getByRole("button", { name: "Open deck actions", exact: true }).tap();
-    await actions.getByRole("menuitem", { name: "Draw", exact: true }).tap();
-    await expect(actions).toHaveCount(0);
-    await expect(page.getByRole("status", { name: "Game action feedback", exact: true })).toContainText("Card moved to your hand");
-    await page.getByRole("button", { name: "Inspect Warlord", exact: true }).last().tap();
-    await page.getByRole("button", { name: "Increase DCM", exact: true }).tap();
-    await expect(actions).toBeVisible();
-  });
-}
+test("mobile card moves dismiss the action dialog, retain the pile browser and announce the move", async ({ page }) => {
+  await signInAs(page, "e2e-player-one");
+  await page.setViewportSize({ width: 568, height: 320 });
+  await createRoomFromLobby(page, `mobile-usability-${Date.now()}`, true, "E2E Player 1 Deck");
+  const first = await discardHandCard(page);
+  const second = await discardHandCard(page);
+  const discard = page.locator('[data-game-zone="p1PlayerDiscard"]');
+  await discard.getByRole("button", { name: `Inspect ${second}`, exact: true }).tap();
+  await page.getByRole("menuitem", { name: "To Hand", exact: true }).tap();
+  const actions = page.getByRole("dialog", { name: "Card details and actions", exact: true });
+  await expect(actions).toHaveCount(0);
+  await expect(page.getByRole("status", { name: "Game action feedback", exact: true })).toContainText(`${second} moved to your hand`);
+  await discard.getByRole("button", { name: `Inspect ${first}`, exact: true }).tap();
+  await page.getByRole("menuitem", { name: "View", exact: true }).tap();
+  const pile = page.getByRole("dialog", { name: "Your discard", exact: true });
+  await expect(pile).toBeVisible();
+  await pile.getByRole("button", { name: `Inspect ${first}`, exact: true }).tap();
+  await actions.getByRole("menuitem", { name: "To Hand", exact: true }).tap();
+  await expect(actions).toHaveCount(0);
+  await expect(pile).toBeVisible();
+  await expect(pile.getByText("This pile is empty.", { exact: true })).toBeVisible();
+  await pile.getByRole("button", { name: "close", exact: true }).tap();
+  await page.getByRole("button", { name: "Open deck actions", exact: true }).tap();
+  await actions.getByRole("menuitem", { name: "Draw", exact: true }).tap();
+  await expect(actions).toHaveCount(0);
+  await expect(page.getByRole("status", { name: "Game action feedback", exact: true })).toContainText("Card moved to your hand");
+  await page.getByRole("button", { name: "Inspect Warlord", exact: true }).last().tap();
+  await page.getByRole("button", { name: "Increase DCM", exact: true }).tap();
+  await expect(actions).toBeVisible();
+});
 
 test("pile searches explain empty results and offer a reset", async ({ page }) => {
   await signInAs(page, "e2e-player-one");

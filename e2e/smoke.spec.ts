@@ -42,6 +42,10 @@ test("published deck browsing and inspection work at a narrow phone width", asyn
   ).toBeVisible();
   await page.getByRole("button", { name: "Close card details" }).click();
   await expectNoDocumentHorizontalOverflow(page);
+  await setMobileViewport(page, "wide");
+  await expect(page.getByRole("heading", { name: "E2E Public Deck" })).toBeVisible();
+  await expect(card).toBeVisible();
+  await expectNoDocumentHorizontalOverflow(page);
 });
 
 test("a signed-in player can manage decks and copy a public deck", async ({
@@ -183,13 +187,3 @@ for (const mobile of [false, true])
       await playerTwoContext.close();
     }
   });
-
-test("a signed-in player can enter sandbox mode", async ({ page }) => {
-  await signInAs(page, "e2e-player-one");
-  await createRoomFromLobby(page, `e2e-sandbox-${Date.now()}`, true);
-  await expect(page.getByTestId("game-board").last()).toHaveAttribute(
-    "data-game-mode",
-    "sandbox",
-  );
-  await expect(page.getByRole("heading", { name: "Ready Up" })).toHaveCount(0);
-});

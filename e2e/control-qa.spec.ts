@@ -2,13 +2,13 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { signInAs, createRoomFromLobby } from "./fixtures";
 import { expectNoDocumentHorizontalOverflow } from "./mobile";
 
+// Cover each layout mode and both sides of the builder's desktop breakpoint.
+// Specific long-list and resize regressions below keep their own edge cases.
 const sizes = [
-  { width: 320, height: 568 }, { width: 390, height: 844 },
-  { width: 568, height: 320 }, { width: 667, height: 375 },
-  { width: 844, height: 390 }, { width: 768, height: 1024 },
+  { width: 320, height: 568 }, { width: 568, height: 320 },
+  { width: 768, height: 1024 },
   { width: 1023, height: 600 }, { width: 1024, height: 568 },
-  { width: 1280, height: 720 }, { width: 1440, height: 900 },
-  { width: 1280, height: 500 },
+  { width: 1280, height: 720 },
 ];
 
 async function expectMenuAnchored(page: Page, trigger: Locator, menu: Locator) {
@@ -50,7 +50,9 @@ test.describe("app-wide control QA", () => {
         await test.step(`${route} ${size.width}x${size.height}`, async () => {
           await page.goto(route);
           const trigger = page.getByRole("button", { name: route === "/browse" ? "All legions" : "Legion", exact: true });
-          await expect(page.getByRole("button", { name: route === "/browse" ? "Open published deck E2E Public Deck" : "Edit deck E2E Player 1 Deck", exact: true })).toBeVisible();
+          // The first visit also compiles its data endpoint on the dev server.
+          // Wait for fixture data before starting the shorter control checks.
+          await expect(page.getByRole("button", { name: route === "/browse" ? "Open published deck E2E Public Deck" : "Edit deck E2E Player 1 Deck", exact: true })).toBeVisible({ timeout: 30_000 });
           await trigger.click();
           const listbox = page.getByRole("listbox");
           await expectMenuAnchored(page, trigger, listbox.locator(".."));
@@ -80,6 +82,7 @@ test.describe("app-wide control QA", () => {
         const mobile = size.width < 1024;
         if (mobile) await page.getByRole("button", { name: /^Filters/ }).click();
         const type = page.getByRole("button", { name: "Type", exact: true });
+        const typeId = await type.getAttribute("aria-controls");
         await type.press("ArrowDown");
         const warrior = page.getByRole("option", { name: "Warrior", exact: true });
         await expect(warrior).toBeFocused();
@@ -87,6 +90,7 @@ test.describe("app-wide control QA", () => {
         await warrior.press("Space");
         await expect(warrior).toHaveAttribute("aria-selected", "true");
         await warrior.press("Escape");
+        await expect(page.locator(`button[aria-controls="${typeId}"]`)).toBeFocused();
         if (mobile) {
           await expect(page.getByRole("dialog", { name: "Card filters" })).toBeVisible();
           await page.getByRole("button", { name: "Apply (1)", exact: true }).click();
@@ -223,6 +227,10 @@ test.describe("app-wide control QA", () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/cards");
     await page.getByRole("button", { name: "Type", exact: true }).press("ArrowDown");
+    // ArrowDown focuses the first option on the next animation frame.
+    // Sending End before that handoff can target the trigger instead.
+    const first = page.getByRole("option", { name: options[0], exact: true });
+    await expect(first).toBeFocused();
     await page.keyboard.press("End");
     const last = page.getByRole("option", { name: options[39], exact: true });
     await expect(last).toBeFocused(); await expectInsideViewport(page, last);
@@ -238,14 +246,19 @@ test.describe("app-wide control QA", () => {
     for (const size of [{ width: 568, height: 240 }, { width: 390, height: 320 }, { width: 320, height: 568 }]) {
       await page.setViewportSize(size);
       await page.getByRole("button", { name: /^Filters/ }).click();
+      const close = page.getByRole("button", { name: "Close filters", exact: true });
+      await expect(close).toBeFocused();
       const type = page.getByRole("button", { name: options[39], exact: true });
+      await type.scrollIntoViewIfNeeded();
       await type.press("ArrowDown");
+      await expect(first).toBeFocused();
       await expectMenuAnchored(page, type, page.getByRole("listbox").locator(".."));
       await page.keyboard.press("End");
       await expect(last).toBeFocused(); await expectInsideViewport(page, last);
       await page.keyboard.press("Escape");
       await expect(page.getByRole("dialog", { name: "Card filters" })).toBeVisible();
-      await page.getByRole("button", { name: "Close filters", exact: true }).click();
+      await close.click();
+      await expect(page.getByRole("dialog", { name: "Card filters" })).toHaveCount(0);
     }
   });
 
@@ -412,7 +425,7 @@ test.describe("app-wide control QA", () => {
 
   test("touch text inputs retain a no-zoom font size in both orientations", async ({ page }) => {
     expect(await page.evaluate(() => matchMedia("(any-pointer: coarse)").matches)).toBe(true);
-    for (const size of sizes) {
+    for (const size of [{ width: 320, height: 568 }, { width: 568, height: 320 }]) {
       await page.setViewportSize(size);
       await page.goto("/cards");
       const input = page.getByRole("textbox", { name: "Search cards", exact: true });
@@ -441,12 +454,13 @@ test.describe("app-wide control QA", () => {
     await page.getByRole("button", { name: "Close filters", exact: true }).click();
   });
 
-  test("published viewer grouping and inspection controls remain reachable across orientations", async ({ page }) => {
+  test("published viewer grouping remains usable in mobile and desktop layouts", async ({ page }) => {
     await page.goto("/browse");
     await page.getByRole("button", { name: "Open published deck E2E Public Deck", exact: true }).click();
     await page.waitForURL(/\/browse\/[a-f\d]{24}$/);
     const route = page.url();
-    for (const size of sizes) {
+    // Inspector interactions belong to the smoke and overlay suites.
+    for (const size of [{ width: 320, height: 568 }, { width: 768, height: 1024 }, { width: 1280, height: 720 }]) {
       await page.setViewportSize(size);
       await page.goto(route);
       await expect(page.getByRole("heading", { name: "E2E Public Deck", exact: true })).toBeVisible();
@@ -457,12 +471,7 @@ test.describe("app-wide control QA", () => {
         await expect(grouped).toBeChecked({ checked: !checked });
         await grouped.setChecked(checked);
       }
-      const card = page.getByRole("button", { name: "Inspect E2E Warrior 1", exact: true }).first();
-      await card.click();
-      await expect(page.getByRole("dialog", { name: "Published deck card details", exact: true })).toBeVisible();
-      const close = page.getByRole("button", { name: "Close card details", exact: true });
-      await expectInsideViewport(page, close);
-      await close.click();
+      await expect(page.getByRole("button", { name: "Inspect E2E Warrior 1", exact: true }).first()).toBeVisible();
       await expectNoDocumentHorizontalOverflow(page);
     }
   });

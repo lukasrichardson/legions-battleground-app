@@ -1,14 +1,12 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { signInAs, createRoomFromLobby, joinRoomFromLobby, newSignedInPage } from "./fixtures";
 
+// One viewport per layout constraint, including unusually short game dialogs.
+// Dedicated drag/resize and long-content tests retain their explicit sizes.
 const viewports = [
-  { width: 320, height: 568 }, { width: 360, height: 800 },
-  { width: 390, height: 844 }, { width: 414, height: 896 },
-  { width: 568, height: 320 }, { width: 667, height: 375 },
-  { width: 844, height: 390 }, { width: 768, height: 1024 },
-  { width: 1024, height: 568 }, { width: 1280, height: 720 },
+  { width: 320, height: 568 }, { width: 568, height: 240 },
+  { width: 768, height: 1024 }, { width: 1024, height: 568 },
   { width: 1280, height: 320 }, { width: 1440, height: 900 },
-  { width: 568, height: 240 }, { width: 390, height: 260 },
 ];
 
 async function expectOverlayBounds(page: Page, overlay: Locator) {
