@@ -75,7 +75,7 @@ export default function AliasEditor({ onClose, onSaved }: AliasEditorProps) {
     setSaving(true);
     setError("");
     try {
-      const response = await fetch("/api/me/alias", { method: "DELETE" });
+      const response = await csrfFetch("/api/me/alias", { method: "DELETE" });
       if (!response.ok) {
         setError("Could not remove username. Please try again.");
         return;
