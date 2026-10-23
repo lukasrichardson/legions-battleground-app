@@ -19,7 +19,7 @@
     "build": "next build && tsc --project tsconfig.server.json && tsc-alias -p tsconfig.server.json",
     "start": "cross-env NODE_ENV=production node dist/server/server.js",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "typecheck:server": "tsc --project tsconfig.server.json --noEmit",
     "check": "npm run lint -- --max-warnings=0 && npm run typecheck && npm run typecheck:server && npm test",
     "test": "vitest run",
