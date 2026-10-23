@@ -8,6 +8,8 @@ npm run check
 
 `check` runs lint with zero warnings allowed, both TypeScript checks, and all Vitest tests. GitHub Actions runs the same command for pull requests targeting `master` and pushes to `master`, independently of the browser suite. It needs no database or OAuth credentials.
 
+Use the patched Node 24 release in `.nvmrc`. CI also runs `npm run audit:dependencies` against the complete dependency graph. ESLint uses `eslint.config.mjs`; generated build/test output is excluded there.
+
 Individual checks and additional validation:
 
 ```bash
@@ -39,6 +41,8 @@ Use `e2e/mobile.ts` in Playwright coverage for phone-sized routes and overlays. 
 Intentional horizontally scrollable card strips and the in-match hand tray may opt out of the instantaneous control-bounds assertion only by declaring both `data-mobile-overflow-exempt="card-strip"` or `"hand-tray"` and `data-mobile-horizontal-scroll-affordance` on their scroll container. The exemption is rejected for forms, navigation, primary actions, and room lists.
 
 Use `expectControlsReachable` for vertically scrolling routes: it scrolls real controls into view, checks their 44px hit areas and horizontal bounds, and hit-tests them against clipping or overlapping ancestors. It restores scroll positions afterward. Disabled controls must still meet the size and bounds contract but need not receive pointer events. Run it inside open dialogs as well as on settled routes. Document width alone cannot detect clipped content.
+
+The reachability assertion retries with a fresh control snapshot for up to five seconds when asynchronous rendering replaces a node during measurement. It still rejects persistent clipping. Sign-in helpers verify the final URL pathname and poll the HTTP session endpoint so callback query strings and document replacement cannot create false readiness signals.
 
 Compact gameplay (up to 1100px wide) renders without a board-wide transform. At 568×320 and 667×375, the battlefield scrolls vertically while the local hand and phase action remain pinned. Only the local hand scrolls horizontally. Counter adjustments are available in the existing card menu with 44px buttons; desktop inline adjustments and draggable dialogs remain available to precision pointers.
 

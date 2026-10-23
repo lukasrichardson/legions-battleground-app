@@ -7,11 +7,11 @@ import { Server } from 'socket.io';
 
 export const games: {
   [key: string]: GameStateData
-} = {}
+} = Object.create(null);
 
 export const users: {
   [key: string]: string
-} = {};
+} = Object.create(null);
 
 export const gameEventMap: {
   [key: string]: (roomId: string, action: unknown, player: { name: string; p1: boolean }, io?: Server) => void

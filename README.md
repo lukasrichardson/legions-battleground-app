@@ -60,7 +60,7 @@ The frontend and Express server run as one deployable Node.js process. Shared ga
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 24.22.1 or a newer patched Node 24 release (see `.nvmrc`)
 - A MongoDB instance
 - OAuth credentials for any sign-in providers you want to enable
 

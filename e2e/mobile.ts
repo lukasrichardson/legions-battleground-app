@@ -234,87 +234,91 @@ export async function expectTapTargetVisible(target: Locator) {
  * Native scrolling must expose a tappable area; clipping is never an exemption.
  * Restore scroll positions so this assertion doesn't change a flow's next step. */
 export async function expectControlsReachable(page: Page) {
-  const violations = await page
-    .locator(interactiveSelector)
-    .evaluateAll(async (elements) => {
-      const scrollPositions = Array.from(
-        document.querySelectorAll<HTMLElement>("*"),
-      )
-        .filter((el) => el.scrollTop || el.scrollLeft)
-        .map((el) => ({ el, top: el.scrollTop, left: el.scrollLeft }));
-      const windowPosition = { x: window.scrollX, y: window.scrollY };
-      const dialogs = Array.from(
-        document.querySelectorAll<HTMLElement>('[role="dialog"]'),
-      ).filter((el) => el.getClientRects().length);
-      const dialog = dialogs.at(-1);
-      const failures: string[] = [];
-      try {
-        for (const element of elements) {
-          const el = element as HTMLElement;
-          if (
-            !el.getClientRects().length ||
-            el.closest('[aria-hidden="true"]') ||
-            (dialog && !dialog.contains(el))
-          )
-            continue;
-          if (el.getAttribute("aria-label") === "Open Next.js Dev Tools")
-            continue;
-          const style = getComputedStyle(el);
-          if (
-            style.visibility === "hidden" ||
-            style.display === "none" ||
-            Number(style.opacity) === 0
-          )
-            continue;
-          el.scrollIntoView({
-            block: "nearest",
-            inline: "nearest",
-            behavior: "instant",
-          });
-          await new Promise<void>((resolve) =>
-            requestAnimationFrame(() => resolve()),
-          );
-          const rect = el.getBoundingClientRect();
-          const name =
-            el.getAttribute("aria-label") ||
-            el.textContent?.trim().slice(0, 60) ||
-            el.tagName;
-          const x =
-            (Math.max(0, rect.left) + Math.min(innerWidth, rect.right)) / 2;
-          const y =
-            (Math.max(0, rect.top) + Math.min(innerHeight, rect.bottom)) / 2;
-          const hit = document.elementFromPoint(x, y);
-          if (
-            rect.width < 43.9 ||
-            rect.height < 43.9 ||
-            rect.left < -1 ||
-            rect.right > innerWidth + 1 ||
-            rect.bottom <= 0 ||
-            rect.top >= innerHeight ||
-            (!el.hasAttribute("disabled") && (!hit || !el.contains(hit)))
-          )
-            failures.push(
-              `${name} (${Math.round(rect.width)}×${Math.round(rect.height)}) at ${Math.round(rect.left)},${Math.round(rect.top)}; hit ${hit?.tagName} ${hit?.getAttribute("aria-label") ?? hit?.textContent?.trim().slice(0, 40)}`,
+  // Recollect controls if React replaces a node during an awaited animation frame.
+  // Persistent clipping still fails; each attempt restores all scroll positions.
+  await expect(async () => {
+    const violations = await page
+      .locator(interactiveSelector)
+      .evaluateAll(async (elements) => {
+        const scrollPositions = Array.from(
+          document.querySelectorAll<HTMLElement>("*"),
+        )
+          .filter((el) => el.scrollTop || el.scrollLeft)
+          .map((el) => ({ el, top: el.scrollTop, left: el.scrollLeft }));
+        const windowPosition = { x: window.scrollX, y: window.scrollY };
+        const dialogs = Array.from(
+          document.querySelectorAll<HTMLElement>('[role="dialog"]'),
+        ).filter((el) => el.getClientRects().length);
+        const dialog = dialogs.at(-1);
+        const failures: string[] = [];
+        try {
+          for (const element of elements) {
+            const el = element as HTMLElement;
+            if (
+              !el.getClientRects().length ||
+              el.closest('[aria-hidden="true"]') ||
+              (dialog && !dialog.contains(el))
+            )
+              continue;
+            if (el.getAttribute("aria-label") === "Open Next.js Dev Tools")
+              continue;
+            const style = getComputedStyle(el);
+            if (
+              style.visibility === "hidden" ||
+              style.display === "none" ||
+              Number(style.opacity) === 0
+            )
+              continue;
+            el.scrollIntoView({
+              block: "nearest",
+              inline: "nearest",
+              behavior: "instant",
+            });
+            await new Promise<void>((resolve) =>
+              requestAnimationFrame(() => resolve()),
             );
-        }
-      } finally {
-        // Include newly scrolled containers, whose initial position was zero.
-        document.querySelectorAll<HTMLElement>("*").forEach((el) => {
-          if (el.scrollTop || el.scrollLeft) {
-            el.scrollTop = 0;
-            el.scrollLeft = 0;
+            const rect = el.getBoundingClientRect();
+            const name =
+              el.getAttribute("aria-label") ||
+              el.textContent?.trim().slice(0, 60) ||
+              el.tagName;
+            const x =
+              (Math.max(0, rect.left) + Math.min(innerWidth, rect.right)) / 2;
+            const y =
+              (Math.max(0, rect.top) + Math.min(innerHeight, rect.bottom)) / 2;
+            const hit = document.elementFromPoint(x, y);
+            if (
+              rect.width < 43.9 ||
+              rect.height < 43.9 ||
+              rect.left < -1 ||
+              rect.right > innerWidth + 1 ||
+              rect.bottom <= 0 ||
+              rect.top >= innerHeight ||
+              (!el.hasAttribute("disabled") && (!hit || !el.contains(hit)))
+            )
+              failures.push(
+                `${name} (${Math.round(rect.width)}×${Math.round(rect.height)}) at ${Math.round(rect.left)},${Math.round(rect.top)}; hit ${hit?.tagName} ${hit?.getAttribute("aria-label") ?? hit?.textContent?.trim().slice(0, 40)}`,
+              );
           }
-        });
-        scrollPositions.forEach(({ el, top, left }) => {
-          el.scrollTop = top;
-          el.scrollLeft = left;
-        });
-        window.scrollTo(windowPosition.x, windowPosition.y);
-      }
-      return failures;
-    });
-  expect(
-    violations,
-    "Controls must remain touch-sized and reachable through normal scrolling",
-  ).toEqual([]);
+        } finally {
+          // Include newly scrolled containers, whose initial position was zero.
+          document.querySelectorAll<HTMLElement>("*").forEach((el) => {
+            if (el.scrollTop || el.scrollLeft) {
+              el.scrollTop = 0;
+              el.scrollLeft = 0;
+            }
+          });
+          scrollPositions.forEach(({ el, top, left }) => {
+            el.scrollTop = top;
+            el.scrollLeft = left;
+          });
+          window.scrollTo(windowPosition.x, windowPosition.y);
+        }
+        return failures;
+      });
+    expect(
+      violations,
+      "Controls must remain touch-sized and reachable through normal scrolling",
+    ).toEqual([]);
+  }).toPass({ timeout: 5000 });
 }

@@ -1,13 +1,12 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
 import { SOCKET_PAYLOAD_TYPE } from "@/client/hooks/useSocket";
 import { GAME_EVENT } from '@/shared/enums/GameEvent';
 import { socket } from "@/client/socket";
 import { ROOM_EVENT } from "@/shared/enums/RoomEvent";
 
-export const emitGameEvent = ({type, data}: {type: GAME_EVENT, data: any}) => {
+export const emitGameEvent = ({type, data}: {type: GAME_EVENT, data?: unknown}) => {
   socket.emit(SOCKET_PAYLOAD_TYPE.gameEvent, {type, data});
 }
 
-export const emitRoomEvent = ({type, data}: {type: ROOM_EVENT, data: any}) => {
+export const emitRoomEvent = ({type, data}: {type: ROOM_EVENT, data?: unknown}) => {
   socket.emit(SOCKET_PAYLOAD_TYPE.roomEvent, {type, data});
 }

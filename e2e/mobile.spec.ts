@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { createRoomFromLobby, newSignedInPage, signInAs } from "./fixtures";
 import {
   expectMobileRouteLayout,
+  expectControlsReachable,
   expectNoDocumentHorizontalOverflow,
   expectTapTargetVisible,
   expectVisibleInteractiveElementsInViewport,
@@ -18,6 +19,7 @@ test("the mobile bounds helper rejects clipped controls and permits only named s
   await expect(
     expectVisibleInteractiveElementsInViewport(page),
   ).rejects.toThrow(/Clipped action/);
+  await expect(expectControlsReachable(page)).rejects.toThrow(/Clipped action/);
 
   await page.setContent(`
     <div data-mobile-overflow-exempt="card-strip" data-mobile-horizontal-scroll-affordance>
@@ -25,6 +27,22 @@ test("the mobile bounds helper rejects clipped controls and permits only named s
     </div>
   `);
   await expectVisibleInteractiveElementsInViewport(page);
+});
+
+test("control reachability rechecks replacement nodes instead of measuring detached elements", async ({ page }) => {
+  await page.setContent('<button style="width:44px;height:44px">Original</button>');
+  await page.evaluate(() => {
+    const button = document.querySelector("button")!;
+    button.scrollIntoView = () => {
+      requestAnimationFrame(() => {
+        const replacement = button.cloneNode(true) as HTMLButtonElement;
+        replacement.textContent = "Replacement";
+        button.replaceWith(replacement);
+      });
+    };
+  });
+  await expectControlsReachable(page);
+  await expect(page.getByRole("button", { name: "Replacement", exact: true })).toBeVisible();
 });
 
 test("phone navigation exposes a reachable route and closes after navigation", async ({

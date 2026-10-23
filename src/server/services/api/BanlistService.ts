@@ -1,6 +1,8 @@
 import { Db } from "mongodb";
 import BanlistItem, { BanlistStatus } from "@/shared/interfaces/BanlistItem.mongo";
 
+export class BanlistInputError extends Error {}
+
 export const getSrlStatusOptions = (activeStatuses: string[]) =>
   [...new Set([...activeStatuses, BanlistStatus.UNRESTRICTED])].sort();
 
@@ -26,13 +28,19 @@ export const getSrlTitleFilter = async (db: Db, requestedStatuses: string[]) => 
  * Stores only active S/R/L restrictions. Unrestricted is the implicit default
  * and is represented by the absence of a banlist record.
  */
-export const updateBanlistEntry = async (db: Db, name: string, status: BanlistStatus) => {
+export const updateBanlistEntry = async (db: Db, name: unknown, status: unknown) => {
+  if (typeof name !== "string" || !name.trim() || name.length > 200) {
+    throw new BanlistInputError("name must be a non-empty string of at most 200 characters");
+  }
+  if (!Object.values(BanlistStatus).includes(status as BanlistStatus)) {
+    throw new BanlistInputError("status is invalid");
+  }
   const banlist = db.collection<BanlistItem>("banlist");
 
   if (status === BanlistStatus.UNRESTRICTED) {
     await banlist.deleteMany({ name });
   } else {
-    await banlist.updateOne({ name }, { $set: { name, status } }, { upsert: true });
+    await banlist.updateOne({ name }, { $set: { name, status: status as BanlistStatus } }, { upsert: true });
   }
 
   return banlist.find({}).toArray();

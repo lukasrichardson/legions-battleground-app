@@ -113,7 +113,7 @@ export default function ToolsSettingsModal({ closeModal }: { closeModal: () => v
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {renderToolButton(ChangeDeckButtonText, "change-decks", () => setShowDeckSelector((prev) => !prev), "border-sky-200/45 bg-[#246fb8] hover:bg-[#338de0]")}
               {renderToolButton(EditDeckButtonText, "edit-deck", handleEditDeck, "border-sky-200/30 bg-slate-950/35 hover:border-sky-200/60 hover:bg-blue-400/10")}
-              {renderToolButton(ResetGameButtonText, "reset-game", () => emitGameEvent({ type: GAME_EVENT.resetGame, data: { p2DeckId: p2DeckFromServer?.id, p1DeckId: p1DeckFromServer?.id } }), "border-amber-200/35 bg-amber-400/10 text-amber-100 hover:bg-amber-400/20")}
+              {renderToolButton(ResetGameButtonText, "reset-game", () => emitGameEvent({ type: GAME_EVENT.resetGame }), "border-amber-200/35 bg-amber-400/10 text-amber-100 hover:bg-amber-400/20")}
             </div>
             {showDeckSelector && (
               <div className="mt-2 grid grid-cols-1 gap-2 border border-sky-200/15 bg-slate-950/35 p-3 sm:grid-cols-3">

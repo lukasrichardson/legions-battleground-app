@@ -8,8 +8,12 @@ export async function signInAs(page: Page, userId: E2eUser) {
   // A fresh development server may compile the home route during sign-in.
   // Keep that navigation budget separate from short control-action timeouts.
   await page.getByRole("button", { name: /sign in with e2e test user/i }).click({ timeout: 30_000 });
-  await page.waitForURL(/\/$/, { timeout: 30_000 });
-  await expect.poll(() => page.evaluate(() => fetch("/api/auth/session").then((response) => response.json()).then((session) => session.user?.id))).toBe(userId);
+  // A trailing-slash regex also matches the sign-in URL's callbackUrl=/ query.
+  await page.waitForURL((url) => url.pathname === "/", { timeout: 30_000 });
+  await expect.poll(async () => {
+    const response = await page.request.get("/api/auth/session");
+    return (await response.json()).user?.id;
+  }).toBe(userId);
 }
 
 export async function createRoomFromLobby(page: Page, roomName: string, sandboxMode: boolean, deckName?: string) {

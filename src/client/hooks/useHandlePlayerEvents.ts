@@ -8,10 +8,8 @@ export default function useHandlePlayerEvents(p1Card: boolean) {
   const dispatch = useAppDispatch();
    const healthGameEvent = p1Card ? GAME_EVENT.changeP1Health : GAME_EVENT.changeP2Health;
   const apGameEvent = p1Card ? GAME_EVENT.changeP1AP : GAME_EVENT.changeP2AP;
-  /* eslint-disable */
   const healthGameFunction = p1Card ? changeP1Health : changeP2Health;
   const apGameFunction = p1Card ? changeP1AP : changeP2AP;
-  /* eslint-enable */
 
   const handleHealthDecrease = useCallback((e: React.MouseEvent) => {
     dispatch(healthGameFunction(-1));

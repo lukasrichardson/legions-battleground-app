@@ -50,7 +50,7 @@ export default function decksController(app: ExpressApp) {
   });
 
   app.patch("/api/decks/:deckId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    const deckId = req.params.deckId;
+    const deckId = req.params.deckId?.toString();
     if (!deckId) throw new DeckServiceError("invalid_input", "Deck ID is required");
 
     const existingDeck = await getDeckById(req.user!, deckId);
@@ -86,7 +86,7 @@ export default function decksController(app: ExpressApp) {
   });
 
   app.post("/api/decks/:deckId/duplicate", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    return sendCreatedDeck(res, await duplicateDeckById(req.user!, req.params.deckId));
+    return sendCreatedDeck(res, await duplicateDeckById(req.user!, req.params.deckId.toString()));
   });
 
   app.post("/api/decks", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
@@ -94,11 +94,11 @@ export default function decksController(app: ExpressApp) {
   });
 
   app.post("/api/decks/:publishedDeckId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    return sendCreatedDeck(res, await copyPublishedDeck(req.user!, req.params.publishedDeckId));
+    return sendCreatedDeck(res, await copyPublishedDeck(req.user!, req.params.publishedDeckId.toString()));
   });
 
   app.delete("/api/decks/:deckId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    const deckId = req.params.deckId;
+    const deckId = req.params.deckId?.toString();
     await deleteDeckById(req.user!, deckId);
     return res.send({ success: true });
   });
