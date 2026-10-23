@@ -41,7 +41,22 @@ export default function PlunderModal({ closeModal }: { closeModal: () => void })
   const handleRandomNumber = () => {
     const min = 2;
     const max = deckSize;
-    setCardToTake(Math.floor(Math.random() * (max - min + 1) + min));
+    const range = max - min + 1;
+
+    if (range <= 0) {
+      return;
+    }
+
+    const randomBuffer = new Uint32Array(1);
+    const maxUnbiased = Math.floor(0x100000000 / range) * range;
+    let randomValue: number;
+
+    do {
+      window.crypto.getRandomValues(randomBuffer);
+      randomValue = randomBuffer[0];
+    } while (randomValue >= maxUnbiased);
+
+    setCardToTake(min + (randomValue % range));
   }
 
   const handleHalf = () => {
