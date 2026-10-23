@@ -87,3 +87,6 @@ decks_backup.json
 published_decks_backup.json
 /output/playwright/control-qa
 /output/playwright
+
+# scratch files
+.scratch/
