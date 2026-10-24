@@ -32,7 +32,9 @@ test("username save, removal and sign-out work through their real buttons", asyn
   await expect(editor).toHaveCount(0);
   expect(await (await page.request.get("/api/me/alias")).json()).toEqual({ alias: null });
   await page.getByRole("button", { name: "Open account menu", exact: true }).click();
+  const signedOut = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/auth/signout" && response.request().method() === "POST");
   await page.getByRole("menuitem", { name: "Sign out", exact: true }).click();
+  expect((await signedOut).status()).toBe(200);
   await expect.poll(async () => (await (await page.request.get("/api/auth/session")).json()).user?.id).toBeUndefined();
 });
 

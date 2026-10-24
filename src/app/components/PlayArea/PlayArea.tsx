@@ -70,7 +70,7 @@ export default function PlayArea({ }) {
   // const nextPhaseMap = rpsWinner === "p1" ? NextPhaseP1Wins : NextPhaseP2Wins;
 
   return (
-    <div className={(regularMode ? "relative grid h-full w-[calc(100%-248px)] max-[1100px]:w-[calc(100%-56px)] grid-rows-[60px_minmax(0,1fr)_64px_minmax(0,1fr)_60px] overflow-visible" : "relative flex h-full w-[calc(100%-248px)] max-[1100px]:w-[calc(100%-56px)] flex-col overflow-visible") + " game-play-area"} aria-label="Battlefield">
+    <div className={(regularMode ? "relative grid h-full w-[calc(100%-var(--game-sidebar-width,248px))] max-[1100px]:w-[calc(100%-56px)] grid-rows-[60px_minmax(0,1fr)_64px_minmax(0,1fr)_60px] overflow-visible" : "relative flex h-full w-[calc(100%-var(--game-sidebar-width,248px))] max-[1100px]:w-[calc(100%-56px)] flex-col overflow-visible") + " game-play-area"} aria-label="Battlefield">
       {selectingZone && cardForSelectingZone && (
         <aside aria-live="polite" className="absolute right-2 top-2 z-40 hidden max-w-[min(21rem,calc(100%-1rem))] border border-yellow-200/55 bg-slate-950/95 p-2 text-xs text-yellow-50 shadow-xl backdrop-blur max-[1100px]:flex max-[1100px]:items-center max-[1100px]:gap-2">
           <div className="min-w-0"><strong className="block truncate">{cardForSelectingZone.name}</strong><span>{selectionFeedback || `Choose an empty ${selectingZone} zone.`}</span></div>

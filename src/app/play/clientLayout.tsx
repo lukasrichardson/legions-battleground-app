@@ -1,6 +1,6 @@
 "use client";
 import useWindowSize from "@/client/hooks/useWindowSize";
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { openLeaveGameModal } from "@/client/redux/modalsSlice";
 import { resetState } from "@/client/redux/gameStateSlice";
@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 
 const SCALE_WIDTH = 1200;
 const SCALE_HEIGHT = 815;
+type WorkspaceStyle = CSSProperties & { "--game-sidebar-width": string };
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const size = useWindowSize();
   const dispatch = useAppDispatch();
@@ -35,19 +36,22 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const scaleY = useMemo(() => (size.height ? size.height / SCALE_HEIGHT : 1), [size.height]);
   const smallestScale = Math.min(scaleX, scaleY);
   const compact = Boolean(size.width && size.width <= 1100);
-  const styles = useMemo(
+  const styles = useMemo<WorkspaceStyle>(
     () => ({
       transform: `scale(${smallestScale}, ${smallestScale})`,
-      width: SCALE_WIDTH,
-      height: SCALE_HEIGHT,
+      // Keep cards proportional, but let the canvas grow along the axis that
+      // isn't limiting their scale. A fixed 1200px canvas left wide-screen gutters.
+      width: size.width ? size.width / smallestScale : SCALE_WIDTH,
+      height: size.height ? size.height / smallestScale : SCALE_HEIGHT,
+      "--game-sidebar-width": `${Math.min(320, Math.max(248, (size.width ? size.width / smallestScale : SCALE_WIDTH) * 0.18))}px`,
       transformOrigin: "center center",
     }),
-    [smallestScale],
+    [smallestScale, size.width, size.height],
   );
   return (
     <div className="relative h-dvh w-dvw overflow-hidden bg-[#050a0e] bg-[radial-gradient(circle_at_70%_20%,rgba(27,90,145,.24),transparent_34%),linear-gradient(135deg,#050a0e,#10243a_50%,#050a0e)]">
       <div className="absolute flex items-center justify-center overflow-hidden" style={{ top: "env(safe-area-inset-top)", right: "env(safe-area-inset-right)", bottom: "env(safe-area-inset-bottom)", left: "env(safe-area-inset-left)" }}>
-        <div ref={(node) => { node?.toggleAttribute("inert", isMobilePortrait); }} aria-hidden={isMobilePortrait || undefined} style={compact ? { width: "100%", height: "100%" } : styles} data-compact-game={compact || undefined} className="relative shrink-0 overflow-hidden border border-sky-200/10 shadow-[0_0_60px_rgba(0,0,0,.55)]">{children}</div>
+        <div ref={(node) => { node?.toggleAttribute("inert", isMobilePortrait); }} aria-hidden={isMobilePortrait || undefined} style={compact ? { width: "100%", height: "100%" } : styles} data-compact-game={compact || undefined} data-wide-game={!compact || undefined} className="game-workspace relative shrink-0 overflow-hidden border border-sky-200/10 shadow-[0_0_60px_rgba(0,0,0,.55)]">{children}</div>
       </div>
       {isMobilePortrait && (
         <section

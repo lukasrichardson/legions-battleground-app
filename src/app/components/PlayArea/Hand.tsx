@@ -58,7 +58,7 @@ export default function Hand({children, cardTarget, compact = false}: {children:
   const p2Name = Object.values(room?.players || {})?.find(player => !player.p1)?.name || "Player 2";
   return (
       <div ref={(node) => { drop(node); }} className={[
-        "relative flex justify-center w-full",
+        "game-hand relative flex justify-center w-full",
         compact ? "h-full" : "h-[10%]",
         !compact && !playerHand ? "-translate-y-[20%]" : "",
         isOver && canDrop ? "border-green-400 bg-green-400/50 scale-[1.02]" : "",
