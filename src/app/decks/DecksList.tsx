@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, type MouseEvent } from "react";
 import http from "@/client/utils/http";
 import { getApiErrorMessage } from "@/client/utils/apiError";
-import { MultiSelect } from "@/client/ui/multiselect";
+import DeckCollectionHeader from "@/app/components/DeckCollectionHeader";
 import { DeckListItem } from "@/shared/interfaces/DeckListItem";
 import DeckCollectionPanel from "@/app/components/DeckCollectionPanel";
 import { InlineStatus } from "@/client/ui/inline-status";
@@ -26,10 +26,6 @@ export const DecksList = () => {
   const [loadError, setLoadError] = useState("");
   const [actionError, setActionError] = useState("");
   const [deletingDeckId, setDeletingDeckId] = useState<string | null>(null);
-
-  const handleLegionSelect = (legionVal: string[]) => {
-    setLegion(legionVal);
-  };
 
   useEffect(() => {
     let active = true;
@@ -70,28 +66,20 @@ export const DecksList = () => {
     }
   };
 
-  const clearFilters = () => {
-    setLegion([]);
-  };
   return (
-    <div className="short-landscape-flow min-h-0 flex-1">
+    <div className="mobile-page-flow short-landscape-flow min-h-0 flex-1">
       {actionError && <InlineStatus variant="error" className="mb-3">{actionError}</InlineStatus>}
       <DeckCollectionPanel
         variant={variant}
-        title="Your Decks"
-        count={decks.length}
-        filter={
-          <MultiSelect
-            options={filterOptions.legion.map((option) => ({
-              value: option,
-              label: option[0].toUpperCase() + option.slice(1),
-            }))}
-            value={legion}
-            onChange={handleLegionSelect}
-            placeholder="Legion"
+        header={
+          <DeckCollectionHeader
+            title="Your Decks"
+            count={decks.length}
+            legions={filterOptions.legion}
+            selectedLegions={legion}
+            onLegionsChange={setLegion}
           />
         }
-        onClearFilters={legion.length > 0 ? clearFilters : undefined}
         loading={loading}
         loadingLabel="Loading your decks…"
         isEmpty={!loadError && decks.length === 0}

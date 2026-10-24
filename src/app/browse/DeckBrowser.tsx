@@ -7,7 +7,7 @@ import {
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FullPage from "@/app/components/FullPage";
-import { MultiSelect } from "@/client/ui/multiselect";
+import DeckCollectionHeader from "@/app/components/DeckCollectionHeader";
 import { PublishedDeckListItem } from "@/shared/interfaces/DeckListItem";
 import { Button } from "@/client/ui/button";
 import PageHeader from "@/app/components/PageHeader";
@@ -74,7 +74,7 @@ export default function DeckBrowser() {
   };
   return (
     <FullPage showBreadcrumbs={false}>
-      <div className="mobile-shrink min-h-0 flex-1 overflow-y-auto px-3 pb-[calc(1rem+var(--safe-area-bottom))] pt-2 sm:px-4">
+      <div className="mobile-shrink min-h-0 flex-1 overflow-y-auto pb-[calc(1rem+var(--safe-area-bottom))] pt-2">
         <PageHeader
           variant={variant}
           title="Published Decks"
@@ -82,80 +82,64 @@ export default function DeckBrowser() {
         />
         <section
           aria-label="Published deck browser"
-          className="rounded-sm border border-white/20 bg-[rgba(5,11,17,.71)] p-3 sm:p-4"
+          className="rounded-sm border border-white/20 bg-[rgba(5,11,17,.71)]"
         >
-          <div className="flex flex-col gap-3 border-b border-white/15 pb-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-slate-300" aria-live="polite">
-              {total} {total === 1 ? "deck" : "decks"}
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-slate-200">Filter by legion</span>
-              <MultiSelect
-                className="max-w-full [&_button]:min-h-[var(--touch-target-size)]"
-                options={options.legion.map((value) => ({
-                  value,
-                  label: value,
-                }))}
-                value={legion}
-                onChange={setLegion}
-                placeholder="All legions"
-                menuPlacement="viewport"
+          <DeckCollectionHeader count={total} legions={options.legion} selectedLegions={legion} onLegionsChange={setLegion} />
+          <div className="p-3 sm:p-4">
+            {error && (
+              <InlineStatus variant="error" className="mt-3">
+                {error}
+              </InlineStatus>
+            )}
+            {loading ? (
+              <LoadingState
+                label="Loading published decks…"
+                className="min-h-64"
               />
-            </div>
+            ) : decks.length === 0 && !error ? (
+              <EmptyState
+                icon="♜"
+                title="No published decks found"
+                description="Try clearing your filters or check back later."
+                className="min-h-64"
+              />
+            ) : (
+              <div className="grid grid-cols-1 gap-3 min-[540px]:grid-cols-2 xl:grid-cols-3">
+                {decks.map((deck) => (
+                  <DeckSummaryCard
+                    key={deck._id.toString()}
+                    deck={deck}
+                    openLabel={`Open published deck ${deck.name}`}
+                    onOpen={() => router.push(`/browse/${deck._id}`)}
+                    detail={
+                      <>
+                        <span className="mt-1 mr-1 break-words text-sm text-slate-300">
+                          By {deck.author || "Unknown author"}
+                        </span>
+                        <span className="mt-1 text-xs text-slate-500">
+                          {date(deck.published_date)}
+                        </span>
+                      </>
+                    }
+                  />
+                ))}
+              </div>
+            )}
+            {hasMore && (
+              <div className="mt-4 flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  pending={loadingMore}
+                  className="w-full sm:w-auto"
+                >
+                  {loadingMore ? "Loading…" : "Load more decks"}
+                </Button>
+              </div>
+            )}
           </div>
-          {error && (
-            <InlineStatus variant="error" className="mt-3">
-              {error}
-            </InlineStatus>
-          )}
-          {loading ? (
-            <LoadingState
-              label="Loading published decks…"
-              className="min-h-64"
-            />
-          ) : decks.length === 0 && !error ? (
-            <EmptyState
-              icon="♜"
-              title="No published decks found"
-              description="Try clearing your filters or check back later."
-              className="min-h-64"
-            />
-          ) : (
-            <div className="mt-3 grid grid-cols-1 gap-3 min-[540px]:grid-cols-2 xl:grid-cols-3">
-              {decks.map((deck) => (
-                <DeckSummaryCard
-                  key={deck._id.toString()}
-                  deck={deck}
-                  openLabel={`Open published deck ${deck.name}`}
-                  onOpen={() => router.push(`/browse/${deck._id}`)}
-                  detail={
-                    <>
-                      <span className="mt-1 mr-1 break-words text-sm text-slate-300">
-                        By {deck.author || "Unknown author"}
-                      </span>
-                      <span className="mt-1 text-xs text-slate-500">
-                        {date(deck.published_date)}
-                      </span>
-                    </>
-                  }
-                />
-              ))}
-            </div>
-          )}
-          {hasMore && (
-            <div className="mt-4 flex justify-center">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={loadMore}
-                disabled={loadingMore}
-                pending={loadingMore}
-                className="w-full sm:w-auto"
-              >
-                {loadingMore ? "Loading…" : "Load more decks"}
-              </Button>
-            </div>
-          )}
         </section>
       </div>
     </FullPage>

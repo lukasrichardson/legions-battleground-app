@@ -49,7 +49,7 @@ test.describe("app-wide control QA", () => {
       for (const route of ["/browse", "/decks"]) {
         await test.step(`${route} ${size.width}x${size.height}`, async () => {
           await page.goto(route);
-          const trigger = page.getByRole("button", { name: route === "/browse" ? "All legions" : "Legion", exact: true });
+          const trigger = page.getByRole("button", { name: "All legions", exact: true });
           // The first visit also compiles its data endpoint on the dev server.
           // Wait for fixture data before starting the shorter control checks.
           await expect(page.getByRole("button", { name: route === "/browse" ? "Open published deck E2E Public Deck" : "Edit deck E2E Player 1 Deck", exact: true })).toBeVisible({ timeout: 30_000 });
@@ -61,6 +61,9 @@ test.describe("app-wide control QA", () => {
           await page.keyboard.press("Escape");
           await expect(listbox).toHaveCount(0);
           await expect(page.locator('button[aria-haspopup="listbox"]').first()).toBeFocused();
+          await page.getByRole("group", { name: "Filter by legion", exact: true }).getByRole("button", { name: "Clear", exact: true }).click();
+          await expect(trigger).toBeVisible();
+          await expect(page.getByRole("group", { name: "Filter by legion", exact: true }).getByRole("button", { name: "Clear", exact: true })).toHaveCount(0);
           await expectNoDocumentHorizontalOverflow(page);
         });
       }
@@ -390,7 +393,7 @@ test.describe("app-wide control QA", () => {
     });
     await page.goto("/decks");
     await expect(page.getByRole("button", { name: "Edit deck E2E Player 1 Deck", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Legion", exact: true }).click();
+    await page.getByRole("button", { name: "All legions", exact: true }).click();
     await page.getByRole("option", { name: "E2E Legion", exact: true }).click();
     await requested;
     await page.keyboard.press("Escape");

@@ -14,11 +14,13 @@ export default function FullPage({
   showBreadcrumbs,
   topRightContent,
   scrollOnShortLandscape = false,
+  scrollOnMobile = false,
 }: {
   children: React.ReactNode;
   showBreadcrumbs?: boolean;
   topRightContent?: React.ReactNode;
   scrollOnShortLandscape?: boolean;
+  scrollOnMobile?: boolean;
 }) {
   const variant = useUiVariant();
   const pathName = usePathname();
@@ -42,13 +44,13 @@ export default function FullPage({
       {topRightContent}
       <a className="rounded-md px-2 py-1 text-sm transition-colors hover:bg-white/10" href="https://buymeacoffee.com/lukasrichardson" target="_blank" rel="noopener noreferrer">Donate☕</a>
     </div>
-    <div className={(variant === "arena" ? "flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-6 pt-2" : "flex min-h-0 flex-1 flex-col px-4 pb-6 pt-2") + (scrollOnShortLandscape ? " short-landscape-flow" : "")}>{children}</div>
+    <div className={(variant === "arena" ? "flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-6 pt-2" : "flex min-h-0 flex-1 flex-col px-4 pb-6 pt-2") + (scrollOnShortLandscape ? " short-landscape-flow" : "") + (scrollOnMobile ? " mobile-page-flow" : "")}>{children}</div>
   </>;
 
-  if (variant === "arena") return <ArenaShell scrollOnShortLandscape={scrollOnShortLandscape}><div className={`flex h-full min-h-0 flex-1 flex-col overflow-hidden ${scrollOnShortLandscape ? "short-landscape-flow" : ""}`}>{pageBody}</div></ArenaShell>;
+  if (variant === "arena") return <ArenaShell scrollOnShortLandscape={scrollOnShortLandscape} scrollOnMobile={scrollOnMobile}><div className={`flex h-full min-h-0 flex-1 flex-col overflow-hidden ${scrollOnShortLandscape ? "short-landscape-flow" : ""} ${scrollOnMobile ? "mobile-page-flow" : ""}`}>{pageBody}</div></ArenaShell>;
 
   return (
-    <div className={`flex h-dvh w-screen flex-col overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900/80 to-slate-900 ${scrollOnShortLandscape ? "short-landscape-scroll" : ""}`}>
+    <div className={`flex h-dvh w-screen flex-col overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900/80 to-slate-900 ${scrollOnShortLandscape ? "short-landscape-scroll" : ""} ${scrollOnMobile ? "mobile-page-scroll" : ""}`}>
       {pageBody}
     </div>
   );
