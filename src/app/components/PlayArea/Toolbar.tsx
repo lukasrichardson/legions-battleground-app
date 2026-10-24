@@ -251,7 +251,7 @@ export default function Toolbar() {
   }
 
   return (
-    <aside className="relative z-30 flex h-full w-[248px] shrink-0 border-r border-sky-200/15 bg-[linear-gradient(180deg,rgba(9,21,34,.97),rgba(3,10,18,.98))] p-2 text-white shadow-[12px_0_32px_rgba(0,0,0,.2)] max-[1100px]:w-14 max-[1100px]:p-1.5">
+    <aside className="relative z-30 flex h-full w-[var(--game-sidebar-width,248px)] shrink-0 border-r border-sky-200/15 bg-[linear-gradient(180deg,rgba(9,21,34,.97),rgba(3,10,18,.98))] p-2 text-white shadow-[12px_0_32px_rgba(0,0,0,.2)] max-[1100px]:w-14 max-[1100px]:p-1.5">
       {desktopToolbar}
       {compactToolbar}
       {panelContent && <section className="absolute left-full top-0 h-full w-[min(320px,calc(100vw-56px))] border-r border-sky-200/25 bg-[linear-gradient(160deg,rgba(12,29,45,.99),rgba(2,8,14,.99))] shadow-[18px_0_42px_rgba(0,0,0,.48)]">{panelContent}</section>}

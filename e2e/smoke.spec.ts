@@ -80,6 +80,40 @@ test("a signed-in player can manage decks and copy a public deck", async ({
     .getByRole("button", { name: "Copy to My Decks", exact: true })
     .click();
   await expect(page).toHaveURL(/\/decks\/[a-f\d]{24}$/);
+  await page.goto("/decks");
+  const remove = page.getByRole("button", { name: "Delete E2E Renamed Deck", exact: true });
+  let deleteRequests = 0;
+  page.on("request", (request) => { if (request.method() === "DELETE") deleteRequests += 1; });
+  page.once("dialog", (dialog) => dialog.dismiss());
+  await remove.click();
+  expect(deleteRequests).toBe(0);
+  await expect(remove).toBeVisible();
+
+  const deleteRoute = "**/api/decks/*";
+  await page.route(deleteRoute, (route) => route.request().method() === "DELETE"
+    ? route.fulfill({ status: 500, json: { error: "Delete rejected for regression test" } })
+    : route.continue());
+  page.once("dialog", (dialog) => dialog.accept());
+  await remove.click();
+  const deleteError = page.getByRole("alert").filter({ hasText: "Delete rejected for regression test" });
+  await expect(deleteError).toBeVisible();
+  await expect(remove).toBeEnabled();
+  await expect(page).toHaveURL(/\/decks$/);
+  await page.unroute(deleteRoute);
+
+  const deletion = page.waitForResponse((response) =>
+    response.url().includes("/api/decks/") && response.request().method() === "DELETE",
+  );
+  page.once("dialog", (dialog) => dialog.accept());
+  await remove.click();
+  expect((await deletion).status()).toBe(200);
+  expect((await deletion).request().headers()["x-csrf-token"]).toBeTruthy();
+  await expect(remove).toHaveCount(0);
+  await expect(deleteError).toHaveCount(0);
+  await expect(page).toHaveURL(/\/decks$/);
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Edit deck E2E Player 1 Deck", exact: true })).toBeVisible();
+  await expect(remove).toHaveCount(0);
 });
 
 for (const mobile of [false, true])

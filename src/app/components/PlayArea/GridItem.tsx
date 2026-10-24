@@ -144,6 +144,7 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
   return (
       <div
         data-game-zone={cardTarget}
+        data-zone-active={selecting || canDrop || isOver || undefined}
         data-zone-index={targetIndex}
         role={selectingZone ? "button" : undefined}
         tabIndex={selectingZone ? 0 : undefined}

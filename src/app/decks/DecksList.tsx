@@ -3,9 +3,10 @@ import {
   fetchDeckListSummaries,
 } from "@/client/utils/api.utils";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { MultiSelect } from "@/client/ui/multiselect";
+import { useState, useEffect, type MouseEvent } from "react";
+import http from "@/client/utils/http";
+import { getApiErrorMessage } from "@/client/utils/apiError";
+import DeckCollectionHeader from "@/app/components/DeckCollectionHeader";
 import { DeckListItem } from "@/shared/interfaces/DeckListItem";
 import DeckCollectionPanel from "@/app/components/DeckCollectionPanel";
 import { InlineStatus } from "@/client/ui/inline-status";
@@ -23,10 +24,8 @@ export const DecksList = () => {
   });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-
-  const handleLegionSelect = (legionVal: string[]) => {
-    setLegion(legionVal);
-  };
+  const [actionError, setActionError] = useState("");
+  const [deletingDeckId, setDeletingDeckId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -52,40 +51,35 @@ export const DecksList = () => {
     router.push("/decks/" + deckId);
   };
 
-  const handleDeleteDeckClick = (deckId, deckName) => (e) => {
+  const handleDeleteDeckClick = (deckId: string, deckName: string) => async (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     if (!window.confirm(`Delete ${deckName}? This cannot be undone.`)) return;
-    axios
-      .delete(`/api/decks/${deckId}`)
-      .then(() => {
-        return fetchDeckListSummaries(legion).then(setDecks);
-      })
-      .catch((err) => {
-        console.error("Error deleting deck:", err);
-      });
+    setActionError("");
+    setDeletingDeckId(deckId);
+    try {
+      await http.delete(`/api/decks/${deckId}`);
+      setDecks((current) => current.filter((deck) => deck._id.toString() !== deckId));
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, "Could not delete this deck. Please try again."));
+    } finally {
+      setDeletingDeckId(null);
+    }
   };
 
-  const clearFilters = () => {
-    setLegion([]);
-  };
   return (
-    <div className="short-landscape-flow min-h-0 flex-1">
+    <div className="mobile-page-flow short-landscape-flow min-h-0 flex-1">
+      {actionError && <InlineStatus variant="error" className="mb-3">{actionError}</InlineStatus>}
       <DeckCollectionPanel
         variant={variant}
-        title="Your Decks"
-        count={decks.length}
-        filter={
-          <MultiSelect
-            options={filterOptions.legion.map((option) => ({
-              value: option,
-              label: option[0].toUpperCase() + option.slice(1),
-            }))}
-            value={legion}
-            onChange={handleLegionSelect}
-            placeholder="Legion"
+        header={
+          <DeckCollectionHeader
+            title="Your Decks"
+            count={decks.length}
+            legions={filterOptions.legion}
+            selectedLegions={legion}
+            onLegionsChange={setLegion}
           />
         }
-        onClearFilters={legion.length > 0 ? clearFilters : undefined}
         loading={loading}
         loadingLabel="Loading your decks…"
         isEmpty={!loadError && decks.length === 0}
@@ -113,6 +107,8 @@ export const DecksList = () => {
                       deck.name,
                     )}
                     aria-label={`Delete ${deck.name}`}
+                    disabled={deletingDeckId !== null}
+                    aria-busy={deletingDeckId === deck._id.toString()}
                   >
                     <Trash2 size={18} aria-hidden="true" />
                   </button>
