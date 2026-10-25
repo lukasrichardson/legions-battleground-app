@@ -10,6 +10,7 @@ import { Input } from "@/client/ui/input";
 import { useAuth } from "@/client/hooks/useAuth";
 import CardImage from "../Card/CardImage";
 import { fetchToolboxDeck, type ToolboxCard, type ToolboxDeck } from "@/client/utils/toolboxDeck";
+import { getApiErrorMessage } from "@/client/utils/apiError";
 import { InlineStatus } from "@/client/ui/inline-status";
 import LoadingState from "../LoadingState";
 import PublicModalForm, { publicModalFieldClassName, publicModalInputClassName, publicModalLabelClassName } from "../PublicModalForm";
@@ -134,15 +135,7 @@ export default function PreviewDeckModal() {
       router.push(`/decks/${res.data.id}`);
       handleClose();
     } catch (err: unknown) {
-      if (isAxiosError(err)) {
-        // Axios error: response may contain server error details
-        setError("Error importing deck: " + (err.response?.data ?? err.message));
-      } else if (err instanceof Error) {
-        // Generic JS Error
-        setError("Error importing deck: " + err.message);
-      } else {
-        setError("Error importing deck: An unknown error occurred");
-      }
+      setError("Error importing deck: " + getApiErrorMessage(err, "An unknown error occurred"));
       return;
     }
 
