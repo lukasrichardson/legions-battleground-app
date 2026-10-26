@@ -162,6 +162,11 @@ body {
 .game-workspace .game-play-area > .grid:nth-of-type(3) {
   background: linear-gradient(180deg, rgba(8, 47, 73, .34), rgba(8, 25, 40, .55));
 }
+.game-workspace .battlefield-grid {
+  --board-card-width: 75px;
+  --utility-track-width: calc(var(--board-card-width) + .5rem);
+  grid-template-columns: var(--utility-track-width) repeat(6, minmax(0, 1fr)) var(--utility-track-width);
+}
 .game-workspace .game-hand { background: #070f18; }
 .game-workspace [data-game-zone] { border-radius: 8px; }
 .game-workspace [data-game-zone]:not([data-zone-active]) {
@@ -216,7 +221,12 @@ body {
 [data-compact-game] .game-play-area > .grid {
   height: auto;
   grid-template-rows: repeat(3, minmax(0, 1fr));
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+[data-compact-game] [data-game-mode="sandbox"] .battlefield-grid {
+  --board-card-width: clamp(24px, calc((100dvh - 100px) / 8 - 1.5px), 75px);
+}
+[data-compact-game] [data-game-mode="regular"] .battlefield-grid {
+  --board-card-width: clamp(24px, calc((100dvh - 148px) / 8 - 1.5px), 75px);
 }
 [data-compact-game] [data-game-zone] {
   min-height: 24px;

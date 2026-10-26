@@ -311,7 +311,11 @@ test.describe("touch overlay matrix", () => {
         await page.setViewportSize(size);
         await page.getByRole("button", { name: "Open navigation", exact: true }).click();
         await page.getByRole("button", { name: "Help", exact: true }).last().click();
-        await expectOverlayControls(page, page.getByRole("dialog"));
+        const help = page.getByRole("dialog", { name: "Help", exact: true });
+        await expect(help.getByRole("heading", { name: "Open card controls", exact: true })).toBeVisible();
+        await expect(help.getByRole("heading", { name: "Move cards between zones", exact: true })).toBeVisible();
+        await expect(help.getByText("Sandbox controls are active", { exact: true })).toBeVisible();
+        await expectOverlayControls(page, help);
         await page.getByRole("button", { name: "Close Help", exact: true }).click();
         await page.getByRole("button", { name: "Tools & settings", exact: true }).last().click();
         await page.getByRole("button", { name: "Change Deck(s)", exact: true }).click();

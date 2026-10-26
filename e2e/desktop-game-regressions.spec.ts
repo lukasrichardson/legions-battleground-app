@@ -11,6 +11,46 @@ test("play workspaces share styling across sizes without stretching cards or cli
     const hand = getComputedStyle(document.querySelector(".game-hand")!);
     return { zoneBackground: style.backgroundColor, zoneBorder: style.borderTopColor, zoneRadius: style.borderRadius, zoneShadow: style.boxShadow, battlefield: board.backgroundImage, battlefieldRadius: board.borderRadius, hand: hand.backgroundColor };
   });
+  const readBattlefieldGeometry = () => page.locator(".game-play-area").evaluate((playArea) => {
+    const rect = (element: Element) => {
+      const bounds = element.getBoundingClientRect();
+      return { left: bounds.left, right: bounds.right, width: bounds.width };
+    };
+    const board = (position: "opponent" | "player") => playArea.querySelector(`[data-board-position="${position}"]`)!;
+    const zone = (position: "opponent" | "player", suffix: string, index?: number) => {
+      const indexSelector = index === undefined ? "" : `[data-zone-index="${index}"]`;
+      return board(position).querySelector(`[data-game-zone$="${suffix}"]${indexSelector}`)!;
+    };
+    const primaryWidths = Array.from(playArea.querySelectorAll([
+      '[data-game-zone$="PlayerWarriors"]',
+      '[data-game-zone$="PlayerUnifieds"]',
+      '[data-game-zone$="PlayerFortifieds"]',
+    ].join(","))).map((element) => rect(element).width);
+    const utilityWidths = Array.from(playArea.querySelectorAll([
+      '[data-game-zone$="PlayerDeck"]',
+      '[data-game-zone$="PlayerDiscard"]',
+      '[data-game-zone$="PlayerEradication"]',
+      '[data-game-zone$="PlayerVeilRealm"]',
+      '[data-game-zone$="PlayerTokens"]',
+      '[data-game-zone$="PlayerRevealed"]',
+    ].join(","))).map((element) => rect(element).width);
+    const fullTrackUtilityWidths = Array.from(playArea.querySelectorAll([
+      '[data-game-zone$="PlayerWarlord"]',
+      '[data-game-zone$="PlayerSynergy"]',
+      '[data-game-zone$="PlayerGuardian"]',
+    ].join(","))).map((element) => rect(element).width);
+    return {
+      opponentWarlord: rect(zone("opponent", "PlayerWarlord")),
+      opponentWarriorOne: rect(zone("opponent", "PlayerWarriors", 0)),
+      opponentWarriorFive: rect(zone("opponent", "PlayerWarriors", 4)),
+      playerWarlord: rect(zone("player", "PlayerWarlord")),
+      playerWarriorOne: rect(zone("player", "PlayerWarriors", 0)),
+      playerWarriorFive: rect(zone("player", "PlayerWarriors", 4)),
+      primaryWidths,
+      utilityWidths,
+      fullTrackUtilityWidths,
+    };
+  });
   await page.mouse.move(0, 0);
   const appearance = await readAppearance();
   for (const size of [
@@ -29,6 +69,19 @@ test("play workspaces share styling across sizes without stretching cards or cli
     }
     const card = await page.locator('[data-game-zone="p1PlayerDeck"] .card-inner').first().boundingBox();
     expect(card!.width / card!.height).toBeCloseTo(0.75, 1);
+    const geometry = await readBattlefieldGeometry();
+    expect(geometry.playerWarlord.right).toBeCloseTo(geometry.opponentWarriorFive.right, 0);
+    expect(geometry.opponentWarlord.left).toBeCloseTo(geometry.playerWarriorFive.left, 0);
+    expect(geometry.playerWarriorOne.left - geometry.playerWarlord.right).toBeGreaterThanOrEqual(0);
+    expect(geometry.playerWarriorOne.left - geometry.playerWarlord.right).toBeLessThanOrEqual(20);
+    expect(geometry.opponentWarlord.left - geometry.opponentWarriorOne.right).toBeGreaterThanOrEqual(0);
+    expect(geometry.opponentWarlord.left - geometry.opponentWarriorOne.right).toBeLessThanOrEqual(20);
+    expect(Math.max(...geometry.primaryWidths) - Math.min(...geometry.primaryWidths)).toBeLessThanOrEqual(1);
+    expect(geometry.playerWarlord.width).toBeCloseTo(geometry.playerWarriorOne.width, 0);
+    expect(geometry.opponentWarlord.width).toBeCloseTo(geometry.opponentWarriorOne.width, 0);
+    const fullTrackWidths = [...geometry.primaryWidths, ...geometry.fullTrackUtilityWidths];
+    expect(Math.max(...fullTrackWidths) - Math.min(...fullTrackWidths)).toBeLessThanOrEqual(1);
+    expect(Math.max(...geometry.utilityWidths)).toBeLessThan(Math.min(...geometry.primaryWidths));
     await page.mouse.move(0, 0);
     await expect.poll(readAppearance).toEqual(appearance);
     if (size.width === 844) await page.screenshot({ path: "output/playwright/shared-play-mobile.png" });
