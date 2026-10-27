@@ -10,6 +10,8 @@ export interface CardProps {
   hidden?: boolean;
   compactHand?: boolean;
   compactOpponentHand?: boolean;
+  /** Disable the card's own menu, drag, and keyboard behavior when a parent owns selection. */
+  interactionEnabled?: boolean;
   /** Explicit touch action; the card itself remains reserved for inspection/menu actions. */
   onSelectForZone?: () => void;
   selectForZoneLabel?: string;

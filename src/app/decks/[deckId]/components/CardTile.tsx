@@ -158,7 +158,7 @@ export const SearchCardTile = ({ card, index, onContextMenu, onMouseEnter, eager
     }),
   }), [card]);
   return (
-    <div ref={(node) => { drag(node); }} className="cursor-grab active:cursor-grabbing" onContextMenu={(e) => onContextMenu(e, card)} key={card.id.toString() + index} onMouseLeave={handleOnMouseLeave}>
+    <div ref={(node) => { drag(node); }} className="cursor-grab active:cursor-grabbing" onContextMenu={(e) => onContextMenu(e, card)} onMouseLeave={handleOnMouseLeave}>
       {!isDragging && renderCardTile(card, index, handleOnMouseEnter, !eagerImage)}
     </div>
   )

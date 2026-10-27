@@ -2,6 +2,7 @@ import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import GridItem from "./GridItem";
 import Card from "../Card/Card";
 import { CardState } from "@/shared/interfaces/CardState";
+import { compactGameZoneLabel } from "@/client/utils/gameZoneLabel";
 
 export default function CardZone({ items, cardTarget, targetIndex, zoneName }: { items: CardState[], cardTarget: CARD_TARGET, targetIndex?: number, zoneName?: string }) {
   const pileSize = items.length;
@@ -35,7 +36,11 @@ export default function CardZone({ items, cardTarget, targetIndex, zoneName }: {
         </div>
       )}
       {pileSize === 0 && (
-        <div className="min-w-0 max-w-full break-words px-1 text-center text-[11px] leading-tight font-medium uppercase tracking-[0.08em] text-slate-300/60 max-[1100px]:text-[10px] max-[1100px]:tracking-normal">{zoneName}</div>
+        <div data-zone-label={compactGameZoneLabel(cardTarget)} className="pointer-events-none min-w-0 max-w-full px-1 text-center text-[11px] leading-tight font-medium uppercase tracking-[0.08em] text-slate-300/60">
+          <span className="max-[1100px]:hidden">{zoneName}</span>
+          <span className="hidden whitespace-nowrap text-[9px] tracking-normal max-[1100px]:inline" aria-hidden="true">{compactGameZoneLabel(cardTarget)}</span>
+          <span className="sr-only min-[1101px]:hidden">{zoneName}</span>
+        </div>
       )}
       {[...items].reverse().map((item, index) => <Card card={item} cardTarget={cardTarget} zoneIndex={targetIndex} index={items.length - 1 - index} key={index} />)}
     </GridItem>

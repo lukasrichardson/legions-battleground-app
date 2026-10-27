@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { csrfHeaders, signInAs, createRoomFromLobby, joinRoomFromLobby, newSignedInPage } from "./fixtures";
+import { csrfHeaders, expectVisibleCardImagesLoaded, signInAs, createRoomFromLobby, joinRoomFromLobby, newSignedInPage } from "./fixtures";
 
 // One viewport per layout constraint, including unusually short game dialogs.
 // Dedicated drag/resize and long-content tests retain their explicit sizes.
@@ -53,14 +53,31 @@ test("regular match setup, mulligans and confirmations stay usable in short land
     await createRoomFromLobby(player, room, false, "E2E Player 1 Deck");
     await joinRoomFromLobby(opponent, room, "E2E Player 2 Deck");
     const setup = player.getByRole("dialog", { name: "Regular match setup", exact: true });
+    await expect(setup.getByText("Step 1 of 5", { exact: true })).toBeVisible();
+    await expect(setup.getByText(/Step 1 of 5 ·/)).toHaveCount(0);
     const landscape = viewports.filter((size) => size.width > size.height);
     for (const size of landscape) { await player.setViewportSize(size); await expectOverlayControls(player, setup); }
+    await setup.getByRole("button", { name: "Leave match", exact: true }).click();
+    const setupLeave = player.getByRole("dialog", { name: "Leave game", exact: true });
+    await expectOverlayControls(player, setupLeave);
+    await setupLeave.getByRole("button", { name: "Stay", exact: true }).click();
+    await expect(setup).toBeVisible();
     await player.getByRole("button", { name: "Ready", exact: true }).click();
     await opponent.getByRole("button", { name: "Ready", exact: true }).click();
     await expect(player.getByRole("heading", { name: "Rock Paper Scissors", exact: true })).toBeVisible();
     for (const size of landscape) { await player.setViewportSize(size); await expectOverlayControls(player, setup); }
-    await player.getByRole("button", { name: "Rock", exact: true }).click();
-    await opponent.getByRole("button", { name: "Scissors", exact: true }).click();
+    const rock = player.getByRole("radio", { name: "Rock", exact: true });
+    const paper = player.getByRole("radio", { name: "Paper", exact: true });
+    const lock = player.getByRole("button", { name: "Lock in choice", exact: true });
+    await rock.focus();
+    await player.keyboard.press("ArrowRight");
+    await expect(paper).toBeChecked();
+    await expect(paper).toBeFocused();
+    await player.keyboard.press("Tab");
+    await expect(lock).toBeFocused();
+    await opponent.getByRole("radio", { name: "Rock", exact: true }).check();
+    await player.keyboard.press("Space");
+    await opponent.getByRole("button", { name: "Lock in choice", exact: true }).click();
     await expect(player.getByRole("button", { name: "Go first", exact: true })).toBeVisible();
     for (const size of landscape) { await player.setViewportSize(size); await expectOverlayControls(player, setup); }
     await player.getByRole("button", { name: "Go first", exact: true }).click();
@@ -85,6 +102,7 @@ test("regular match setup, mulligans and confirmations stay usable in short land
         });
       })).toEqual([]);
     }
+    await expectVisibleCardImagesLoaded(player);
     await player.screenshot({ path: testInfo.outputPath("short-landscape-board.png") });
     for (const size of landscape) {
       await player.setViewportSize(size);
@@ -306,7 +324,8 @@ test.describe("touch overlay matrix", () => {
     await signInAs(page, "e2e-player-one");
     await page.setViewportSize({ width: 844, height: 390 });
     await createRoomFromLobby(page, `overlay-qa-${Date.now()}`, true, "E2E Player 1 Deck");
-    for (const size of viewports.filter((size) => size.width > size.height)) {
+    const pileViewports = [...viewports.filter((size) => size.width > size.height), { width: 568, height: 320 }];
+    for (const size of pileViewports) {
       await test.step(`${size.width}x${size.height}`, async () => {
         await page.setViewportSize(size);
         await page.getByRole("button", { name: "Open navigation", exact: true }).click();
@@ -331,6 +350,9 @@ test.describe("touch overlay matrix", () => {
           await page.locator('[data-game-zone="p1PlayerDeck"] .card-inner').first().click();
           await page.getByRole("menuitem", { name: "Search Deck", exact: true }).click();
         }
+        const pile = page.getByRole("dialog", { name: "Your deck", exact: true });
+        if (size.width === 568 && size.height === 240) await expect(pile.locator(".card-inner").first()).toBeAttached();
+        if (size.width === 568 && size.height === 320) await expect(pile.locator(".card-inner").first()).toBeVisible();
         await expectOverlayControls(page, page.getByRole("dialog"));
         if (size.width <= 1100) {
           await page.getByRole("dialog").getByRole("button", { name: /^Inspect E2E Warrior/ }).first().click();
@@ -344,7 +366,7 @@ test.describe("touch overlay matrix", () => {
           await expect(details).toHaveCount(0);
           await expect(page.getByRole("dialog")).toHaveCount(1);
         }
-        await page.getByRole("button", { name: "close", exact: true }).click();
+        await page.getByRole("button", { name: /^Close Your deck$/ }).click();
       });
     }
   });

@@ -23,11 +23,11 @@ export default function MobileGameCardDialog({
     return () => window.removeEventListener("resize", closeInPortrait);
   }, [onClose]);
   return createPortal(
-    <div className="game-card-dialog relative z-[1200]" onClick={(event) => event.stopPropagation()}>
+    <div className="game-card-dialog relative z-[1400]" onClick={(event) => event.stopPropagation()}>
       <Modal
         open
         variant="constrained-dialog"
-        overlayClassName="game-card-dialog !z-[1200]"
+        overlayClassName="game-card-dialog !z-[1400]"
         ariaLabel="Card details and actions"
         closeModal={onClose}
         modalHeader={

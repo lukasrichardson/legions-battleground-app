@@ -15,7 +15,7 @@ import CardInner from './CardInner';
 import useHandleCardEvents from '@/client/hooks/useHandleCardEvents';
 import useMenuItemClick from '@/client/hooks/useMenuItemClick';
 import { emitGameEvent } from '@/client/utils/emitEvent';
-import { getMenuItemsForCard, getMenuItemsForCardLegacy } from '@/client/utils/cardMenu.utils';
+import { findMenuItemByKey, getMenuItemsForCard, getMenuItemsForCardLegacy } from '@/client/utils/cardMenu.utils';
 import { CARD_TYPE } from '@/shared/enums/CardType';
 import { MatchStatus } from '@/shared/enums/Match';
 
@@ -28,6 +28,7 @@ export default function Card({
   hidden = false,
   compactHand = false,
   compactOpponentHand = false,
+  interactionEnabled = true,
 }: CardProps) {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
@@ -68,11 +69,7 @@ export default function Card({
   }, [card.name, cardTarget, hidden, inPileView, side, showToast]);
 
   const handleNewMenuClick = useCallback((items: INewMenuItem[], key: string | number) => {
-    const selectedMenuItem: INewMenuItem | undefined = items?.find((item) => 
-      item.key === key || item.children?.find((child) => 
-        child.key === key || child.children?.find((subChild) => subChild.key === key)
-      )
-    );
+    const selectedMenuItem = findMenuItemByKey(items, key) as INewMenuItem | undefined;
     
     switch (selectedMenuItem?.menuAction) {
       case MenuItemAction.MOVE:
@@ -266,6 +263,14 @@ export default function Card({
   const selectForZoneLabel = !isHidden && isOnPlayerSide && isLocalHand && gameState.matchStatus !== MatchStatus.Completed
     ? selectionLabelByType[card.type]
     : undefined;
+  const primaryActionKey = useMemo(() => {
+    if (legacyMenu || !selectForZoneLabel) return undefined;
+    return (cardMenuItems as INewMenuItem[]).find((item) => [
+      MenuItemAction.CONSCRIPT,
+      MenuItemAction.ACTIVATE,
+      MenuItemAction.SET,
+    ].includes(item.menuAction as MenuItemAction))?.key;
+  }, [cardMenuItems, legacyMenu, selectForZoneLabel]);
   const handleSelectForZone = useCallback(() => {
     setIsPopoverVisible(false);
     dispatch(setSelectionFeedback(null));
@@ -328,7 +333,9 @@ export default function Card({
       handlePopoverVisibleChange={handlePopoverVisibleChange}
       compactHand={compactHand}
       compactOpponentHand={compactOpponentHand}
-      onSelectForZone={selectForZoneLabel ? handleSelectForZone : undefined}
+      interactionEnabled={interactionEnabled}
+      primaryActionKey={primaryActionKey}
+      onSelectForZone={legacyMenu && selectForZoneLabel ? handleSelectForZone : undefined}
       selectForZoneLabel={selectForZoneLabel}
       onMenuItemClick={handleMenuClick}
       {...interactionHandlers}

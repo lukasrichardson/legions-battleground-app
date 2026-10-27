@@ -326,10 +326,41 @@ body {
 .game-card-submenu .ant-menu-item,
 .game-card-submenu .ant-menu-submenu-title {
   height: auto;
-  min-height: 40px;
+  min-height: 44px;
   padding-block: 10px;
   line-height: 1.4;
   white-space: normal;
+}
+.game-card-menu .ant-menu,
+.game-card-submenu .ant-menu {
+  min-width: 210px;
+  border: 1px solid rgba(186, 230, 253, .18);
+  background: linear-gradient(145deg, rgba(15, 31, 48, .99), rgba(3, 10, 18, .99));
+}
+.game-card-menu .ant-menu-item,
+.game-card-menu .ant-menu-submenu-title {
+  min-height: 44px;
+  height: auto;
+  line-height: 1.35;
+  white-space: normal;
+}
+.game-card-menu .ant-menu-item:focus-visible,
+.game-card-menu .ant-menu-submenu-title:focus-visible,
+.game-card-submenu .ant-menu-item:focus-visible,
+.game-card-submenu .ant-menu-submenu-title:focus-visible {
+  outline: 2px solid rgb(125 211 252);
+  outline-offset: -2px;
+}
+.game-card-dialog .ant-menu-item.game-card-menu__primary {
+  border: 1px solid rgba(253, 224, 71, .42);
+  background: rgba(253, 224, 71, .12);
+  color: rgb(254 249 195);
+  font-weight: 700;
+}
+.game-card-dialog .ant-menu-item.game-card-menu__primary:hover,
+.game-card-dialog .ant-menu-item.game-card-menu__primary.ant-menu-item-selected {
+  background: rgba(253, 224, 71, .2);
+  color: white;
 }
 @media (max-width: 1100px) {
   .game-card-dialog .ant-menu-item,
@@ -374,6 +405,17 @@ body {
 
 .touch-feedback:not(:disabled):active {
   transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-workspace *,
+  .game-card-menu *,
+  .game-card-submenu * {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
 }
 
 a {

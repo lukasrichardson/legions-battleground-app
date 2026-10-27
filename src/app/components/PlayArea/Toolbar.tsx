@@ -181,26 +181,27 @@ export default function Toolbar() {
     <div className="flex h-full flex-col gap-3 overflow-y-auto p-4 text-sm sidebar-scrollbar">
       <div className="flex items-center justify-between border-b border-sky-200/20 pb-3">
         <span className="font-serif text-base">Legions Battleground</span>
-        <button type="button" aria-label="Close menu" onClick={closePanel}><X size={18} /></button>
+        <button type="button" aria-label="Close menu" onClick={closePanel} className="grid size-11 place-items-center hover:bg-blue-400/10 focus-visible:outline-2 focus-visible:outline-cyan-200"><X size={18} /></button>
       </div>
+      <div className="space-y-1.5 border-b border-sky-200/15 pb-3">
+        <div className="text-[10px] font-semibold uppercase tracking-[.14em] text-sky-100/60">Match actions</div>
+        {matchActions}
+      </div>
+      <div className="text-[10px] font-semibold uppercase tracking-[.14em] text-sky-100/60">Navigation</div>
       {navigationLinks.map(({ href, label, icon: Icon }) => (
-        <button key={href} type="button" onClick={() => handleNavigate(href)} className="flex items-center gap-3 px-3 py-2 text-left text-slate-200 hover:bg-blue-400/10">
+        <button key={href} type="button" onClick={() => handleNavigate(href)} className="flex min-h-11 items-center gap-3 px-3 py-2 text-left text-slate-200 hover:bg-blue-400/10 focus-visible:outline-2 focus-visible:outline-cyan-200">
           <Icon size={17} className="text-sky-300" />{label}
         </button>
       ))}
       <div className="border-t border-sky-200/15 pt-2">
-        <button type="button" onClick={() => dispatch(openHelpModal())} className="flex items-center gap-3 px-3 py-2 text-slate-300"><Settings2 size={17} className="text-sky-300" />Help</button>
-        {!isRegularMatch && <button type="button" onClick={() => dispatch(openToolsSettingsModal())} className="flex items-center gap-3 px-3 py-2 text-slate-300"><Settings2 size={17} className="text-sky-300" />Tools & settings</button>}
-      </div>
-      <div className="space-y-1.5 border-t border-sky-200/15 pt-3">
-        <div className="text-[10px] font-semibold uppercase tracking-[.14em] text-sky-100/60">Match actions</div>
-        {matchActions}
+        <button type="button" onClick={() => dispatch(openHelpModal())} className="flex min-h-11 w-full items-center gap-3 px-3 py-2 text-slate-300 hover:bg-blue-400/10 focus-visible:outline-2 focus-visible:outline-cyan-200"><AppIcon name="help" size={17} />Help</button>
+        {!isRegularMatch && <button type="button" onClick={() => dispatch(openToolsSettingsModal())} className="flex min-h-11 w-full items-center gap-3 px-3 py-2 text-slate-300 hover:bg-blue-400/10 focus-visible:outline-2 focus-visible:outline-cyan-200"><Settings2 size={17} className="text-sky-300" />Tools & settings</button>}
       </div>
       <div className="mt-auto border-t border-sky-200/15 pt-3">
         {session ? (
-          <button type="button" onClick={() => signOut()} className="flex items-center gap-3 px-3 py-2 text-slate-300"><LogOut size={17} />Sign out</button>
+          <button type="button" onClick={() => signOut()} className="flex min-h-11 w-full items-center gap-3 px-3 py-2 text-slate-300 hover:bg-blue-400/10 focus-visible:outline-2 focus-visible:outline-cyan-200"><LogOut size={17} />Sign out</button>
         ) : (
-          <button type="button" onClick={() => signIn()} className="flex items-center gap-3 px-3 py-2 text-slate-300"><LogIn size={17} />Sign in</button>
+          <button type="button" onClick={() => signIn()} className="flex min-h-11 w-full items-center gap-3 px-3 py-2 text-slate-300 hover:bg-blue-400/10 focus-visible:outline-2 focus-visible:outline-cyan-200"><LogIn size={17} />Sign in</button>
         )}
         <div className="mt-2 flex items-center gap-2 px-3 text-xs text-slate-500"><UserRound size={14} />{session?.user?.name || session?.user?.email || "Guest"}</div>
       </div>

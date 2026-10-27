@@ -23,11 +23,16 @@ export async function signInAs(page: Page, userId: E2eUser) {
     const response = await page.request.get("/api/auth/session");
     return (await response.json()).user?.id;
   }).toBe(userId);
+  // Authentication is not ready for UI actions until the client SessionProvider
+  // has consumed the authenticated session and replaced its loading state.
+  await expect(page.getByRole("button", { name: "Play", exact: true })).toBeEnabled({ timeout: 30_000 });
 }
 
 export async function createRoomFromLobby(page: Page, roomName: string, sandboxMode: boolean, deckName?: string) {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Play", exact: true }).click();
+  if (new URL(page.url()).pathname !== "/") await page.goto("/");
+  const play = page.getByRole("button", { name: "Play", exact: true });
+  await expect(play).toBeEnabled({ timeout: 30_000 });
+  await play.click();
   await page.getByLabel("Room Name").fill(roomName);
   if (deckName) {
     await page.getByLabel("Deck", { exact: true }).click();
@@ -55,4 +60,17 @@ export async function newSignedInPage(context: BrowserContext, userId: E2eUser) 
   const page = await context.newPage();
   await signInAs(page, userId);
   return page;
+}
+
+/** Keep visual evidence deterministic when card art is loaded from the public R2 host. */
+export async function expectVisibleCardImagesLoaded(page: Page) {
+  await expect.poll(async () => {
+    return page.locator(".card-inner img:visible").evaluateAll((images) =>
+      images.length > 0
+      && images.every((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0),
+    );
+  }, {
+    message: "visible card images should load from the configured E2E image host",
+    timeout: 15_000,
+  }).toBe(true);
 }

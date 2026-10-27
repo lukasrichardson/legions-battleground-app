@@ -59,14 +59,14 @@ function PlayHelpContent({ sandboxMode }: { sandboxMode: boolean }) {
           <li>Drag a card directly onto another zone, or use its action menu when you want an exact destination.</li>
           <li>Card menus include available moves such as Draw, To Hand, or sending a card to another board zone.</li>
           <li>When moving a card to a deck, choose the top or bottom destination offered by the menu.</li>
-          <li>For cards that use a numbered Warrior, Unified, or Fortified zone, choose <strong>Play card</strong> and then select a highlighted empty destination. Use Cancel to leave selection mode.</li>
+          <li>For cards that use a numbered Warrior, Unified, or Fortified zone, choose <strong>Conscript</strong>, <strong>Activate</strong>, or <strong>Set</strong>, then select a highlighted empty destination. Legacy menu mode uses <strong>Play card</strong>. Use Cancel to leave selection mode.</li>
         </HelpList>
       </HelpSection>
 
       <HelpSection number="3" title="Browse decks and piles">
         <HelpList>
           <li>The number displayed on a pile is its total card count. The card shown on the board is the card available for direct interaction.</li>
-          <li>Open a pile and choose <strong>View</strong> or <strong>Search</strong> to use the pile browser. Select a card there to inspect it or run an action.</li>
+          <li>Open a pile and choose <strong>View</strong> or <strong>Search</strong> to use the pile browser. In normal browsing, inspect a card or open its actions; when an effect asks for cards, select the card tile and confirm.</li>
           <li>Dragging from Deck, Discard, Eradication, or Tokens moves the currently displayed top card.</li>
           <li>Deck identities and other hidden cards remain concealed by the interface until an available action reveals or views them.</li>
         </HelpList>

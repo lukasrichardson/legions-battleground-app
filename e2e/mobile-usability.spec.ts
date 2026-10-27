@@ -4,11 +4,16 @@ import { createRoomFromLobby, csrfHeaders, signInAs } from "./fixtures";
 test.use({ hasTouch: true });
 test.beforeEach(({ page }) => page.setDefaultTimeout(15_000));
 
+async function chooseMoveDestination(page: Page, destination: string) {
+  await page.getByRole("menuitem", { name: "Move to…", exact: true }).tap();
+  await page.getByRole("menuitem", { name: destination, exact: true }).tap();
+}
+
 async function discardHandCard(page: Page) {
   const card = page.locator('[data-mobile-overflow-exempt="hand-tray"] .card-inner').first();
-  const name = (await card.getAttribute("aria-label"))!.replace(/^Inspect /, "");
+  const name = (await card.getByRole("button", { name: /^Inspect / }).getAttribute("aria-label"))!.replace(/^Inspect /, "");
   await card.tap();
-  await page.getByRole("menuitem", { name: "To Discard", exact: true }).tap();
+  await chooseMoveDestination(page, "To Discard");
   await expect(page.getByRole("dialog", { name: "Card details and actions", exact: true })).toHaveCount(0);
   return name;
 }
@@ -21,7 +26,7 @@ test("mobile card moves dismiss the action dialog, retain the pile browser and a
   const second = await discardHandCard(page);
   const discard = page.locator('[data-game-zone="p1PlayerDiscard"]');
   await discard.getByRole("button", { name: `Inspect ${second}`, exact: true }).tap();
-  await page.getByRole("menuitem", { name: "To Hand", exact: true }).tap();
+  await chooseMoveDestination(page, "To Hand");
   const actions = page.getByRole("dialog", { name: "Card details and actions", exact: true });
   await expect(actions).toHaveCount(0);
   await expect(page.getByRole("status", { name: "Game action feedback", exact: true })).toContainText(`${second} moved to your hand`);
@@ -30,11 +35,12 @@ test("mobile card moves dismiss the action dialog, retain the pile browser and a
   const pile = page.getByRole("dialog", { name: "Your discard", exact: true });
   await expect(pile).toBeVisible();
   await pile.getByRole("button", { name: `Inspect ${first}`, exact: true }).tap();
+  await actions.getByRole("menuitem", { name: "Move to…", exact: true }).tap();
   await actions.getByRole("menuitem", { name: "To Hand", exact: true }).tap();
   await expect(actions).toHaveCount(0);
   await expect(pile).toBeVisible();
   await expect(pile.getByText("This pile is empty.", { exact: true })).toBeVisible();
-  await pile.getByRole("button", { name: "close", exact: true }).tap();
+  await pile.getByRole("button", { name: "Close Your discard", exact: true }).tap();
   await page.getByRole("button", { name: "Open deck actions", exact: true }).tap();
   await actions.getByRole("menuitem", { name: "Draw", exact: true }).tap();
   await expect(actions).toHaveCount(0);
@@ -51,6 +57,23 @@ test("pile searches explain empty results and offer a reset", async ({ page }) =
   await page.getByRole("button", { name: "Open deck actions", exact: true }).tap();
   await page.getByRole("menuitem", { name: "Search Deck", exact: true }).tap();
   const pile = page.getByRole("dialog", { name: "Your deck", exact: true });
+  await expect(pile).toBeVisible();
+  await expect(pile.locator(".cursor-grab")).toHaveCount(0);
+  const initialBounds = await pile.boundingBox();
+  expect(initialBounds).not.toBeNull();
+  expect(initialBounds!.x).toBeGreaterThanOrEqual(0);
+  expect(initialBounds!.y).toBeGreaterThanOrEqual(0);
+  expect(initialBounds!.x + initialBounds!.width).toBeLessThanOrEqual(844);
+  expect(initialBounds!.y + initialBounds!.height).toBeLessThanOrEqual(390);
+  const header = pile.getByRole("button", { name: "Close Your deck", exact: true }).locator("..");
+  const headerBounds = await header.boundingBox();
+  await page.mouse.move(headerBounds!.x + 20, headerBounds!.y + 20);
+  await page.mouse.down();
+  await page.mouse.move(headerBounds!.x + 180, headerBounds!.y + 80, { steps: 5 });
+  await page.mouse.up();
+  const afterDragBounds = await pile.boundingBox();
+  expect(afterDragBounds!.x).toBeCloseTo(initialBounds!.x, 0);
+  expect(afterDragBounds!.y).toBeCloseTo(initialBounds!.y, 0);
   await pile.getByRole("textbox", { name: "Search card pile", exact: true }).fill("nothing matches this");
   await expect(pile.getByText("No cards match your search or filters.", { exact: true })).toBeVisible();
   await pile.getByRole("button", { name: "Clear search and filters", exact: true }).tap();
@@ -114,6 +137,9 @@ test("legacy moves also end the action dialog without retargeting the next pile 
   await page.getByRole("checkbox", { name: "Use Legacy Menu", exact: true }).check();
   await page.getByRole("button", { name: "Close Tools & Settings", exact: true }).tap();
   await page.getByRole("button", { name: "Close menu", exact: true }).tap();
+  await page.locator('[data-mobile-overflow-exempt="hand-tray"] .card-inner').first().tap();
+  await expect(page.getByRole("button", { name: "Select warrior zone", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Close card details and actions", exact: true }).tap();
   for (let index = 0; index < 2; index++) {
     await page.locator('[data-mobile-overflow-exempt="hand-tray"] .card-inner').first().tap();
     await page.getByRole("menuitem", { name: "Send to p1 player", exact: true }).tap();
@@ -155,6 +181,7 @@ test("inline card menus retain dialog Tab boundaries and Escape dismissal", asyn
   await hand.tap();
   const dialog = page.getByRole("dialog", { name: "Card details and actions", exact: true });
   const close = dialog.getByRole("button", { name: "Close card details and actions", exact: true });
+  await dialog.getByRole("menuitem", { name: "Move to…", exact: true }).tap();
   const menuItem = dialog.getByRole("menuitem", { name: "To Discard", exact: true });
   await menuItem.focus();
   await expect(menuItem).toBeFocused();
@@ -162,9 +189,9 @@ test("inline card menus retain dialog Tab boundaries and Escape dismissal", asyn
   await expect(close).toBeFocused();
   await menuItem.focus();
   await page.keyboard.press("Shift+Tab");
-  await expect(dialog.getByRole("menu")).toBeFocused();
+  await expect(dialog.getByRole("menu").first()).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(dialog.getByRole("button", { name: "Select warrior zone", exact: true })).toBeFocused();
+  await expect(dialog.getByRole("button", { name: /image full screen/ })).toBeFocused();
   await menuItem.focus();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);

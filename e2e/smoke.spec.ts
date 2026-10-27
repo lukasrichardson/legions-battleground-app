@@ -162,11 +162,17 @@ for (const mobile of [false, true])
         playerTwo.getByRole("heading", { name: "Rock Paper Scissors" }),
       ).toBeVisible();
 
+      const playerOneChoice = playerOne.getByRole("radio", { name: "Rock", exact: true });
+      const playerTwoChoice = playerTwo.getByRole("radio", { name: "Scissors", exact: true });
+      await playerOneChoice.check();
+      await playerTwoChoice.check();
+      await expect(playerOneChoice).toBeChecked();
+      await expect(playerTwoChoice).toBeChecked();
       await playerOne
-        .getByRole("button", { name: "Rock", exact: true })
+        .getByRole("button", { name: "Lock in choice", exact: true })
         .click();
       await playerTwo
-        .getByRole("button", { name: "Scissors", exact: true })
+        .getByRole("button", { name: "Lock in choice", exact: true })
         .click();
       await expect(
         playerOne.getByRole("heading", { name: "Choose turn order" }),

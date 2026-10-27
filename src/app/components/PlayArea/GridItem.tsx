@@ -1,6 +1,6 @@
 import { useDrop } from "react-dnd";
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import { moveCard } from "@/client/redux/gameStateSlice";
@@ -9,6 +9,7 @@ import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { setCardForSelectingZone, setSelectingZone, setSelectionFeedback } from "@/client/redux/clientGameStateSlice";
 import { CardState } from "@/shared/interfaces/CardState";
 import { MatchStatus } from "@/shared/enums/Match";
+import { gameZoneLabel } from "@/client/utils/gameZoneLabel";
 
 
 export default function GridItem({ children, cardTarget, targetIndex }: { children: ReactNode, cardTarget: CARD_TARGET, targetIndex?: number }) {
@@ -18,6 +19,12 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
   const clientGameState = useAppSelector((state) => state.clientGameState);
   const { sequences, resolving } = sequenceState;
   const { side, selectingZone, cardForSelectingZone } = clientGameState;
+  const [settled, setSettled] = useState(false);
+  const [dropAnnouncement, setDropAnnouncement] = useState("");
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+  }, []);
   const cardsInZone = (targetIndex || targetIndex === 0) ? gameState[cardTarget as keyof typeof gameState][targetIndex] as CardState[] : gameState[cardTarget as keyof typeof gameState] as CardState[];
   const canDropCard = () => gameState.matchStatus !== MatchStatus.Completed;
   const [{ isOver, canDrop }, drop] = useDrop(
@@ -73,7 +80,11 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
             target: cardTarget,
             targetIndex
           }
-        })
+        });
+        setDropAnnouncement(`${cardToDrop.name || "Card"} moved to ${gameZoneLabel(cardTarget, side, targetIndex).toLowerCase()}.`);
+        setSettled(true);
+        if (settleTimer.current) clearTimeout(settleTimer.current);
+        settleTimer.current = setTimeout(() => setSettled(false), 550);
       },
       collect: (monitor) => ({
         isOver: !!monitor.isOver(),
@@ -145,6 +156,7 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
       <div
         data-game-zone={cardTarget}
         data-zone-active={selecting || canDrop || isOver || undefined}
+        data-zone-drop-state={isOver && canDrop ? "release" : canDrop ? "available" : settled ? "settled" : undefined}
         data-zone-index={targetIndex}
         role={selectingZone ? "button" : undefined}
         tabIndex={selectingZone ? 0 : undefined}
@@ -152,19 +164,22 @@ export default function GridItem({ children, cardTarget, targetIndex }: { childr
         onKeyDown={(event) => { if (selectingZone && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); handleZoneSelect(); } }}
         ref={(node) => { drop(node); }}
         className={[
-          "relative flex items-center justify-center rounded md:rounded-lg border transition-all duration-200",
+          "relative flex items-center justify-center rounded md:rounded-lg border transition-[border-color,background-color,box-shadow,transform] duration-150",
           "border-gray-300",
           "hover:scale-[1.02]",
           "mx-1",
           selecting ? "border-yellow-400 bg-yellow-400/50 hover:bg-yellow-300/80 cursor-pointer ring-2 ring-yellow-300/60" : "",
-          isOver && canDrop ? "border-green-400 bg-green-400/50 scale-[1.02]" : "",
+          isOver && canDrop ? "border-cyan-200 bg-cyan-300/20 scale-[1.02] ring-2 ring-cyan-200/70 shadow-[0_0_20px_rgba(103,232,249,.25)]" : "",
           isOver && !canDrop ? "border-red-400 bg-red-400/10" : "",
-          canDrop && !isOver ? "border-green-400 bg-blue-400/10" : "",
+          canDrop && !isOver ? "border-cyan-300/45 bg-cyan-300/[.04]" : "",
+          settled ? "border-cyan-100 bg-cyan-200/15 ring-2 ring-cyan-100/50" : "",
         ].join(" ")}
         onClick={handleZoneSelect}
         onContextMenu={handleCancelZoneSelect}
       >
+        {isOver && canDrop && <span className="pointer-events-none absolute left-1/2 top-1/2 z-40 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded border border-cyan-100/45 bg-slate-950/90 px-2 py-1 text-[10px] font-semibold text-cyan-50 shadow-lg">Release to move</span>}
         {children}
+        <span className="sr-only" role="status" aria-live="polite">{dropAnnouncement}</span>
       </div>
   )
 

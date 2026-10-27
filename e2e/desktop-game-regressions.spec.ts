@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createRoomFromLobby, signInAs } from "./fixtures";
+import { createRoomFromLobby, expectVisibleCardImagesLoaded, signInAs } from "./fixtures";
 
 test("play workspaces share styling across sizes without stretching cards or clipping controls", async ({ page }) => {
   await signInAs(page, "e2e-player-one");
@@ -84,13 +84,16 @@ test("play workspaces share styling across sizes without stretching cards or cli
     expect(Math.max(...geometry.utilityWidths)).toBeLessThan(Math.min(...geometry.primaryWidths));
     await page.mouse.move(0, 0);
     await expect.poll(readAppearance).toEqual(appearance);
+    if (size.width === 844 || (size.width === 1920 && size.height === 1080) || size.width === 2560) {
+      await expectVisibleCardImagesLoaded(page);
+    }
     if (size.width === 844) await page.screenshot({ path: "output/playwright/shared-play-mobile.png" });
     if (size.width === 1920 && size.height === 1080) await page.screenshot({ path: "output/playwright/wide-play-after-1920.png" });
     if (size.width === 2560) await page.screenshot({ path: "output/playwright/wide-play-after.png" });
   }
 });
 
-test("desktop pile dialogs still drag and allow dragging a card onto the board", async ({
+test("desktop pile browser moves away from covered zones and keeps card dragging active", async ({
   page,
 }) => {
   await signInAs(page, "e2e-player-one");
@@ -108,22 +111,53 @@ test("desktop pile dialogs still drag and allow dragging a card onto the board",
   await page
     .getByRole("menuitem", { name: "Search Deck", exact: true })
     .click();
-  const dialog = page.getByRole("dialog");
+  const dialog = page.getByRole("dialog", { name: "Your deck", exact: true });
   await expect(dialog).toBeVisible();
-  const before = await dialog.boundingBox();
+  const initialBounds = await dialog.boundingBox();
+  expect(initialBounds).not.toBeNull();
+  expect(initialBounds!.x).toBeGreaterThanOrEqual(0);
+  expect(initialBounds!.y).toBeGreaterThanOrEqual(0);
+  expect(initialBounds!.x + initialBounds!.width).toBeLessThanOrEqual(1440);
+  expect(initialBounds!.y + initialBounds!.height).toBeLessThanOrEqual(1000);
+
+  const zones = page.locator('[data-game-zone]');
+  const coveredTarget = await zones.evaluateAll((elements, modalBounds) => elements.map((element, index) => {
+    const bounds = element.getBoundingClientRect();
+    return {
+      index,
+      target: element.getAttribute("data-game-zone"),
+      cardCount: element.querySelectorAll(".card-inner").length,
+      x: bounds.x + bounds.width / 2,
+      y: bounds.y + bounds.height / 2,
+    };
+  }).find(({ target, cardCount, x, y }) =>
+    target?.startsWith("p1")
+    && !target.endsWith("Deck")
+    && cardCount === 0
+    && x >= modalBounds.x
+    && x <= modalBounds.x + modalBounds.width
+    && y >= modalBounds.y
+    && y <= modalBounds.y + modalBounds.height
+    && (x < 1440 - modalBounds.width - 16 || x > modalBounds.width + 16)
+  ) ?? null, initialBounds!);
+  expect(coveredTarget).not.toBeNull();
+  const destination = zones.nth(coveredTarget!.index);
+
   const header = dialog.locator(".cursor-grab");
-  const rect = await header.boundingBox();
-  await page.mouse.move(rect!.x + 12, rect!.y + 12);
+  const headerBounds = await header.boundingBox();
+  expect(headerBounds).not.toBeNull();
+  await page.mouse.move(headerBounds!.x + headerBounds!.width / 2, headerBounds!.y + Math.min(24, headerBounds!.height / 2));
   await page.mouse.down();
-  await page.mouse.move(rect!.x - 150, rect!.y + 12, { steps: 10 });
+  const moveRight = coveredTarget!.x < 1440 - initialBounds!.width - 16;
+  await page.mouse.move(moveRight ? 1430 : 10, headerBounds!.y + 40, { steps: 12 });
   await page.mouse.up();
-  await expect
-    .poll(async () => (await dialog.boundingBox())!.x)
-    .toBeLessThan(before!.x - 100);
+
+  const movedBounds = await dialog.boundingBox();
+  expect(Math.abs(movedBounds!.x - initialBounds!.x) + Math.abs(movedBounds!.y - initialBounds!.y)).toBeGreaterThan(100);
+  expect(coveredTarget!.x < movedBounds!.x || coveredTarget!.x > movedBounds!.x + movedBounds!.width
+    || coveredTarget!.y < movedBounds!.y || coveredTarget!.y > movedBounds!.y + movedBounds!.height).toBe(true);
+
   const card = dialog.locator(".card-inner").first();
-  // Use an exposed destination. Dialog content intentionally remains opaque
-  // to pointer events; only the backdrop passes a card drag through.
-  const destination = page.locator('[data-game-zone="p1PlayerDiscard"]');
   const source = await card.boundingBox();
   const target = await destination.boundingBox();
   await page.mouse.move(
@@ -138,6 +172,7 @@ test("desktop pile dialogs still drag and allow dragging a card onto the board",
     source!.y + source!.height / 2 + 12,
     { steps: 4 },
   );
+  await expect(card).toHaveClass(/opacity-45/);
   await page.mouse.move(
     target!.x + target!.width / 2,
     target!.y + target!.height / 2,
@@ -150,6 +185,90 @@ test("desktop pile dialogs still drag and allow dragging a card onto the board",
   await page.mouse.up();
   await expect(destination.locator(".card-inner")).toHaveCount(1);
   await expect(dialog).toBeVisible();
-  await dialog.getByRole("button", { name: "close", exact: true }).click();
+
+  await page.setViewportSize({ width: 1200, height: 700 });
+  await expect.poll(async () => {
+    const bounds = await dialog.boundingBox();
+    return !!bounds && bounds.x >= -1 && bounds.y >= -1 && bounds.x + bounds.width <= 1201 && bounds.y + bounds.height <= 701;
+  }).toBe(true);
+  await dialog.getByRole("button", { name: "Close Your deck", exact: true }).click();
   await expect(dialog).toHaveCount(0);
+});
+
+test("Wisdom selection tiles contain no nested controls and support pointer and keyboard selection", async ({ page }) => {
+  await signInAs(page, "e2e-player-one");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await createRoomFromLobby(page, `desktop-wisdom-${Date.now()}`, true, "E2E Player 1 Deck");
+  const playerHand = page.locator(".game-hand").filter({ has: page.getByText("P1", { exact: true }) });
+  const handCards = playerHand.locator(".card-inner");
+  await expect(handCards.first()).toBeVisible();
+
+  const openWisdom = async () => {
+    await page.locator('[data-game-zone="p1PlayerDeck"] .card-inner').first().click();
+    await page.getByRole("menuitem", { name: "Wisdom", exact: true }).click();
+    const wisdom = page.getByRole("dialog", { name: "Wisdom selection", exact: true });
+    await expect(wisdom).toBeVisible();
+    return wisdom;
+  };
+
+  for (const input of ["pointer", "keyboard"] as const) {
+    const before = await handCards.count();
+    const wisdom = await openWisdom();
+    const choice = wisdom.getByRole("button", { name: /^Choose E2E Warrior/ }).first();
+    const chosenName = (await choice.getAttribute("aria-label"))!.replace(/^Choose /, "");
+    await choice.hover();
+    await choice.focus();
+    await expect(choice.locator('button, [role="button"], [draggable="true"]')).toHaveCount(0);
+    if (input === "pointer") await choice.click();
+    else await choice.press("Enter");
+    await expect(wisdom).toHaveCount(0);
+    await expect(handCards).toHaveCount(before + 1);
+    if (input === "pointer") {
+      await playerHand.getByRole("button", { name: `Inspect ${chosenName}`, exact: true }).click();
+      await page.locator(".game-card-menu:visible").last().getByRole("menuitem", { name: "Move to…", exact: true }).click();
+      await page.locator(".game-card-submenu:visible").getByRole("menuitem", { name: "To Bottom of Deck", exact: true }).click();
+      await expect(handCards).toHaveCount(before);
+    }
+  }
+});
+
+test("desktop cards are keyboard-operable and pile browsing does not hover-open actions", async ({ page }) => {
+  await signInAs(page, "e2e-player-one");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await createRoomFromLobby(page, `desktop-keyboard-${Date.now()}`, true, "E2E Player 1 Deck");
+
+  const handCard = page.locator(".game-hand").last().getByRole("button", { name: /^Inspect E2E Warrior/ }).first();
+  await handCard.focus();
+  await expect(handCard).toBeFocused();
+  await page.keyboard.press("Enter");
+  const conscript = page.getByRole("menuitem", { name: "Conscript", exact: true });
+  await expect(conscript).toBeVisible();
+  await conscript.focus();
+  await conscript.press("Enter");
+  const warriorZone = page.locator('[data-game-zone="p1PlayerWarriors"]').first();
+  await warriorZone.click();
+
+  const battlefieldCard = warriorZone.getByRole("button", { name: /^Inspect E2E Warrior/ });
+  await battlefieldCard.focus();
+  const decreaseAttack = page.getByRole("button", { name: "Decrease Attack modifier", exact: true });
+  await expect(decreaseAttack).toBeVisible();
+  await page.keyboard.press("Tab");
+  await expect(decreaseAttack).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator('.game-card-menu:visible')).toHaveCount(0);
+  await expect(warriorZone.locator('[aria-label="Attack modifier: -1"]')).toBeVisible();
+
+  await page.getByRole("button", { name: "Tools & settings", exact: true }).click();
+  const hoverSetting = page.getByRole("checkbox", { name: "Show Menu On Hover", exact: true });
+  if (!await hoverSetting.isChecked()) await hoverSetting.check();
+  await page.getByRole("button", { name: "Close Tools & Settings", exact: true }).click();
+  await page.locator('[data-game-zone="p1PlayerDeck"] .card-inner').first().click();
+  await page.getByRole("menuitem", { name: "Search Deck", exact: true }).click();
+  const pile = page.getByRole("dialog", { name: "Your deck", exact: true });
+  const pileCard = pile.locator(".card-inner").first();
+  await pileCard.hover();
+  await page.waitForTimeout(350);
+  await expect(page.locator('.game-card-menu:visible')).toHaveCount(0);
+  await pileCard.click();
+  await expect(page.getByRole("menuitem", { name: "Move to…", exact: true })).toBeVisible();
 });

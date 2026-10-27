@@ -42,7 +42,7 @@ connectToDatabase().then(async () => {
     handleSocketConnection(io);
   
     routes(app);
-  
+
     // Handle all other requests with Next.js (after Express routes have been processed)
     // This should only catch requests that haven't been handled by our Express routes
     app.use('/', (req, res) => {

@@ -1,6 +1,6 @@
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CardState } from "@/shared/interfaces/CardState";
-import IMenuItem from "../interfaces/IMenuItem";
+import IMenuItem, { INewMenuItem } from "../interfaces/IMenuItem";
 import { newCardMenuItems, newDeckMenuItems, newDiscardMenuItems, newFortifiedMenuItems, newOnFieldMenuItems, newUnifiedMenuItems, newWarriorMenuItems, cardMenuItems, deckMenuItems, newEradicationMenuItems } from "../constants/cardMenu.constants";
 import { CARD_TYPE } from "@/shared/enums/CardType";
 import MenuItemAction from "../enums/MenuItemAction";
@@ -15,7 +15,7 @@ const controllerTargetMap = {
   [CARD_TARGET.CONTROLLER_HAND]: [CARD_TARGET.P1_PLAYER_HAND, CARD_TARGET.P2_PLAYER_HAND],
 };
 
-export const getMenuItemsForCard = (card: CardState, cardTarget: CARD_TARGET, inPileView: boolean): IMenuItem[] => {
+export const getMenuItemsForCard = (card: CardState, cardTarget: CARD_TARGET, inPileView: boolean): INewMenuItem[] => {
   if (cardTarget.includes("Deck") && !inPileView) {
     return [...newDeckMenuItems]
   }
@@ -48,8 +48,29 @@ export const getMenuItemsForCard = (card: CardState, cardTarget: CARD_TARGET, in
     filteredMenuItems = [...filteredMenuItems, ...newEradicationMenuItems];
   }
   filteredMenuItems = filteredMenuItems.filter(item => !item.target || ((item?.target !== cardTarget) && (!controllerTargetMap[item?.target]?.includes(cardTarget))));
-  return filteredMenuItems;
+
+  const primaryActions = filteredMenuItems.filter(item => item.menuAction !== MenuItemAction.MOVE);
+  const moveActions = filteredMenuItems.filter(item => item.menuAction === MenuItemAction.MOVE);
+  return [
+    ...primaryActions,
+    ...(moveActions.length ? [{
+      key: "move-to",
+      title: "moveTo",
+      icon: null,
+      label: "Move to…",
+      children: moveActions,
+    }] : []),
+  ];
 }
+
+export const findMenuItemByKey = <T extends IMenuItem>(items: T[], key: string | number): T | undefined => {
+  for (const item of items) {
+    if (String(item.key) === String(key)) return item;
+    const child = item.children ? findMenuItemByKey(item.children as T[], key) : undefined;
+    if (child) return child;
+  }
+  return undefined;
+};
 
 export const getMenuItemsForCardLegacy = (inPileView: boolean, cardTarget: CARD_TARGET) => {
   let filteredMenuItems = [...cardMenuItems];

@@ -8,6 +8,7 @@ import { flipCard, moveCard } from "../redux/gameStateSlice";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { emitGameEvent } from "../utils/emitEvent";
 import { useCallback } from "react";
+import { findMenuItemByKey } from "../utils/cardMenu.utils";
 
 export default function useMenuItemClick(card: CardState, cardTarget: CARD_TARGET, zoneIndex: number, index?: number) {
   const dispatch = useAppDispatch();
@@ -18,7 +19,7 @@ export default function useMenuItemClick(card: CardState, cardTarget: CARD_TARGE
   const p1 = side === "p1";
 
   const handleMove = useCallback((items: INewMenuItem[], key: string) => {
-    const menuItemClicked: INewMenuItem | undefined = items?.find((item) => item.key === key || item.children?.find((child) => child.key === key || child.children?.find((subChild) => subChild.key === key)));
+    const menuItemClicked = findMenuItemByKey(items, key) as INewMenuItem | undefined;
     switch (menuItemClicked?.target) {
       case CARD_TARGET.CONTROLLER_HAND:
         dispatch(moveCard({

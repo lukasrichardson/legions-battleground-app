@@ -6,7 +6,7 @@ export interface INewMenuItem {
   title: string|number;
   icon: string|null;
   label: string;
-  children?: IMenuItem[];
+  children?: INewMenuItem[];
   menuAction?: MenuItemAction;
   target?: CARD_TARGET
 }
