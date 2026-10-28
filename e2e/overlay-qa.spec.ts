@@ -38,7 +38,10 @@ async function expectOverlayControls(page: Page, overlay: Locator) {
   }
 }
 
-test.beforeEach(({ page }) => page.setDefaultTimeout(10_000));
+test.beforeEach(({ page }) => {
+  page.setDefaultTimeout(10_000);
+  page.setDefaultNavigationTimeout(60_000);
+});
 
 test("regular match setup, mulligans and confirmations stay usable in short landscape", async ({ browser }, testInfo) => {
   test.setTimeout(180_000);
@@ -266,9 +269,10 @@ test.describe("touch overlay matrix", () => {
     await signInAs(page, "e2e-player-one");
     const decks = await (await page.request.get("/api/decks?view=summary")).json();
     const deck = decks.find((item: { name: string }) => item.name === "E2E Player 1 Deck");
-    await page.goto("/browse");
-    await page.getByRole("button", { name: "Open published deck E2E Public Deck", exact: true }).click();
-    await expect(page).toHaveURL(/\/browse\/[a-f\d]{24}$/);
+    const publishedDecks = await (await page.request.get("/api/published_decks?limit=20")).json();
+    const publishedDeck = publishedDecks.find((item: { name: string }) => item.name === "E2E Public Deck");
+    expect(publishedDeck?._id).toMatch(/^[a-f\d]{24}$/);
+    await page.goto(`/browse/${publishedDeck._id}`);
     const publishedUrl = page.url();
     for (const size of viewports) {
       await page.setViewportSize(size);

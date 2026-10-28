@@ -2,6 +2,8 @@ import { expect, type BrowserContext, type Page } from "@playwright/test";
 
 export type E2eUser = "e2e-player-one" | "e2e-player-two";
 
+const AUTH_NAVIGATION_TIMEOUT = 60_000;
+
 /** API fixture writes must pass the same CSRF boundary as browser mutations. */
 export async function csrfHeaders(page: Page): Promise<Record<string, string>> {
   const response = await page.request.get("/api/csrf");
@@ -12,13 +14,13 @@ export async function csrfHeaders(page: Page): Promise<Record<string, string>> {
 }
 
 export async function signInAs(page: Page, userId: E2eUser) {
-  await page.goto("/api/auth/signin/e2e?callbackUrl=/");
+  await page.goto("/api/auth/signin/e2e?callbackUrl=/", { timeout: AUTH_NAVIGATION_TIMEOUT });
   await page.getByLabel("Test user").fill(userId);
   // A fresh development server may compile the home route during sign-in.
   // Keep that navigation budget separate from short control-action timeouts.
-  await page.getByRole("button", { name: /sign in with e2e test user/i }).click({ timeout: 30_000 });
+  await page.getByRole("button", { name: /sign in with e2e test user/i }).click({ timeout: AUTH_NAVIGATION_TIMEOUT });
   // A trailing-slash regex also matches the sign-in URL's callbackUrl=/ query.
-  await page.waitForURL((url) => url.pathname === "/", { timeout: 30_000 });
+  await page.waitForURL((url) => url.pathname === "/", { timeout: AUTH_NAVIGATION_TIMEOUT });
   await expect.poll(async () => {
     const response = await page.request.get("/api/auth/session");
     return (await response.json()).user?.id;

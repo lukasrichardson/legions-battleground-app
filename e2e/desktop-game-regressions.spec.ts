@@ -233,6 +233,7 @@ test("Wisdom selection tiles contain no nested controls and support pointer and 
 });
 
 test("desktop cards are keyboard-operable and pile browsing does not hover-open actions", async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem("hoverMenu", "false"));
   await signInAs(page, "e2e-player-one");
   await page.setViewportSize({ width: 1440, height: 900 });
   await createRoomFromLobby(page, `desktop-keyboard-${Date.now()}`, true, "E2E Player 1 Deck");
@@ -254,9 +255,13 @@ test("desktop cards are keyboard-operable and pile browsing does not hover-open 
   await expect(decreaseAttack).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(decreaseAttack).toBeFocused();
+  await expect(page.locator('.game-card-menu:visible')).toHaveCount(0);
   await page.keyboard.press("Enter");
   await expect(page.locator('.game-card-menu:visible')).toHaveCount(0);
   await expect(warriorZone.locator('[aria-label="Attack modifier: -1"]')).toBeVisible();
+  await decreaseAttack.click();
+  await expect(page.locator('.game-card-menu:visible')).toHaveCount(0);
+  await expect(warriorZone.locator('[aria-label="Attack modifier: -2"]')).toBeVisible();
 
   await page.getByRole("button", { name: "Tools & settings", exact: true }).click();
   const hoverSetting = page.getByRole("checkbox", { name: "Show Menu On Hover", exact: true });
