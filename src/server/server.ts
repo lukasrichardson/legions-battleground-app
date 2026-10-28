@@ -28,6 +28,12 @@ connectToDatabase().then(async () => {
   nextApp.prepare().then(() => {
   
     const app = express();
+    app.use((req, res, next) => {
+      if (["GET", "HEAD"].includes(req.method) && req.hostname === "legions-battleground.onrender.com") {
+        return res.redirect(308, `${new URL(appOrigin).origin}${req.originalUrl}`);
+      }
+      next();
+    });
     app.use(cors({ origin: appOrigin }));
     app.use(cookieParser());
     app.use(createCsrfProtection(appOrigin, process.env.NEXTAUTH_SECRET));
