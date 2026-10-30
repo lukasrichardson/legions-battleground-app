@@ -83,6 +83,19 @@ export function MultiSelect({
     };
 
     updateMenuPosition();
+    // The trigger can move without a scroll or resize when surrounding content
+    // reflows. ResizeObserver reports size changes, not position changes.
+    let lastRect = buttonRef.current?.getBoundingClientRect();
+    let frame = 0;
+    const trackTriggerPosition = () => {
+      const rect = buttonRef.current?.getBoundingClientRect();
+      if (rect && lastRect && (rect.x !== lastRect.x || rect.y !== lastRect.y || rect.width !== lastRect.width || rect.height !== lastRect.height)) {
+        updateMenuPosition();
+      }
+      lastRect = rect;
+      frame = requestAnimationFrame(trackTriggerPosition);
+    };
+    frame = requestAnimationFrame(trackTriggerPosition);
     window.addEventListener("resize", updateMenuPosition);
     window.addEventListener("scroll", updateMenuPosition, true);
     window.visualViewport?.addEventListener("resize", updateMenuPosition);
@@ -91,6 +104,7 @@ export function MultiSelect({
     if (buttonRef.current) observer.observe(buttonRef.current);
     if (menuRef.current) observer.observe(menuRef.current);
     return () => {
+      cancelAnimationFrame(frame);
       window.removeEventListener("resize", updateMenuPosition);
       window.removeEventListener("scroll", updateMenuPosition, true);
       window.visualViewport?.removeEventListener("resize", updateMenuPosition);

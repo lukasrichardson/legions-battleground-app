@@ -182,6 +182,14 @@ test.describe("app-wide control QA", () => {
         await filter.click();
         const list = page.getByRole("listbox");
         await expectMenuAnchored(page, filter, list.locator(".."));
+        if (size.width === 568 && label === "Legion") {
+          // A surrounding layout change can move the trigger without a scroll
+          // or a resize; the open menu must follow it.
+          await filter.evaluate((element) => { element.parentElement!.style.position = "relative"; element.parentElement!.style.top = "50px"; });
+          await expectMenuAnchored(page, filter, list.locator(".."));
+          await filter.evaluate((element) => { element.parentElement!.style.position = ""; element.parentElement!.style.top = ""; });
+          await expectMenuAnchored(page, filter, list.locator(".."));
+        }
         const option = list.getByRole("option").first();
         if (await option.count()) {
           await option.click();
