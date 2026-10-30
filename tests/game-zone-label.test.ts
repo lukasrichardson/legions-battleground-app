@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gameViewingLabel, gameZoneLabel } from "../src/client/utils/gameZoneLabel";
+import { compactGameZoneLabel, gameViewingLabel, gameZoneLabel } from "../src/client/utils/gameZoneLabel";
 
 describe("player-relative game zone labels", () => {
   it("describes ownership from either side", () => {
@@ -18,5 +18,10 @@ describe("player-relative game zone labels", () => {
     expect(gameViewingLabel("p1PlayerDiscard", "p1")).toBe("your discard");
     expect(gameViewingLabel("top 2 of p2PlayerDeck", "p1")).toBe("top 2 of opponent’s deck");
     expect(gameViewingLabel("bottom 3 of p1PlayerDeck", "p1")).toBe("bottom 3 of your deck");
+  });
+  it("provides stable compact labels for narrow board cells", () => {
+    expect(compactGameZoneLabel("p1PlayerEradication")).toBe("ERAD");
+    expect(compactGameZoneLabel("p2PlayerRevealed")).toBe("REVL");
+    expect(compactGameZoneLabel("p1PlayerWarriors")).toBe("WARR");
   });
 });

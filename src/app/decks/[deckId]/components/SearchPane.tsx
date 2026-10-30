@@ -556,7 +556,7 @@ export default function SearchPane({
                 <span className="sticky left-0 block text-xs text-sky-200 lg:hidden">Swipe to browse cards →</span>
                 {cards.map((card, index) => (
                   <div
-                    key={card.toString() + index}
+                    key={card._id}
                     className="bg-white/10 hover:bg-white/20 inline-flex h-[calc(100%-1rem)] flex-col lg:h-auto lg:flex-row w-1/3 xs:w-1/4 sm:w-1/6 md:w-1/7 lg:w-full max-h-full lg:flex justify-start items-center overflow-hidden rounded pr-0.5 border-b-white border-b-2 relative "
                     style={{ backgroundColor: legionColours[card.legion.names[0]] ? `${legionColours[card.legion.names[0]]}` : "", color: [LEGIONS.ANGELS.toString(), LEGIONS.TITANS.toString()].includes(card.legion.names[0]) ? "black" : "white"}}
                   >

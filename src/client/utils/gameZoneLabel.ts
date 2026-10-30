@@ -18,3 +18,25 @@ export function gameViewingLabel(viewing: string, side: "p1" | "p2") {
   if (limited) return `${limited[1]} ${limited[2]} of ${gameZoneLabel(limited[3], side).toLowerCase()}`;
   return gameZoneLabel(viewing, side).toLowerCase();
 }
+
+/** Short, stable board labels for narrow cells; full names remain available to assistive tech. */
+export function compactGameZoneLabel(target: string | null | undefined) {
+  const zone = target?.replace(/^(p[12]Player|controller)/, "");
+  const labels: Record<string, string> = {
+    Eradication: "ERAD",
+    Discard: "DISC",
+    Revealed: "REVL",
+    Tokens: "TOK",
+    Guardian: "GUARD",
+    Synergy: "SYN",
+    Warlord: "WAR",
+    VeilRealm: "VEIL",
+    Fortified: "FORT",
+    Fortifieds: "FORT",
+    Unified: "UNFD",
+    Unifieds: "UNFD",
+    Warrior: "WARR",
+    Warriors: "WARR",
+  };
+  return zone ? labels[zone] ?? zone.toUpperCase() : "ZONE";
+}

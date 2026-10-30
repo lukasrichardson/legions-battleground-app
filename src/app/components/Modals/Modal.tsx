@@ -32,6 +32,7 @@ export default function Modal({
   blurBackdrop = true,
   overlayClassName = "",
   showCloseButton = false,
+  compactChrome = false,
 }: {
   open: boolean,
   closeModal: () => void,
@@ -48,6 +49,7 @@ export default function Modal({
   blurBackdrop?: boolean,
   overlayClassName?: string,
   showCloseButton?: boolean,
+  compactChrome?: boolean,
 }) {
   const [isDesktop, setIsDesktop] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -247,13 +249,13 @@ export default function Modal({
             tabIndex={-1}
             style={isDraggable ? { transform: `translate(${offset.x}px, ${offset.y}px)` } : undefined}
             className={["flex max-h-[calc(100dvh-env(safe-area-inset-top))] w-full flex-col overflow-hidden rounded-t-sm border border-sky-200/35 border-b-0 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] shadow-[0_-18px_45px_rgba(0,0,0,.5),0_0_28px_rgba(79,169,255,.16)] sm:max-h-[85dvh] sm:max-w-2xl sm:rounded-sm sm:border-b sm:shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_28px_rgba(79,169,255,.16)]",
-              "pointer-events-auto",
+              dragThroughBackdrop ? "pointer-events-none" : "pointer-events-auto",
               transparentOnBlur ? "bg-white/25" : ""
             ].join(" ")}
           >
             <>
               <div
-                className={["max-h-[50dvh] shrink-0 overflow-y-auto border-b border-sky-200/20 bg-[linear-gradient(90deg,rgba(79,169,255,.13),transparent_60%)] px-4 sm:px-6", showCloseButton ? "flex items-center gap-3" : "", isDraggable ? "cursor-grab active:cursor-grabbing" : ""].join(" ")}
+                className={["max-h-[50dvh] shrink-0 overflow-y-auto border-b border-sky-200/20 bg-[linear-gradient(90deg,rgba(79,169,255,.13),transparent_60%)]", compactChrome ? "px-2" : "px-4 sm:px-6", showCloseButton ? "flex items-center gap-3" : "", isDraggable ? "cursor-grab active:cursor-grabbing" : ""].join(" ")}
                 style={{ touchAction: isDraggable ? "none" : undefined }}
                 onPointerDown={handleHeaderPointerDown}
                 onPointerMove={handleHeaderPointerMove}
@@ -265,11 +267,11 @@ export default function Modal({
               </div>
 
               <div className={["flex-1 min-h-0 overflow-x-hidden overflow-y-auto bg-[linear-gradient(145deg,rgba(8,21,33,.96),rgba(3,10,18,.98))]", transparentOnBlur ? "opacity-5 hover:opacity-100" : ""].join(" ")}>
-                <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6">
+                <div className={compactChrome ? "p-1 pb-[max(.25rem,env(safe-area-inset-bottom))]" : "p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6"}>
                   {modalContent}
                 </div>
               </div>
-              {modalFooter && <div className="max-h-[40dvh] shrink-0 overflow-y-auto border-t border-sky-200/20 bg-slate-950/90 p-3 pb-[max(.75rem,env(safe-area-inset-bottom))] sm:px-6">{modalFooter}</div>}
+              {modalFooter && <div className={["max-h-[40dvh] shrink-0 overflow-y-auto border-t border-sky-200/20 bg-slate-950/90", compactChrome ? "p-1 pb-[max(.25rem,env(safe-area-inset-bottom))]" : "p-3 pb-[max(.75rem,env(safe-area-inset-bottom))] sm:px-6"].join(" ")}>{modalFooter}</div>}
             </>
           </div>
       </div>

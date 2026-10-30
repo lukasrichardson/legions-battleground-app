@@ -2,7 +2,7 @@ import { CARD_TARGET } from "@/shared/enums/CardTarget";
 import { CardState } from "@/shared/interfaces/CardState";
 import { Popover } from "antd";
 import back_of_card from "PUBLIC/back_of_card.jpg";
-import { MouseEventHandler, useEffect, useMemo, useState } from "react";
+import { FocusEvent, MouseEvent, MouseEventHandler, useEffect, useMemo, useState } from "react";
 import { useDrag } from 'react-dnd';
 import CardMenuComponent from '@/app/components/Card/CardMenu';
 import IMenuItem from "@/client/interfaces/IMenuItem";
@@ -71,6 +71,8 @@ interface CardInnerProps {
   handleAPIncrease?: () => void;
   compactHand?: boolean;
   compactOpponentHand?: boolean;
+  interactionEnabled?: boolean;
+  primaryActionKey?: string | number;
   onSelectForZone?: () => void;
   selectForZoneLabel?: string;
 }
@@ -101,10 +103,13 @@ export default function CardInner({
   handleDecreaseCooldown,
   compactHand = false,
   compactOpponentHand = false,
+  interactionEnabled = true,
+  primaryActionKey,
   onSelectForZone,
   selectForZoneLabel,
 }: CardInnerProps) {
   const isCompact = useIsMobile(1101);
+  const canInteract = interactionEnabled && !hidden;
   const [canHover, setCanHover] = useState(false);
   useEffect(() => {
     const query = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -132,17 +137,12 @@ export default function CardInner({
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "card",
-    canDrag: !hidden,
+    canDrag: canInteract,
     item: { ...card, cardTarget, zoneIndex: zoneIndex },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging()
     })
-  }), [card, cardTarget, zoneIndex, hidden]);
-
-  const attackModifierExists = card.attackModifier !== undefined && card.attackModifier !== 0;
-  const attackModifierNegative = attackModifierExists && (card.attackModifier || 0) < 0;
-  const otherModifierExists = card.otherModifier !== undefined && card.otherModifier !== 0;
-  // const otherModifierNegative = otherModifierExists && (card.otherModifier || 0) < 0;
+  }), [card, cardTarget, zoneIndex, canInteract]);
 
   const cardVisibilitySettings = useMemo(() => ({
     cardInView: ![
@@ -195,7 +195,8 @@ export default function CardInner({
     !inPileView ? "h-[100px]" : "h-[80px]",
     !inPileView ? "w-[75px]" : "w-[60px]",
     "card-inner",
-    `transform scale-100 transition-transform duration-75 cursor-pointer`,
+    `group transform scale-100 transition-[transform,opacity] duration-150`,
+    canInteract ? "cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200" : "",
     cardInView || inPileView
       ? "relative"
       : "absolute",
@@ -203,13 +204,23 @@ export default function CardInner({
     compactOpponentHand ? "bottom-0" : "",
     isPlayerHandCard ? (compactHand ? "[&:hover]:z-[1000] hover:transform hover:-translate-y-[40%]" : "[&:hover]:z-[1000] hover:transform hover:-translate-y-[40%] hover:scale-[1.5]") : "",
     isBeingPlayed ? "border-yellow-400 border-4 animate-bounce duration-800" : "",
-  ].join(" "), [cardInView, inPileView, inPileOfMinTwo, isPlayerHandCard, isBeingPlayed, compactHand, compactOpponentHand]);
+    isDragging ? "opacity-45 grayscale-[35%]" : "",
+  ].join(" "), [cardInView, inPileView, inPileOfMinTwo, isPlayerHandCard, isBeingPlayed, compactHand, compactOpponentHand, isDragging, canInteract]);
 
   const isDeck = !inPileView && (cardTarget === CARD_TARGET.P1_PLAYER_DECK || cardTarget === CARD_TARGET.P2_PLAYER_DECK);
   const dialogCard = !hidden && !isDeck ? card : { ...card, name: isDeck ? "Deck" : "Face-down card", img: back_of_card.src, text: "" };
+  const interactionLabel = isDeck ? "Open deck actions" : `Inspect ${decodeHTMLEntities(dialogCard.name || "card")}`;
+  const handleFocusWithin = (event: FocusEvent<HTMLDivElement>) => {
+    if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return;
+    handleCardHover?.();
+  };
+  const handleBlurWithin = (event: FocusEvent<HTMLDivElement>) => {
+    if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return;
+    handleCardBlur?.();
+  };
   const compactActions = <>
     {onSelectForZone && <button type="button" aria-label={selectForZoneLabel} onClick={onSelectForZone} className="mb-2 min-h-11 w-full border border-yellow-200/50 bg-yellow-300/15 px-3 font-semibold text-yellow-100 touch-feedback">Play card</button>}
-    <CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} inline />
+    <CardMenuComponent items={cardMenuItems} onMenuItemClick={onMenuItemClick} inline primaryItemKey={primaryActionKey} />
     {!hidden && <>
       {!cardInView && index === 0 && faceUp && <>
         <CounterControl label="Attack modifier" value={card.attackModifier ?? 0} decrease={handleDecreaseAttackModifier} increase={handleIncreaseAttackModifier} />
@@ -247,65 +258,64 @@ export default function CardInner({
         </div>}
       </div>}
       title={null}
-      trigger={isCompact ? [] : canHover && clientSettings.hoverMenu ? ["click", "contextMenu", "hover"] : ["click", "contextMenu"]}
+      trigger={isCompact || !canInteract ? [] : canHover && clientSettings.hoverMenu && !inPileView ? ["click", "contextMenu", "hover"] : ["click", "contextMenu"]}
       onOpenChange={handlePopoverVisibleChange}
-      open={!isCompact && isPopoverVisible && !isDragging && !cardForSelectingZone}
+      open={canInteract && !isCompact && isPopoverVisible && !isDragging && !cardForSelectingZone}
       mouseEnterDelay={0.2}
       mouseLeaveDelay={0.1}
     >
 
       <div
           data-opponent-hand={compactOpponentHand || undefined}
-          role={isCompact && !hidden ? "button" : undefined}
-          tabIndex={isCompact && !hidden ? 0 : undefined}
-          aria-label={isCompact && !hidden ? (isDeck ? "Open deck actions" : `Inspect ${decodeHTMLEntities(dialogCard.name || "card")}`) : undefined}
-          ref={(node) => { drag(node); }}
+          ref={(node) => { drag(canInteract ? node : null); }}
           className={cardClasses}
           style={cardStyles}
-          onMouseEnter={handleCardHover}
-          onMouseLeave={handleCardBlur}
-          onClick={(event) => {
+          onMouseEnter={canInteract ? handleCardHover : undefined}
+          onMouseLeave={canInteract ? handleCardBlur : undefined}
+          onFocus={canInteract ? handleFocusWithin : undefined}
+          onBlur={canInteract ? handleBlurWithin : undefined}
+          onClick={canInteract ? (event) => {
             handleCardRightClick?.(event);
             if (isCompact) handlePopoverVisibleChange(true);
-          }}
-          onKeyDown={(event) => {
-            if (isCompact && (event.key === "Enter" || event.key === " ")) {
-              event.preventDefault();
-              handlePopoverVisibleChange(true);
-            }
-          }}
+          } : undefined}
         >
-          {card?.img ? (
-            !isDragging && <>
+          {canInteract ? <button
+            type="button"
+            aria-label={interactionLabel}
+            aria-haspopup={isCompact ? "dialog" : "menu"}
+            aria-expanded={isPopoverVisible}
+            className="relative block h-full w-full overflow-hidden border-0 bg-transparent p-0 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
+          >
+            {card?.img ? (
               <CardImage
                 src={imageSrc}
                 alt={card?.name ? decodeHTMLEntities(card.name) : "Card Image"}
                 className="object-contain transition-transform duration-200 group-hover:scale-[1.03] w-full h-full"
               />
-            </>
-          ) : <span>{card?.name ? decodeHTMLEntities(card.name) : ''}</span>}
+            ) : <span>{card?.name ? decodeHTMLEntities(card.name) : ''}</span>}
+          </button> : <div className="relative h-full w-full overflow-hidden">
+            {card?.img ? (
+              <CardImage
+                src={imageSrc}
+                alt={card?.name ? decodeHTMLEntities(card.name) : "Card Image"}
+                className="object-contain transition-transform duration-200 group-hover:scale-[1.03] w-full h-full"
+              />
+            ) : <span>{card?.name ? decodeHTMLEntities(card.name) : ''}</span>}
+          </div>}
           {!isDragging && (
             <>{(!cardInView && index === 0 && faceUp) && (
               <>
-                <div className={`absolute top-0 right-0 rounded flex max-[1100px]:hidden items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
-                  {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseAttackModifier?.() }}>↓</span>}
-                  {(attackModifierExists || focused) && <span className=" mx-auto">{attackModifierExists && <span>{attackModifierNegative ? "" : "+"}{card.attackModifier}</span>}atk</span>}
-                  {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseAttackModifier?.() }}>↑</span>}
-                </div>
-                <div className={`absolute bottom-0 left-0 rounded flex max-[1100px]:hidden items-center justify-between text-white font-bold text-shadow-gray-950 text-shadow-lg w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
-                  {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleDecreaseOtherModifier?.() }}>↓</span>}
-                  {(otherModifierExists || focused) && <span className="mx-auto">cnt{otherModifierExists && <span>{card.otherModifier}</span>}</span>}
-                  {focused && <span className="cursor-pointer text-xl" onClick={(e) => { e.stopPropagation(); handleIncreaseOtherModifier?.() }}>↑</span>}
-                </div>
+                <CardCounterOverlay label="Attack modifier" shortLabel="ATK" value={card.attackModifier ?? 0} top expanded={canInteract && Boolean(focused)} decrease={handleDecreaseAttackModifier} increase={handleIncreaseAttackModifier} flipped={!isOnPlayersSide} signed />
+                <CardCounterOverlay label="Counter" shortLabel="CNT" value={card.otherModifier ?? 0} expanded={canInteract && Boolean(focused)} decrease={handleDecreaseOtherModifier} increase={handleIncreaseOtherModifier} flipped={!isOnPlayersSide} />
               </>
             )}
-              {hasCooldown && renderCardAddOn((e) => { e?.stopPropagation(); handleDecreaseCooldown?.() }, (e) => { e?.stopPropagation(); handleIncreaseCooldown?.() }, `CD ${card.cooldown}`, false, isOnPlayersSide)}
-              {isWarlord && renderCardAddOn(handleHealthDecrease, handleHealthIncrease, `DCM ${p1Card ? playerHealth.p1 : playerHealth.p2}`, true, isOnPlayersSide)}
-              {isGuardian && renderCardAddOn(handleAPDecrease, handleAPIncrease, `AP ${p1Card ? playerAP.p1 : playerAP.p2}`, false, isOnPlayersSide)}
+              {hasCooldown && <CardCounterOverlay label="Cooldown" shortLabel="CD" value={card.cooldown ?? 0} expanded={canInteract && Boolean(focused)} decrease={handleDecreaseCooldown} increase={handleIncreaseCooldown} flipped={!isOnPlayersSide} />}
+              {isWarlord && <CardCounterOverlay label="DCM" shortLabel="DCM" value={p1Card ? playerHealth.p1 : playerHealth.p2} top expanded={canInteract && Boolean(focused)} decrease={handleHealthDecrease} increase={handleHealthIncrease} flipped={!isOnPlayersSide} />}
+              {isGuardian && <CardCounterOverlay label="AP" shortLabel="AP" value={p1Card ? playerAP.p1 : playerAP.p2} expanded={canInteract && Boolean(focused)} decrease={handleAPDecrease} increase={handleAPIncrease} flipped={!isOnPlayersSide} />}
             </>)}
         </div>
     </Popover>
-    {isCompact && isPopoverVisible && !isDragging && !cardForSelectingZone && (
+    {canInteract && isCompact && isPopoverVisible && !isDragging && !cardForSelectingZone && (
       <MobileGameCardDialog card={dialogCard} title={dialogCard.name || "Card"} onClose={() => handlePopoverVisibleChange(false)}>
         {compactActions}
       </MobileGameCardDialog>
@@ -314,13 +324,32 @@ export default function CardInner({
   )
 }
 
-const renderCardAddOn = (handleDecrease, handleIncrease, text, top, isOnPlayersSide) => (
-  <div className={`absolute ${top ? "top-0" : "bottom-0"} bg-[#f5f5f576] rounded flex max-[1100px]:hidden items-center justify-between text-black w-full ${isOnPlayersSide ? "rotate-0" : "rotate-180"}`}>
-    {<span className="cursor-pointer" onClick={handleDecrease}>↓</span>}
-    <span>{text}</span>
-    {<span className="cursor-pointer" onClick={handleIncrease}>↑</span>}
-  </div>
-)
+function CardCounterOverlay({ label, shortLabel, value, top = false, expanded, flipped, signed = false, decrease, increase }: {
+  label: string;
+  shortLabel: string;
+  value: number;
+  top?: boolean;
+  expanded: boolean;
+  flipped: boolean;
+  signed?: boolean;
+  decrease?: MouseEventHandler<HTMLButtonElement>;
+  increase?: MouseEventHandler<HTMLButtonElement>;
+}) {
+  const handleClick = (event: MouseEvent<HTMLButtonElement>, action?: MouseEventHandler<HTMLButtonElement>) => {
+    event.stopPropagation();
+    action?.(event);
+  };
+  const visibleValue = signed && value > 0 ? `+${value}` : value;
+  return <div
+    className={`absolute ${top ? "top-0" : "bottom-0"} left-1/2 z-20 hidden -translate-x-1/2 items-center overflow-hidden rounded-md border border-white/25 bg-slate-950/90 text-[10px] font-bold text-white shadow-lg backdrop-blur-sm min-[1101px]:flex ${flipped ? "rotate-180" : ""}`}
+    aria-label={`${label}: ${value}`}
+    onClick={(event) => event.stopPropagation()}
+  >
+    {expanded && <button type="button" aria-label={`Decrease ${label}`} className="flex size-7 items-center justify-center bg-white/5 text-base hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-cyan-300" onClick={(event) => handleClick(event, decrease)}>−</button>}
+    <span className="min-w-10 px-1.5 py-1 text-center">{shortLabel} {visibleValue}</span>
+    {expanded && <button type="button" aria-label={`Increase ${label}`} className="flex size-7 items-center justify-center bg-white/5 text-base hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-cyan-300" onClick={(event) => handleClick(event, increase)}>+</button>}
+  </div>;
+}
 
 function CounterControl({ label, value, decrease, increase }: { label: string; value: number; decrease?: MouseEventHandler<HTMLButtonElement>; increase?: MouseEventHandler<HTMLButtonElement> }) {
   return <div className="flex items-center justify-between gap-2 border-t border-white/15 px-2 text-sm" onClick={(event) => event.stopPropagation()}>

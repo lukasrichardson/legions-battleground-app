@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createRoomFromLobby, csrfHeaders, signInAs } from "./fixtures";
+import { createRoomFromLobby, csrfHeaders, expectVisibleCardImagesLoaded, signInAs } from "./fixtures";
 import {
   expectControlsReachable,
   expectMinimumTouchTargets,
@@ -219,20 +219,26 @@ test("mobile battlefield overview shows both sides and the hand without scrollin
     expect(measurements.count).toBe(48);
     expect(measurements.allVisible).toBe(true);
     expect(measurements.needsScroll).toBe(false);
+    await expect(page.locator("[data-player-identity]")).toHaveCount(2);
+    await expect(page.locator('[data-zone-label="ERAD"]').first()).toBeVisible();
+    await expect(page.locator('[data-zone-label="REVL"]').first()).toBeVisible();
   }
   await page.locator('[data-mobile-overflow-exempt="hand-tray"] .card-inner').first().tap();
   const inspector = page.getByRole("dialog", { name: "Card details and actions", exact: true });
+  await expect(inspector.getByRole("button", { name: "Select warrior zone", exact: true })).toHaveCount(0);
+  await expect(inspector.getByRole("menuitem", { name: "Conscript", exact: true })).toBeVisible();
   await expect(inspector.getByText("A deterministic E2E fixture card.", { exact: true })).toBeVisible();
   await inspector.getByRole("button", { name: /image full screen/ }).tap();
   await expect(page.getByRole("button", { name: "Close full screen image", exact: true })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(inspector).toBeVisible();
-  await inspector.getByRole("button", { name: "Select warrior zone", exact: true }).tap();
+  await inspector.getByRole("menuitem", { name: "Conscript", exact: true }).tap();
   const destination = page.locator('[data-game-zone="p1PlayerWarriors"]').first();
   await destination.tap();
   await expect(destination.locator(".card-inner")).toHaveCount(1);
   await destination.locator(".card-inner").tap();
   await expect(inspector).toBeVisible();
+  await inspector.getByRole("menuitem", { name: "Move to…", exact: true }).tap();
   await expect(inspector.getByRole("menuitem", { name: "To Hand", exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(inspector).toHaveCount(0);
@@ -281,8 +287,12 @@ test("compact landscape sandbox controls and board zones remain reachable", asyn
     await expect(
       page.getByRole("button", { name: "Close menu", exact: true }),
     ).toBeVisible();
+    const matchActionTop = await page.getByRole("button", { name: "Leave match", exact: true }).boundingBox();
+    const navigationTop = await page.getByRole("button", { name: "Home", exact: true }).boundingBox();
+    expect(matchActionTop!.y).toBeLessThan(navigationTop!.y);
     await page.getByRole("button", { name: "Close menu", exact: true }).click();
     await expectMinimumTouchTargets(page);
+    await expectVisibleCardImagesLoaded(page);
     await page.screenshot({
       path: testInfo.outputPath(`${viewport}-board.png`),
     });
@@ -293,13 +303,14 @@ test("compact landscape sandbox controls and board zones remain reachable", asyn
     .first();
   await deckCard.scrollIntoViewIfNeeded();
   await deckCard.tap();
+  await expectVisibleCardImagesLoaded(page);
   await page.screenshot({ path: testInfo.outputPath("open-card-menu.png") });
   await page.getByRole("menuitem", { name: "Draw", exact: true }).tap();
   await expect(page.getByRole("dialog", { name: "Card details and actions", exact: true })).toHaveCount(0);
   const handCard = page.locator('[data-mobile-overflow-exempt="hand-tray"] .card-inner').first();
   await handCard.tap();
   const play = page
-    .getByRole("button", { name: "Select warrior zone", exact: true })
+    .getByRole("menuitem", { name: "Conscript", exact: true })
     .first();
   await expect(play).toBeVisible();
   await play.tap();

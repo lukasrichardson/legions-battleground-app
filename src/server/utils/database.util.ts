@@ -9,7 +9,10 @@ export const getMongoClient = (): MongoClient => {
       throw new Error("MONGO_URL environment variable is required");
     }
     
-    client = new MongoClient(uri, {
+    // Local E2E services can be Mongo-compatible emulators that implement the
+    // operations the app needs but not the Stable API handshake. Production
+    // retains the stricter Stable API contract.
+    client = new MongoClient(uri, process.env.E2E_TEST_MODE === "true" ? {} : {
       serverApi: {
         version: ServerApiVersion.v1,
         deprecationErrors: true,

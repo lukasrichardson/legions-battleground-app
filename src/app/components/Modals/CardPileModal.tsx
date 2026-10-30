@@ -1,6 +1,6 @@
 import { CardState } from "@/shared/interfaces/CardState";
 import Card from "@/app/components/Card/Card";
-import { MouseEventHandler, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDragLayer } from "react-dnd";
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
 import Modal from "./Modal";
@@ -12,12 +12,7 @@ import { decodeHTMLEntities } from "@/client/utils/string.util";
 import { moveCard } from "@/client/redux/gameStateSlice";
 import { setWisdoming } from "@/client/redux/clientGameStateSlice";
 import { gameZoneLabel } from "@/client/utils/gameZoneLabel";
-
-const ModalConstants = {
-  ShuffleBtnText: "shuffle",
-  CloseShuffleBtnText: "close and shuffle",
-  CloseBtnText: "close",
-}
+import useIsMobile from "@/client/hooks/useIsMobile";
 interface ExtendedCardState extends CardState {
   target: CARD_TARGET;
   newTarget?: CARD_TARGET | null; // new target for the card if selected, used for resolving effects
@@ -28,6 +23,17 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   const [tab, setTab] = useState<string>("All");
   const [search, setSearch] = useState<string>("");
   const [selected, setSelected] = useState<ExtendedCardState[] | null>([]);
+  const isCompact = useIsMobile(1101);
+  const [isShortViewport, setIsShortViewport] = useState(false);
+  const compactChrome = isCompact || isShortViewport;
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-height: 500px)");
+    const update = () => setIsShortViewport(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
   const gameState = useAppSelector((state) => state.gameState);
   const clientGameState = useAppSelector((state) => state.clientGameState);
@@ -42,15 +48,10 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   const p1 = side === "p1";
   const resolvingEffectStep = sequences?.[0]?.items?.[0]?.effect?.[0];
   const waitingForUserInput = (p1 && resolving && resolvingEffectStep?.waitingForInput?.p1) || (!p1 && resolving && resolvingEffectStep?.waitingForInput?.p2);
+  const selectionMode = Boolean(waitingForUserInput || wisdoming);
   const open = !!pileInViewTarget || waitingForUserInput;
   const dragThroughBackdrop = isDraggingCard && !waitingForUserInput && !wisdoming;
   const pileLabel = gameZoneLabel(pileInViewTarget, side, pileInViewIndex);
-  const {
-    ShuffleBtnText,
-    CloseShuffleBtnText,
-    CloseBtnText
-  } = ModalConstants;
-
   useEffect(() => {
     if (!open) {
       setSelected([]);
@@ -127,53 +128,30 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
     handleCloseModal();
   }
 
-  const renderModalHeader = () => wisdoming ? <div className="w-full text-center">Wisdom: Select a card to keep.</div> : !waitingForUserInput ? (
-    <div className="flex flex-wrap gap-3 py-3 sm:items-center sm:justify-between">
-      <div className="flex min-w-0 flex-wrap items-center gap-2">
-        <button
-          className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10"
-          onClick={shuffle as MouseEventHandler<HTMLButtonElement>}
-        >
-          {ShuffleBtnText}
-        </button>
-        <span className="min-w-0 break-words text-sm sm:text-base font-semibold text-white/90">
-          {pileInViewLimit ? `Viewing ${pileInViewLimit} cards · ` : ""}{pileLabel}
-        </span>
+  const renderModalHeader = () => (
+    <div className={compactChrome ? "space-y-1 py-1" : "space-y-3 py-4"}>
+      <div className={compactChrome ? "flex min-w-0 items-baseline gap-2" : ""}>
+        <h3 className="text-base font-semibold text-white">{wisdoming ? "Wisdom" : waitingForUserInput ? "Make your selection" : pileLabel}</h3>
+        <p className={compactChrome ? "shrink-0 text-xs text-slate-400" : "mt-1 text-xs leading-5 text-slate-400"}>
+          {wisdoming
+            ? (compactChrome ? "Choose 1" : "Select one card to keep. The other card moves to the bottom of the pile.")
+            : waitingForUserInput
+              ? (compactChrome ? `${cardPile.length} available` : `Choose within the allowed range, then confirm. ${cardPile.length} card${cardPile.length === 1 ? "" : "s"} available.`)
+              : `${pileInViewLimit ? `Viewing ${pileInViewLimit} · ` : ""}${cardPile.length} card${cardPile.length === 1 ? "" : "s"}`}
+        </p>
       </div>
-      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-        <input
-          placeholder="Search..."
-          aria-label="Search card pile"
-          onChange={handleSearchChange}
-          value={search}
-          className="min-h-11 min-w-0 flex-1 basis-36 border border-sky-200/20 bg-slate-950/45 px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-sky-300/70 focus:ring-2 focus:ring-sky-300/15"
-        />
-        <button
-          className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10"
-          onClick={closeAndShuffle as MouseEventHandler<HTMLButtonElement>}
-        >
-          {CloseShuffleBtnText}
-        </button>
-        <button
-          className="cursor-pointer border border-sky-200/35 bg-slate-950/35 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10"
-          onClick={handleCloseModal as MouseEventHandler<HTMLButtonElement>}
-        >
-          {CloseBtnText}
-        </button>
-      </div>
+      {!wisdoming && <input
+        placeholder="Search cards"
+        aria-label="Search card pile"
+        onChange={handleSearchChange}
+        value={search}
+        className="min-h-11 w-full border border-sky-200/20 bg-slate-950/45 px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-sky-300/70 focus:ring-2 focus:ring-sky-300/15"
+      />}
     </div>
-  ) : (
-    <div className="px-4 py-3 bg-gradient-to-r from-white/5 to-transparent">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-        <div>
-          <h3 className="text-base font-semibold text-white">Make your selection</h3>
-          <p className="text-xs text-white/70">Choose between the allowed range below, then confirm.</p>
-        </div>
-      </div>
-    </div>
-  )
+  );
 
   const handleCardSelect = (card: ExtendedCardState) => () => {
+    if (!selectionMode) return;
     if (wisdoming) {
       let indexToBottom = 0;
       if (cardPile[0]?.id === card.id) indexToBottom = 1;
@@ -233,21 +211,39 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
     });
   }
 
+  const selectMin = resolvingEffectStep?.selectMin ?? 0;
+  const selectMax = resolvingEffectStep?.selectMax ?? 999;
+  const selectedCount = selected?.length ?? 0;
+  const canConfirm = selectedCount >= selectMin && selectedCount <= selectMax;
+
+  const renderModalFooter = () => {
+    if (waitingForUserInput) {
+      return <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-xs text-slate-300"><span className="font-semibold text-white">{selectedCount}</span> selected · minimum {selectMin} · maximum {selectMax === 999 ? "∞" : selectMax}</div>
+        <button type="button" disabled={!canConfirm} onClick={handleConfirmSelected} className="min-h-11 border border-sky-200/45 bg-[#246fb8] px-4 py-2 text-sm font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200 disabled:cursor-not-allowed disabled:border-white/15 disabled:bg-white/10 disabled:text-white/40 disabled:shadow-none">Confirm selection</button>
+      </div>;
+    }
+    if (wisdoming) {
+      return <button type="button" aria-label="close" onClick={handleCloseModal} className="min-h-11 w-full border border-sky-200/35 bg-slate-950/35 px-4 text-sm font-semibold text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10">Close</button>;
+    }
+    return <div className="grid grid-cols-2 gap-2">
+      <button type="button" onClick={shuffle} className="min-h-11 border border-sky-200/35 bg-slate-950/35 px-3 text-xs font-semibold uppercase tracking-wide text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10">Shuffle</button>
+      <button type="button" onClick={closeAndShuffle} className="min-h-11 border border-sky-200/35 bg-slate-950/35 px-3 text-xs font-semibold uppercase tracking-wide text-slate-100 transition hover:border-sky-200/65 hover:bg-blue-400/10">Close &amp; shuffle</button>
+    </div>;
+  };
+
   const renderModalContent = () => {
     const filteredPile = (cardPile as ExtendedCardState[]).filter(c => tab === "All" ? true : c.type === tab).filter(card =>
       card.name?.toLowerCase().includes(search.toLowerCase()) || decodeHTMLEntities(card.name || '').toLowerCase().includes(search.toLowerCase())
     ) as ExtendedCardState[];
     const hidden = p1 ? pileInViewTarget === CARD_TARGET.P2_PLAYER_DECK : pileInViewTarget === CARD_TARGET.P1_PLAYER_DECK;
 
-    const min = resolvingEffectStep?.selectMin ?? 0;
-    const max = resolvingEffectStep?.selectMax ?? 999;
-    const count = selected?.length ?? 0;
-    const canConfirm = count >= min && count <= max;
-
     const renderTab = (name: string) => {
       return (
         <button
-          className={"cursor-pointer border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition " + (tab === name ? "border-sky-200/55 bg-blue-400/20 text-sky-100 shadow-[inset_2px_0_0_#4fa9ff]" : "border-sky-200/20 bg-slate-950/35 text-slate-200 hover:border-sky-200/45 hover:bg-blue-400/10")}
+          type="button"
+          aria-pressed={tab === name}
+          className={"min-h-11 cursor-pointer border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition " + (tab === name ? "border-sky-200/55 bg-blue-400/20 text-sky-100 shadow-[inset_2px_0_0_#4fa9ff]" : "border-sky-200/20 bg-slate-950/35 text-slate-200 hover:border-sky-200/45 hover:bg-blue-400/10")}
           onClick={() => setTab(name)}
         >
           {name}
@@ -257,72 +253,53 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
     return (
       <div className="relative">
         {!wisdoming && <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span>Filter By: </span>
+          <span className={compactChrome ? "sr-only" : ""}>Filter by:</span>
           {renderTab("All")}
           {renderTab("Warrior")}
           {renderTab("Unified")}
           {renderTab("Fortified")}
         </div>}
-        <div className={waitingForUserInput ? "pb-20" : "pb-0"}>
+        <div>
           {filteredPile.length === 0 && <div className="space-y-3 py-5 text-center text-sm text-slate-300" role="status">
             <p>{cardPile.length === 0 ? "This pile is empty." : "No cards match your search or filters."}</p>
             {(search || tab !== "All") && <button type="button" onClick={() => { setSearch(""); setTab("All"); }} className="min-h-11 border border-sky-200/35 px-3 text-sky-100">Clear search and filters</button>}
           </div>}
-          <div className={["grid grid-cols-2 gap-1", !wisdoming ? "xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-10 " : ""].join(" ")}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-2">
             {filteredPile.map((card, index) => {
               const isSelected = !!selected?.find(c => c.id === card.id);
-              return (
-                <div
-                  key={card.id}
-                  onClick={handleCardSelect(card)}
-                  className={[
-                    "cursor-pointer rounded-lg overflow-hidden border transition-all",
-                    isSelected ? "border-emerald-400/60 ring-2 ring-emerald-400/50 shadow-lg" : "border-white/10 hover:border-white/20",
-                    "flex items-center justify-center",
-                  ].join(" ")}
-                >
+              const cardContent = (
                   <Card
                     card={card}
                     cardTarget={card.target || pileInViewTarget as CARD_TARGET}
                     inPileView={true}
                     index={index}
-                    zoneIndex={(card.targetIndex || pileInViewIndex != undefined ? pileInViewIndex : undefined) || undefined}
+                    zoneIndex={card.targetIndex ?? pileInViewIndex ?? undefined}
                     hidden={hidden}
+                    interactionEnabled={!selectionMode}
                   />
-                </div>
-              )
+              );
+              const tileClasses = [
+                "flex min-h-[96px] items-center justify-center overflow-hidden rounded-lg border transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200",
+                selectionMode ? "cursor-pointer" : "",
+                isSelected ? "border-emerald-400/60 ring-2 ring-emerald-400/50 shadow-lg" : "border-white/10 hover:border-white/20",
+              ].join(" ");
+              if (!selectionMode) return <div key={card.id} className={tileClasses}>{cardContent}</div>;
+              return <button
+                type="button"
+                key={card.id}
+                onClick={handleCardSelect(card)}
+                aria-pressed={waitingForUserInput ? isSelected : undefined}
+                aria-label={wisdoming ? `Choose ${decodeHTMLEntities(card.name || "card")}` : `${isSelected ? "Deselect" : "Select"} ${decodeHTMLEntities(card.name || "card")}`}
+                className={tileClasses}
+              >{cardContent}</button>;
             })}
           </div>
         </div>
-
-        {waitingForUserInput && (
-          <div className="sticky bottom-0 inset-x-0">
-            <div className="px-4 py-3 border-t border-white/10 bg-gradient-to-t from-slate-900/95 via-slate-900/80 to-transparent backdrop-blur">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div className="text-xs text-white/80">
-                  Select card(s): <span className="font-semibold text-white">{count}</span>
-                  {" "}of min: <span className="font-semibold text-white">{min}</span>
-                  {" "}max: <span className="font-semibold text-white">{max === 999 ? "∞" : max}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {canConfirm && (
-                    <button
-                      onClick={handleConfirmSelected}
-                      className="border border-sky-200/45 bg-[#246fb8] px-4 py-2 text-sm font-semibold text-white shadow-[0_0_14px_rgba(79,169,255,.22)] transition hover:bg-[#338de0]"
-                    >
-                      Confirm
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
 
   return (
-    <Modal open={open} ariaLabel={wisdoming ? "Wisdom selection" : waitingForUserInput ? "Card selection" : pileLabel} closeModal={handleCloseModal} modalHeader={renderModalHeader()} modalContent={renderModalContent()} transparentOnBlur={transparentOnBlur} dragThroughBackdrop={dragThroughBackdrop} blurBackdrop={false} />
+    <Modal open={open} variant={isCompact ? "constrained-dialog" : "dialog"} compactChrome={compactChrome} ariaLabel={wisdoming ? "Wisdom selection" : waitingForUserInput ? "Card selection" : pileLabel} closeModal={handleCloseModal} modalHeader={renderModalHeader()} modalContent={renderModalContent()} modalFooter={renderModalFooter()} showCloseButton transparentOnBlur={transparentOnBlur} dragThroughBackdrop={dragThroughBackdrop} blurBackdrop={false} overlayClassName="!z-[1300]" />
   )
 }

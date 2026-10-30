@@ -32,12 +32,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <NextAuthSessionProvider>
-      <StoreProvider>
-        <html lang="en">
-          <head>
-          </head>
-          <body>
+    <html lang="en">
+      <head>
+      </head>
+      <body>
+        <NextAuthSessionProvider>
+          <StoreProvider>
             <ToastProvider>{children}</ToastProvider>
             {/* Service Worker Registration for Image Caching */}
             <Script
@@ -66,9 +66,9 @@ export default function RootLayout({
                 `
               }}
             />
-          </body>
-        </html>
-      </StoreProvider>
-    </NextAuthSessionProvider>
+          </StoreProvider>
+        </NextAuthSessionProvider>
+      </body>
+    </html>
   );
 }

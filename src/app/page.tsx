@@ -7,7 +7,6 @@ import NewHome from "./NewHome";
 import { useUiVariant } from "./components/arena/uiVariant";
 import HelpModal from "./components/Modals/HelpModal";
 import PreviewDeckModal from "./components/Modals/PreviewDeckModal";
-import { SessionProvider } from 'next-auth/react';
 import axios from "@/client/utils/http";
 import { useRouter } from 'next/navigation';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -19,8 +18,7 @@ function Page() {
   
   return (
     <div>
-      <SessionProvider>
-        <DndProvider backend={HTML5Backend}>
+      <DndProvider backend={HTML5Backend}>
         <main className={"relative flex flex-col justify-center items-center h-screen w-screen"}>
           {variant === "arena" ? <div className="h-full w-full"><NewHome /></div> : <Home />}
           {process.env.NODE_ENV === "development" && variant !== "arena" && <div className='dev-tools fixed flex flex-col left-0 top-1/3 bg-white'>
@@ -54,8 +52,7 @@ function Page() {
           <PreviewDeckModal />
 
         </main>
-        </DndProvider>
-      </SessionProvider>
+      </DndProvider>
     </div>
   );
 }

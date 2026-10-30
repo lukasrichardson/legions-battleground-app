@@ -80,7 +80,10 @@ export default function PlayArea({ }) {
       <div className={regularMode ? "relative min-h-0" : "contents"}>
         {openingHandsPending ? <OpeningHandPlaceholder compact={regularMode} opponent /> : <RenderHand compact={regularMode || compactScreen} items={p1 ? p2PlayerHand : p1PlayerHand} cardTarget={p1 ? CARD_TARGET.P2_PLAYER_HAND : CARD_TARGET.P1_PLAYER_HAND} p1={p1} />}
       </div>
-      <div className={regularMode ? "grid min-h-0 w-full grid-rows-3 grid-cols-8" : "h-[40%] w-full grid grid-rows-3 grid-cols-8"}>
+      <div
+        className={regularMode ? "battlefield-grid battlefield-grid--opponent grid min-h-0 w-full grid-rows-3" : "battlefield-grid battlefield-grid--opponent h-[40%] w-full grid grid-rows-3"}
+        data-board-position="opponent"
+      >
 
         {renderCardZone(p1 ? p2PlayerEradication : p1PlayerEradication, p1 ? CARD_TARGET.P2_PLAYER_ERADICATION : CARD_TARGET.P1_PLAYER_ERADICATION, "Eradication")}
         {renderCardRowUpsideDown(p1 ? p2PlayerFortifieds : p1PlayerFortifieds, p1 ? CARD_TARGET.P2_PLAYER_FORTIFIED : CARD_TARGET.P1_PLAYER_FORTIFIED, "Fortified")}
@@ -123,7 +126,10 @@ export default function PlayArea({ }) {
         canAdvance={clientGameState.side === gameState.activePlayer && [MatchStatus.PreGame, MatchStatus.InProgress].includes(gameState.matchStatus)}
         onAdvance={() => emitGameEvent({ type: GAME_EVENT.advancePhase, data: null })}
       />}
-      <div className={regularMode ? "grid min-h-0 w-full grid-rows-3 grid-cols-8" : "h-[40%] w-full grid grid-rows-3 grid-cols-8"}>
+      <div
+        className={regularMode ? "battlefield-grid battlefield-grid--player grid min-h-0 w-full grid-rows-3" : "battlefield-grid battlefield-grid--player h-[40%] w-full grid grid-rows-3"}
+        data-board-position="player"
+      >
         {renderCardZone(p1 ? p1PlayerVeilRealm : p2PlayerVeilRealm, p1 ? CARD_TARGET.P1_PLAYER_VEIL_REALM : CARD_TARGET.P2_PLAYER_VEIL_REALM, "Veil / Realm")}
         {renderCardZone(p1 ? p1PlayerWarlord : p2PlayerWarlord, p1 ? CARD_TARGET.P1_PLAYER_WARLORD : CARD_TARGET.P2_PLAYER_WARLORD, "Warlord")}
         {renderCardRow(p1 ? p1PlayerWarriors : p2PlayerWarriors, p1 ? CARD_TARGET.P1_PLAYER_WARRIOR : CARD_TARGET.P2_PLAYER_WARRIOR, "Warrior")}

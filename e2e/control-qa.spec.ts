@@ -87,7 +87,16 @@ test.describe("app-wide control QA", () => {
         const type = page.getByRole("button", { name: "Type", exact: true });
         const typeId = await type.getAttribute("aria-controls");
         await type.press("ArrowDown");
-        const warrior = page.getByRole("option", { name: "Warrior", exact: true });
+        const typeOptions = page.getByRole("listbox").getByRole("option");
+        await expect(typeOptions.first()).toBeFocused();
+        const warriorIndex = await typeOptions.evaluateAll((options) =>
+          options.findIndex((option) => option.textContent?.trim() === "Warrior"),
+        );
+        expect(warriorIndex).toBeGreaterThanOrEqual(0);
+        for (let index = 0; index < warriorIndex; index += 1) {
+          await page.keyboard.press("ArrowDown");
+        }
+        const warrior = typeOptions.filter({ hasText: /^Warrior$/ });
         await expect(warrior).toBeFocused();
         if (!mobile) await expectMenuAnchored(page, type, page.getByRole("listbox").locator(".."));
         await warrior.press("Space");
@@ -173,6 +182,14 @@ test.describe("app-wide control QA", () => {
         await filter.click();
         const list = page.getByRole("listbox");
         await expectMenuAnchored(page, filter, list.locator(".."));
+        if (size.width === 568 && label === "Legion") {
+          // A surrounding layout change can move the trigger without a scroll
+          // or a resize; the open menu must follow it.
+          await filter.evaluate((element) => { element.parentElement!.style.position = "relative"; element.parentElement!.style.top = "50px"; });
+          await expectMenuAnchored(page, filter, list.locator(".."));
+          await filter.evaluate((element) => { element.parentElement!.style.position = ""; element.parentElement!.style.top = ""; });
+          await expectMenuAnchored(page, filter, list.locator(".."));
+        }
         const option = list.getByRole("option").first();
         if (await option.count()) {
           await option.click();
@@ -358,7 +375,7 @@ test.describe("app-wide control QA", () => {
       await page.getByRole("dialog").getByRole("button", { name: "Unified", exact: true }).click();
       await expect(page.getByRole("dialog").locator(".card-inner")).toHaveCount(0);
       await page.getByRole("dialog").getByRole("button", { name: "All", exact: true }).click();
-      await page.getByRole("button", { name: "close", exact: true }).click();
+      await page.getByRole("button", { name: "Close Your deck", exact: true }).click();
       await page.getByRole("button", { name: "Open deck actions", exact: true }).click();
       await page.getByRole("menuitem", { name: "Plunder", exact: true }).click();
       const number = page.getByRole("spinbutton", { name: "card to draw:", exact: true });

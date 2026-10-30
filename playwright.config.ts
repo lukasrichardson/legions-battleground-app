@@ -17,7 +17,7 @@ export default defineConfig({
   use: {
     baseURL: env.NEXTAUTH_URL,
     // Cold Next.js routes compile on first navigation; keep this separate from control-action timeouts.
-    navigationTimeout: 30_000,
+    navigationTimeout: 60_000,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "on-first-retry",
