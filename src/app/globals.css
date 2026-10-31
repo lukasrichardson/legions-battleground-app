@@ -119,6 +119,20 @@ body {
   .arena-navigation-slot .arena-navigation { transition: none; }
 }
 
+/* Galleries opt into flowing content at short heights even on wide desktops. */
+@media (max-height: 600px) {
+  .short-viewport-scroll {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .short-viewport-flow {
+    height: auto;
+    min-height: 0;
+    flex-shrink: 0;
+    overflow: visible;
+  }
+}
+
 @media (orientation: landscape) and (max-height: 600px) and (max-width: 1100px) {
   .short-landscape-scroll {
     overflow-x: hidden;

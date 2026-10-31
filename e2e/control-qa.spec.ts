@@ -116,6 +116,43 @@ test.describe("app-wide control QA", () => {
     }
   });
 
+  test("gallery cards remain below the filters and pagination on short desktop screens", async ({ page }, testInfo) => {
+    for (const size of [
+      { width: 1280, height: 320 }, { width: 1440, height: 320 },
+      { width: 1279, height: 320 }, { width: 1280, height: 720 },
+    ]) {
+      await test.step(`${size.width}x${size.height}`, async () => {
+        await page.setViewportSize(size);
+        await page.goto("/cards");
+        const first = page.getByRole("button", { name: "Inspect E2E Warrior 1", exact: true });
+        const last = page.getByRole("button", { name: "Inspect E2E Warrior 8", exact: true });
+        const pagination = page.getByRole("navigation", { name: "Card gallery pages", exact: true });
+        await expect(first).toBeVisible();
+        await expect.poll(async () => {
+          const card = await first.boundingBox();
+          const header = await pagination.boundingBox();
+          return { cardTop: card?.y, paginationBottom: header && header.y + header.height,
+            separate: !!card && !!header && card.y >= header.y + header.height };
+        }).toMatchObject({ separate: true });
+        for (const card of [first, last]) {
+          await card.scrollIntoViewIfNeeded();
+          await card.click({ trial: true });
+        }
+        await first.click();
+        const inspector = page.getByRole("region", { name: "E2E Warrior 1 details", exact: true });
+        await expect(inspector).toBeVisible();
+        await inspector.getByRole("button", { name: /View .*full screen/ }).click();
+        await expect(page.getByRole("dialog", { name: /full screen image$/ })).toBeVisible();
+        await page.keyboard.press("Escape");
+        if (size.width < 1280) await page.getByRole("button", { name: "Close card details", exact: true }).click();
+        await expectNoDocumentHorizontalOverflow(page);
+        if (size.height === 320 && size.width === 1280) {
+          await page.screenshot({ path: testInfo.outputPath("short-desktop-gallery.png") });
+        }
+      });
+    }
+  });
+
   test("create forms keep inputs and single-select options reachable and Escape preserves the form", async ({ page }) => {
     test.setTimeout(180_000);
     await signInAs(page, "e2e-player-one");
@@ -200,7 +237,7 @@ test.describe("app-wide control QA", () => {
       }
       const search = page.getByRole("textbox", { name: "Search cards" });
       await search.fill("this-card-does-not-exist");
-      await expect(page.getByRole("button", { name: /^Add one/ })).toHaveCount(0);
+      await expect(page.locator("[data-deck-builder-search-pane]").getByRole("button", { name: /^Add one/ })).toHaveCount(0);
       await search.fill("E2E Warrior 1");
       await expect(page.getByRole("button", { name: "Add one E2E Warrior 1", exact: true })).toBeVisible();
       await expectNoDocumentHorizontalOverflow(page);
