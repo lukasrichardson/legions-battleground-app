@@ -480,9 +480,9 @@ export default function SearchPane({
           </div>}
           </div>
 
-          {gallery && <nav aria-label="Card gallery pages" className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 pt-1">
+          {gallery && <nav aria-label="Card gallery pages" className="flex justify-start items-center gap-2 pt-1">
             <Button type="button" onClick={prevPage} size="sm" variant="outline" disabled={page <= 1} className="min-h-11 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10">Prev</Button>
-            <span aria-live="polite" className="min-w-0 text-center text-xs leading-4 text-slate-400">Showing {resultStart}–{resultEnd} of {total.toLocaleString()}</span>
+            <span aria-live="polite" className="min-w-0 text-center text-xs leading-4 text-slate-400 w-fit">Showing {resultStart}–{resultEnd} of {total.toLocaleString()}</span>
             <Button type="button" onClick={nextPage} size="sm" variant="outline" disabled={total <= page * pageSize} className="min-h-11 border-white/15 bg-white/5 px-3 text-slate-100 hover:bg-white/10">Next</Button>
           </nav>}
         </div>

@@ -1,5 +1,21 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { createRoomFromLobby, expectVisibleCardImagesLoaded, signInAs } from "./fixtures";
+
+async function cardActionMenu(page: Page, inspect: Locator) {
+  await expect(inspect).toHaveAttribute("aria-expanded", "true");
+  const anchor = inspect.locator("..");
+  await expect(anchor).toHaveAttribute("aria-describedby", /.+/);
+  // Another card's hover popup can still be visible during its exit animation.
+  const popupId = await anchor.getAttribute("aria-describedby");
+  return page.locator(`[id="${popupId}"]`);
+}
+
+async function moveHandCardToDeck(page: Page, menu: Locator) {
+  const move = menu.getByRole("menuitem", { name: "Move to…", exact: true });
+  await move.click();
+  const submenuId = await move.getAttribute("aria-controls");
+  await page.locator(`[id="${submenuId}"]`).getByRole("menuitem", { name: "To Bottom of Deck", exact: true }).click();
+}
 
 test("play workspaces share styling across sizes without stretching cards or clipping controls", async ({ page }) => {
   await signInAs(page, "e2e-player-one");
@@ -224,9 +240,9 @@ test("Wisdom selection tiles contain no nested controls and support pointer and 
     await expect(wisdom).toHaveCount(0);
     await expect(handCards).toHaveCount(before + 1);
     if (input === "pointer") {
-      await playerHand.getByRole("button", { name: `Inspect ${chosenName}`, exact: true }).click();
-      await page.locator(".game-card-menu:visible").last().getByRole("menuitem", { name: "Move to…", exact: true }).click();
-      await page.locator(".game-card-submenu:visible").getByRole("menuitem", { name: "To Bottom of Deck", exact: true }).click();
+      const inspect = playerHand.getByRole("button", { name: `Inspect ${chosenName}`, exact: true });
+      await inspect.click();
+      await moveHandCardToDeck(page, await cardActionMenu(page, inspect));
       await expect(handCards).toHaveCount(before);
     }
   }
