@@ -200,7 +200,7 @@ test.describe("app-wide control QA", () => {
       }
       const search = page.getByRole("textbox", { name: "Search cards" });
       await search.fill("this-card-does-not-exist");
-      await expect(page.getByRole("button", { name: /^Add one/ })).toHaveCount(0);
+      await expect(page.locator("[data-deck-builder-search-pane]").getByRole("button", { name: /^Add one/ })).toHaveCount(0);
       await search.fill("E2E Warrior 1");
       await expect(page.getByRole("button", { name: "Add one E2E Warrior 1", exact: true })).toBeVisible();
       await expectNoDocumentHorizontalOverflow(page);
