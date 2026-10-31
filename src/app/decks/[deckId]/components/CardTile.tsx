@@ -93,12 +93,25 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
   return (
     grouped ? (
       <div
-        className={"[&:not(:first-child)]:-mt-[115%] relative"}
+        ref={(node) => { drag(node); }}
+        className={`relative isolate ${readOnly ? "" : "cursor-grab active:cursor-grabbing"} ${isDragging ? "opacity-45" : ""}`}
+        style={{ paddingTop: `${Math.max(0, countInDeck - 1) * 10}px` }}
         onContextMenu={readOnly ? undefined : e => removeCardFromDeck(e, card)}
         onMouseEnter={handleOnMouseEnter}
         onMouseLeave={handleOnMouseLeave}
       >
-        <div ref={(node) => { drag(node); }} className={readOnly ? undefined : "cursor-grab active:cursor-grabbing"}>
+        {Array.from({ length: Math.max(0, countInDeck - 1) }, (_, copyIndex) => (
+          <div
+            key={copyIndex}
+            data-deck-stack-layer
+            aria-hidden="true"
+            className="pointer-events-none absolute left-0 aspect-[3/4] w-full overflow-hidden rounded-sm border border-sky-200/35 bg-slate-950 shadow-sm"
+            style={{ top: `${copyIndex * 10}px` }}
+          >
+            <CardImage src={card.featured_image} alt="" loading="lazy" priority={false} className="object-contain" />
+          </div>
+        ))}
+        <div data-deck-stack-front className="relative z-10 rounded-sm bg-slate-950 shadow-md">
           {!readOnly && renderHoverContent(card, removeCardFromDeck, addCardToDeck, countInDeck, sourceList)}
           <div key={card._id.toString() + index}>
             <div className="absolute top-1 right-2 z-50"><CardStatusBadge item={status} numeric /></div>

@@ -415,9 +415,9 @@ export default function SearchPane({
   };
 
   return (
-    <Card className={gallery ? "short-landscape-flow h-full rounded-[2px] border-white/20 bg-[rgba(4,9,14,.68)] text-white shadow-xl shadow-black/20" : "flex flex-col border-white/20 bg-white/10 text-white lg:h-full"}>
-      <CardContent className={gallery ? "short-landscape-flow flex h-full flex-col overflow-hidden p-3 sm:p-4" : "flex flex-col p-2 pt-0 lg:h-full lg:overflow-hidden"}>
-        <div className={gallery ? "mb-2 space-y-1 border-b border-white/15 pb-2.5" : "mb-2 space-y-1"}>
+    <Card className={gallery ? "short-viewport-flow h-full rounded-[2px] border-white/20 bg-[rgba(4,9,14,.68)] text-white shadow-xl shadow-black/20" : "flex flex-col border-white/20 bg-white/10 text-white lg:h-full"}>
+      <CardContent className={gallery ? "short-viewport-flow flex h-full flex-col overflow-hidden p-3 sm:p-4" : "flex flex-col p-2 pt-0 lg:h-full lg:overflow-hidden"}>
+        <div className={gallery ? "mb-2 shrink-0 space-y-1 border-b border-white/15 pb-2.5" : "mb-2 space-y-1"}>
           <div className={gallery ? "flex" : "flex flex-col"}>
 
           {onAddTargetChange && (
@@ -488,7 +488,7 @@ export default function SearchPane({
         </div>
 
         {/* Cards List - Scrollable with smaller card sizes to match deck */}
-        <div ref={scrollRef} onScroll={handleVerticalScroll} className={gallery ? "short-landscape-flow grow overflow-auto shadow-black shadow-2xl" : "min-h-[220px] lg:min-h-0 lg:grow lg:overflow-auto shadow-black shadow-2xl"}>
+        <div ref={scrollRef} onScroll={handleVerticalScroll} className={gallery ? "short-viewport-flow min-h-0 grow overflow-auto shadow-black shadow-2xl" : "min-h-[220px] lg:min-h-0 lg:grow lg:overflow-auto shadow-black shadow-2xl"}>
           {loadingCards ? (
             gallery ? <div aria-label="Loading cards" className="short-landscape-card-grid grid grid-cols-2 gap-2 p-1 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:gap-4 xl:grid-cols-5 2xl:grid-cols-6">
               {Array.from({ length: 12 }, (_, index) => <div key={index} className="aspect-[3/4] animate-pulse rounded-xl border border-white/5 bg-slate-800/80" />)}

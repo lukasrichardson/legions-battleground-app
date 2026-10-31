@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { MongoClient, ObjectId } from "mongodb";
 import { csrfHeaders, signInAs } from "./fixtures";
 
@@ -27,7 +27,27 @@ async function savedDeck(page: Page, id: string) {
   return (await page.request.get(`/api/decks/${id}`)).json();
 }
 
-test("grouped quantity actions save exactly one change and keep card moves safe", async ({ page }) => {
+async function expectVisibleStack(group: Locator, copies: number) {
+  const layers = group.locator("[data-deck-stack-layer]");
+  await expect(layers).toHaveCount(copies - 1);
+  await expect(group.locator("[data-deck-stack-front]")).toBeVisible();
+  // Each copy must expose a visible strip, not just be hidden behind the front.
+  const bounds = await group.locator("[data-deck-stack-layer], [data-deck-stack-front]").evaluateAll((elements) =>
+    elements.map((element) => {
+      const rect = element.getBoundingClientRect();
+      return { top: rect.top, bottom: rect.bottom, width: rect.width };
+    }),
+  );
+  for (let index = 1; index < bounds.length; index++) {
+    expect(bounds[index].top - bounds[index - 1].top).toBeGreaterThanOrEqual(6);
+    expect(bounds[index].top).toBeLessThan(bounds[index - 1].bottom);
+    expect(bounds[index].width).toBeGreaterThan(0);
+  }
+  await expect(group.getByRole("button", { name: /^Add one/ })).toHaveCount(1);
+  await expect(group.getByRole("button", { name: /^Remove one/ })).toHaveCount(1);
+}
+
+test("grouped quantity actions save exactly one change and keep card moves safe", async ({ page }, testInfo) => {
   test.setTimeout(180_000);
   const { id, cards } = await setupDeck(page);
   const card = cards.find((item) => item.title === "E2E Warrior 1")!;
@@ -37,18 +57,23 @@ test("grouped quantity actions save exactly one change and keep card moves safe"
   await page.getByRole("checkbox", { name: "Grouped View" }).check();
   const main = page.locator(`[data-deck-card-id="${card._id}"][data-deck-card-list="cards_in_deck"]`);
   await expect(main.getByLabel("2 copies")).toBeAttached();
+  await expectVisibleStack(main, 2);
   await main.getByRole("button", { name: "Add one E2E Warrior 1 to main deck" }).click();
   await expect.poll(async () => (await savedDeck(page, id)).cards_in_deck.length).toBe(3);
+  await expectVisibleStack(main, 3);
+  await page.screenshot({ path: testInfo.outputPath("grouped-card-stacks.png") });
   const remove = main.getByRole("button", { name: "Remove one E2E Warrior 1 from main deck" });
   await remove.focus();
   await remove.press("Enter");
   await expect.poll(async () => (await savedDeck(page, id)).cards_in_deck.length).toBe(2);
+  await expectVisibleStack(main, 2);
   await main.getByLabel("2 copies").click();
   await expect.poll(async () => (await savedDeck(page, id)).cards_in_deck.length).toBe(2);
   await remove.click();
   await expect.poll(async () => (await savedDeck(page, id)).cards_in_deck.length).toBe(1);
   await page.reload();
   await expect(main.getByLabel("1 copies")).toBeAttached();
+  await expectVisibleStack(main, 1);
 
   const side = page.getByRole("heading", { name: /Side Deck.*Deck-building only/ });
   await main.locator(".cursor-grab").dragTo(side);
@@ -56,6 +81,7 @@ test("grouped quantity actions save exactly one change and keep card moves safe"
   const sideCard = page.locator(`[data-deck-card-id="${card._id}"][data-deck-card-list="side_deck"]`);
   await sideCard.getByRole("button", { name: "Add one E2E Warrior 1 to side deck" }).click();
   await expect.poll(async () => (await savedDeck(page, id)).side_deck.length).toBe(2);
+  await expectVisibleStack(sideCard, 2);
   await sideCard.getByRole("button", { name: "Remove one E2E Warrior 1 from side deck" }).click();
   await expect.poll(async () => (await savedDeck(page, id)).side_deck.length).toBe(1);
   await page.reload();
