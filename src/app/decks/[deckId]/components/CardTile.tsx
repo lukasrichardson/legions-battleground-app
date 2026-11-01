@@ -5,6 +5,7 @@ import { CardDocument } from "@/shared/interfaces/Card.mongo";
 import { HydratedDeckCard } from "@/shared/interfaces/DeckResponse";
 import { useEffect, useState } from "react";
 import { useDrag } from "react-dnd";
+import { getEmptyImage } from "react-dnd-html5-backend";
 import { decodeHTMLEntities } from "@/client/utils/string.util";
 
 export type DeckCardListKey =
@@ -19,6 +20,7 @@ export type DeckCardListKey =
 export type DeckDragItem = {
   card: HydratedDeckCard;
   sourceList: DeckCardListKey;
+  previewImage: string;
 };
 
 const renderHoverContent = (card: HydratedDeckCard, removeCardFromDeck: (e: React.MouseEvent, card: HydratedDeckCard) => void, addCardToDeck: (card: HydratedDeckCard) => void, countInDeck: number, sourceList: DeckCardListKey) => (
@@ -82,14 +84,15 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
     }
   }, [timeoutId]);
   const status = getCardStatus(banlist, card.title);
-  const [{ isDragging }, drag] = useDrag(() => ({
+  const [{ isDragging }, drag, preview] = useDrag(() => ({
     type: "cardFromDeck",
-    item: { card, sourceList } satisfies DeckDragItem,
+    item: { card, sourceList, previewImage: card.featured_image } satisfies DeckDragItem,
     canDrag: !readOnly,
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
   }), [card, readOnly, sourceList]);
+  useEffect(() => { preview(getEmptyImage(), { captureDraggingState: true }); }, [preview]);
   return (
     grouped ? (
       <div
@@ -120,9 +123,9 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
           </div>
         </div>
       </div>
-    ) : (!isDragging ?
+    ) : (
       <div
-        className="inline-block w-1/4 xs:w-1/6 sm:w-1/8 lg:w-1/10 xl:w-1/14 max-w-40 py-1 box-border relative"
+        className={`inline-block w-1/4 xs:w-1/6 sm:w-1/8 lg:w-1/10 xl:w-1/14 max-w-40 py-1 box-border relative ${isDragging ? "opacity-45" : ""}`}
         onContextMenu={readOnly ? undefined : e => removeCardFromDeck(e, card)}
         onMouseEnter={handleOnMouseEnter}
         onMouseLeave={handleOnMouseLeave}
@@ -135,7 +138,6 @@ export const DeckCardTile = ({ card, index, removeCardFromDeck, onMouseEnter, ad
           </div>
         </div>
       </div>
-      : null
     )
   )
 }
@@ -163,16 +165,17 @@ export const SearchCardTile = ({ card, index, onContextMenu, onMouseEnter, eager
     }
   }, [timeoutId]);
 
-  const [{isDragging}, drag] = useDrag(() => ({
+  const [{isDragging}, drag, preview] = useDrag(() => ({
     type: "cardFromSearch",
-    item: card,
+    item: { ...card, previewImage: card.featured_image },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
   }), [card]);
+  useEffect(() => { preview(getEmptyImage(), { captureDraggingState: true }); }, [preview]);
   return (
-    <div ref={(node) => { drag(node); }} className="cursor-grab active:cursor-grabbing" onContextMenu={(e) => onContextMenu(e, card)} onMouseLeave={handleOnMouseLeave}>
-      {!isDragging && renderCardTile(card, index, handleOnMouseEnter, !eagerImage)}
+    <div ref={(node) => { drag(node); }} className={`cursor-grab active:cursor-grabbing ${isDragging ? "opacity-45" : ""}`} onContextMenu={(e) => onContextMenu(e, card)} onMouseLeave={handleOnMouseLeave}>
+      {renderCardTile(card, index, handleOnMouseEnter, !eagerImage)}
     </div>
   )
 }

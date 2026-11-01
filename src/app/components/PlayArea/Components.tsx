@@ -80,7 +80,10 @@ export const RenderHand = ({items, cardTarget, p1, compact = false}: {items: Car
   const playerHand = (p1 && cardTarget === CARD_TARGET.P1_PLAYER_HAND) || (!p1 && cardTarget === CARD_TARGET.P2_PLAYER_HAND);
   return (
     <Hand cardTarget={cardTarget} compact={compact}>
-      {items.filter((item): item is CardState => Boolean(item)).map((item, index) => (<Card card={item} cardTarget={cardTarget} key={item.id} index={index} hidden={hidden} compactHand={compact} compactOpponentHand={compact && !playerHand} />))}
+      {items.filter((item): item is CardState => Boolean(item)).map((item, index) => {
+        const card = <Card card={item} cardTarget={cardTarget} index={index} hidden={hidden} compactHand={compact} compactOpponentHand={compact && !playerHand} />;
+        return playerHand ? <div key={item.id} className={`group/hand relative shrink-0 hover:z-[1000] before:absolute before:inset-x-0 before:bottom-full before:h-[65%] before:content-[''] ${compact ? "h-[72px] w-[54px] min-[1101px]:h-[100px] min-[1101px]:w-[75px]" : "h-[100px] w-[75px]"}`}>{card}</div> : <div key={item.id} className="contents">{card}</div>;
+      })}
     </Hand>
   )
 }

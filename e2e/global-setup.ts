@@ -133,4 +133,13 @@ export default async function globalSetup() {
   } finally {
     await client.close();
   }
+
+  // The health check only proves that the server is listening. Compile the
+  // routes needed to enter a game before individual tests start their clocks.
+  for (const path of ["/", "/api/auth/signin/e2e?callbackUrl=/", "/play"]) {
+    const response = await fetch(new URL(path, environment.NEXTAUTH_URL), {
+      signal: AbortSignal.timeout(120_000),
+    });
+    if (!response.ok) throw new Error(`Failed to warm ${path}: HTTP ${response.status}`);
+  }
 }

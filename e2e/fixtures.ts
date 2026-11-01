@@ -27,7 +27,7 @@ export async function signInAs(page: Page, userId: E2eUser) {
   }).toBe(userId);
   // Authentication is not ready for UI actions until the client SessionProvider
   // has consumed the authenticated session and replaced its loading state.
-  await expect(page.getByRole("button", { name: "Play", exact: true })).toBeEnabled({ timeout: 30_000 });
+  await expect(page.getByRole("button", { name: "Play", exact: true })).toBeEnabled({ timeout: AUTH_NAVIGATION_TIMEOUT });
 }
 
 export async function createRoomFromLobby(page: Page, roomName: string, sandboxMode: boolean, deckName?: string) {

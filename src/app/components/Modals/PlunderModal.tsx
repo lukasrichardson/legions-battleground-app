@@ -1,15 +1,13 @@
 import { useAppDispatch, useAppSelector } from "@/client/redux/hooks";
-import { MouseEventHandler, useState } from "react";
+import { useState } from "react";
 import Modal from "./Modal";
 import { emitGameEvent } from "@/client/utils/emitEvent";
 import { GAME_EVENT } from "@/shared/enums/GameEvent";
 import { moveCard } from "@/client/redux/gameStateSlice";
 import { CARD_TARGET } from "@/shared/enums/CardTarget";
-import styles from "@/app/styles/modals.module.css";
 import { Input } from "@/client/ui/input";
 
 const ModalConstants = {
-  CloseBtnText: "close",
   LabelBtnText: "card to draw:",
   PlunderBtnText: "Plunder",
   RandomBtnText: "Set as Random Card Number"
@@ -28,7 +26,6 @@ export default function PlunderModal({ closeModal }: { closeModal: () => void })
   const deckSize = p1 ? p1PlayerDeck.length : p2PlayerDeck.length;
   const validCardNumber = Number.isInteger(cardToTake) && cardToTake >= 2 && cardToTake <= deckSize;
   const {
-    CloseBtnText,
     PlunderBtnText,
     LabelBtnText,
     RandomBtnText
@@ -112,10 +109,9 @@ export default function PlunderModal({ closeModal }: { closeModal: () => void })
 
   const renderModalContent = () => (
     <div className="relative flex flex-col gap-3 items-center">
-      <button className={styles.modalCloseButton} onClick={handleCloseModal as MouseEventHandler<HTMLButtonElement>}>{CloseBtnText}</button>
       {deckSize >=2 ? 
         <>
-        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 pr-16">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-2">
           <label htmlFor="plunder-card-number">
             {LabelBtnText}
           </label>
@@ -142,6 +138,7 @@ export default function PlunderModal({ closeModal }: { closeModal: () => void })
     <Modal
       open={open}
       ariaLabel="Plunder"
+      showCloseButton
       closeModal={handleCloseModal}
       modalHeader={renderModalHeader()}
       modalContent={renderModalContent()}

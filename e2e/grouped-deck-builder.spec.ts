@@ -76,7 +76,17 @@ test("grouped quantity actions save exactly one change and keep card moves safe"
   await expectVisibleStack(main, 1);
 
   const side = page.getByRole("heading", { name: /Side Deck.*Deck-building only/ });
-  await main.locator(".cursor-grab").dragTo(side);
+  const source = (await main.locator(".cursor-grab").boundingBox())!;
+  const target = (await side.boundingBox())!;
+  await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(source.x + source.width / 2 + 15, source.y + source.height / 2 + 15, { steps: 5 });
+  const preview = page.getByTestId("card-drag-preview");
+  await expect(preview).toBeVisible();
+  await expect(preview.locator("img")).toHaveAttribute("src", await main.locator("[data-deck-stack-front] img").getAttribute("src") as string);
+  await page.mouse.move(target.x + target.width / 2, target.y + target.height / 2, { steps: 10 });
+  await page.mouse.up();
+  await expect(preview).toHaveCount(0);
   await expect.poll(async () => (await savedDeck(page, id)).side_deck.length).toBe(1);
   const sideCard = page.locator(`[data-deck-card-id="${card._id}"][data-deck-card-list="side_deck"]`);
   await sideCard.getByRole("button", { name: "Add one E2E Warrior 1 to side deck" }).click();
@@ -101,6 +111,45 @@ test("a full side deck does not lose a card when add is rejected", async ({ page
   expect((await savedDeck(page, id)).side_deck).toEqual(ids);
   await page.reload();
   expect((await savedDeck(page, id)).side_deck).toEqual(ids);
+});
+
+test("search cards keep a visible drag preview", async ({ page }) => {
+  const { id } = await setupDeck(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/decks/${id}`);
+  await page.getByLabel("Search cards", { exact: true }).fill("E2E Warrior 1");
+  await expect(page.getByText("Page 1 of 1 (1 cards)", { exact: true })).toBeVisible();
+  const result = page.getByRole("button", { name: "Inspect E2E Warrior 1", exact: true });
+  const image = result.locator("img");
+  await expect(image).toBeVisible();
+  await result.scrollIntoViewIfNeeded();
+  const bounds = (await result.boundingBox())!;
+  await page.mouse.move(bounds.x + bounds.width * 0.85, bounds.y + bounds.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(bounds.x + bounds.width * 0.85 - 30, bounds.y + bounds.height / 2 - 30, { steps: 6 });
+  const preview = page.getByTestId("card-drag-preview");
+  await expect(preview).toBeVisible();
+  await expect(preview.locator("img")).toHaveAttribute("src", await image.getAttribute("src") as string);
+  await page.mouse.up();
+  await expect(preview).toHaveCount(0);
+});
+
+test("card gallery uses the same drag preview", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/cards");
+  const result = page.getByRole("button", { name: /^Inspect E2E Warrior 1/ }).first();
+  await result.scrollIntoViewIfNeeded();
+  const source = result.locator('[draggable="true"]');
+  const image = source.locator("img");
+  const bounds = (await source.boundingBox())!;
+  await page.mouse.move(bounds.x + bounds.width * 0.85, bounds.y + bounds.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(bounds.x + bounds.width * 0.85 + 30, bounds.y + bounds.height / 2 + 30, { steps: 6 });
+  const preview = page.getByTestId("card-drag-preview");
+  await expect(preview).toBeVisible();
+  await expect(preview.locator("img")).toHaveAttribute("src", await image.getAttribute("src") as string);
+  await page.mouse.up();
+  await expect(preview).toHaveCount(0);
 });
 
 test("same-title printings remain separately identifiable and special-only decks are not empty", async ({ page }) => {

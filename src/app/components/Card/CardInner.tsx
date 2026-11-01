@@ -4,6 +4,7 @@ import { Popover } from "antd";
 import back_of_card from "PUBLIC/back_of_card.jpg";
 import { FocusEvent, MouseEvent, MouseEventHandler, useEffect, useMemo, useState } from "react";
 import { useDrag } from 'react-dnd';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 import CardMenuComponent from '@/app/components/Card/CardMenu';
 import IMenuItem from "@/client/interfaces/IMenuItem";
 import { useAppSelector } from "@/client/redux/hooks";
@@ -135,14 +136,18 @@ export default function CardInner({
     return !faceUp ? back_of_card : card.img;
   }, [faceUp, card.img]);
 
-  const [{ isDragging }, drag] = useDrag(() => ({
+  const [{ isDragging }, drag, preview] = useDrag(() => ({
     type: "card",
     canDrag: canInteract,
-    item: { ...card, cardTarget, zoneIndex: zoneIndex },
+    item: { ...card, cardTarget, zoneIndex: zoneIndex, previewImage: typeof imageSrc === "string" && imageSrc.trim() ? imageSrc : back_of_card.src },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging()
     })
-  }), [card, cardTarget, zoneIndex, canInteract]);
+  }), [card, cardTarget, zoneIndex, canInteract, imageSrc]);
+
+  useEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: true });
+  }, [preview]);
 
   const cardVisibilitySettings = useMemo(() => ({
     cardInView: ![
@@ -195,14 +200,14 @@ export default function CardInner({
     !inPileView ? "h-[100px]" : "h-[80px]",
     !inPileView ? "w-[75px]" : "w-[60px]",
     "card-inner",
-    `group transform scale-100 transition-[transform,opacity] duration-150`,
+    `group transform scale-100 transition-[transform,translate,scale,opacity] duration-200 ease-out motion-reduce:transition-none`,
     canInteract ? "cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200" : "",
     cardInView || inPileView
       ? "relative"
       : "absolute",
     inPileOfMinTwo ? "left-0" : "",
     compactOpponentHand ? "bottom-0" : "",
-    isPlayerHandCard ? (compactHand ? "[&:hover]:z-[1000] hover:transform hover:-translate-y-[40%]" : "[&:hover]:z-[1000] hover:transform hover:-translate-y-[40%] hover:scale-[1.5]") : "",
+    isPlayerHandCard ? (compactHand ? "group-hover/hand:-translate-y-[40%]" : "group-hover/hand:-translate-y-[40%] group-hover/hand:scale-[1.5]") : "",
     isBeingPlayed ? "border-yellow-400 border-4 animate-bounce duration-800" : "",
     isDragging ? "opacity-45 grayscale-[35%]" : "",
   ].join(" "), [cardInView, inPileView, inPileOfMinTwo, isPlayerHandCard, isBeingPlayed, compactHand, compactOpponentHand, isDragging, canInteract]);
@@ -305,8 +310,8 @@ export default function CardInner({
           {!isDragging && (
             <>{(!cardInView && index === 0 && faceUp) && (
               <>
-                <CardCounterOverlay label="Attack modifier" shortLabel="ATK" value={card.attackModifier ?? 0} top expanded={canInteract && Boolean(focused)} decrease={handleDecreaseAttackModifier} increase={handleIncreaseAttackModifier} flipped={!isOnPlayersSide} signed />
-                <CardCounterOverlay label="Counter" shortLabel="CNT" value={card.otherModifier ?? 0} expanded={canInteract && Boolean(focused)} decrease={handleDecreaseOtherModifier} increase={handleIncreaseOtherModifier} flipped={!isOnPlayersSide} />
+                <CardCounterOverlay label="Attack modifier" shortLabel="ATK" value={card.attackModifier ?? 0} top expanded={canInteract && Boolean(focused)} decrease={handleDecreaseAttackModifier} increase={handleIncreaseAttackModifier} flipped={!isOnPlayersSide} signed hideZeroUntilHover={!inPileView} />
+                <CardCounterOverlay label="Counter" shortLabel="CNT" value={card.otherModifier ?? 0} expanded={canInteract && Boolean(focused)} decrease={handleDecreaseOtherModifier} increase={handleIncreaseOtherModifier} flipped={!isOnPlayersSide} hideZeroUntilHover={!inPileView} />
               </>
             )}
               {hasCooldown && <CardCounterOverlay label="Cooldown" shortLabel="CD" value={card.cooldown ?? 0} expanded={canInteract && Boolean(focused)} decrease={handleDecreaseCooldown} increase={handleIncreaseCooldown} flipped={!isOnPlayersSide} />}
@@ -324,7 +329,7 @@ export default function CardInner({
   )
 }
 
-function CardCounterOverlay({ label, shortLabel, value, top = false, expanded, flipped, signed = false, decrease, increase }: {
+function CardCounterOverlay({ label, shortLabel, value, top = false, expanded, flipped, signed = false, hideZeroUntilHover = false, decrease, increase }: {
   label: string;
   shortLabel: string;
   value: number;
@@ -332,6 +337,7 @@ function CardCounterOverlay({ label, shortLabel, value, top = false, expanded, f
   expanded: boolean;
   flipped: boolean;
   signed?: boolean;
+  hideZeroUntilHover?: boolean;
   decrease?: MouseEventHandler<HTMLButtonElement>;
   increase?: MouseEventHandler<HTMLButtonElement>;
 }) {
@@ -341,7 +347,7 @@ function CardCounterOverlay({ label, shortLabel, value, top = false, expanded, f
   };
   const visibleValue = signed && value > 0 ? `+${value}` : value;
   return <div
-    className={`absolute ${top ? "top-0" : "bottom-0"} left-1/2 z-20 hidden -translate-x-1/2 items-center overflow-hidden rounded-md border border-white/25 bg-slate-950/90 text-[10px] font-bold text-white shadow-lg backdrop-blur-sm min-[1101px]:flex ${flipped ? "rotate-180" : ""}`}
+    className={`absolute ${top ? "top-0" : "bottom-0"} left-1/2 z-20 hidden -translate-x-1/2 items-center overflow-hidden rounded-md border border-white/25 bg-slate-950/90 text-[10px] font-bold text-white shadow-lg backdrop-blur-sm ${hideZeroUntilHover && value === 0 ? "min-[1101px]:group-hover:flex min-[1101px]:group-focus-within:flex" : "min-[1101px]:flex"} ${flipped ? "rotate-180" : ""}`}
     aria-label={`${label}: ${value}`}
     onClick={(event) => event.stopPropagation()}
   >

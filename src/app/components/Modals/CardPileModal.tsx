@@ -129,9 +129,9 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   }
 
   const renderModalHeader = () => (
-    <div className={compactChrome ? "space-y-1 py-1" : "space-y-3 py-4"}>
-      <div className={compactChrome ? "flex min-w-0 items-baseline gap-2" : ""}>
-        <h3 className="text-base font-semibold text-white">{wisdoming ? "Wisdom" : waitingForUserInput ? "Make your selection" : pileLabel}</h3>
+    <div className={isShortViewport ? "flex min-w-0 items-center gap-2" : compactChrome ? "space-y-1 py-1" : "space-y-3 py-4"}>
+      <div className={isShortViewport ? "flex min-w-0 max-w-[45%] shrink-0 items-baseline gap-2" : compactChrome ? "flex min-w-0 items-baseline gap-2" : ""}>
+        <h3 className={`${isShortViewport ? "truncate " : ""}text-base font-semibold text-white`}>{wisdoming ? "Wisdom" : waitingForUserInput ? "Make your selection" : pileLabel}</h3>
         <p className={compactChrome ? "shrink-0 text-xs text-slate-400" : "mt-1 text-xs leading-5 text-slate-400"}>
           {wisdoming
             ? (compactChrome ? "Choose 1" : "Select one card to keep. The other card moves to the bottom of the pile.")
@@ -145,7 +145,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
         aria-label="Search card pile"
         onChange={handleSearchChange}
         value={search}
-        className="min-h-11 w-full border border-sky-200/20 bg-slate-950/45 px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-sky-300/70 focus:ring-2 focus:ring-sky-300/15"
+        className="min-h-11 min-w-0 w-full border border-sky-200/20 bg-slate-950/45 px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-sky-300/70 focus:ring-2 focus:ring-sky-300/15"
       />}
     </div>
   );
@@ -232,13 +232,7 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
     </div>;
   };
 
-  const renderModalContent = () => {
-    const filteredPile = (cardPile as ExtendedCardState[]).filter(c => tab === "All" ? true : c.type === tab).filter(card =>
-      card.name?.toLowerCase().includes(search.toLowerCase()) || decodeHTMLEntities(card.name || '').toLowerCase().includes(search.toLowerCase())
-    ) as ExtendedCardState[];
-    const hidden = p1 ? pileInViewTarget === CARD_TARGET.P2_PLAYER_DECK : pileInViewTarget === CARD_TARGET.P1_PLAYER_DECK;
-
-    const renderTab = (name: string) => {
+  const renderTab = (name: string) => {
       return (
         <button
           type="button"
@@ -249,16 +243,15 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
           {name}
         </button>
       )
-    }
+  }
+
+  const renderModalContent = () => {
+    const filteredPile = (cardPile as ExtendedCardState[]).filter(c => tab === "All" ? true : c.type === tab).filter(card =>
+      card.name?.toLowerCase().includes(search.toLowerCase()) || decodeHTMLEntities(card.name || '').toLowerCase().includes(search.toLowerCase())
+    ) as ExtendedCardState[];
+    const hidden = p1 ? pileInViewTarget === CARD_TARGET.P2_PLAYER_DECK : pileInViewTarget === CARD_TARGET.P1_PLAYER_DECK;
     return (
       <div className="relative">
-        {!wisdoming && <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className={compactChrome ? "sr-only" : ""}>Filter by:</span>
-          {renderTab("All")}
-          {renderTab("Warrior")}
-          {renderTab("Unified")}
-          {renderTab("Fortified")}
-        </div>}
         <div>
           {filteredPile.length === 0 && <div className="space-y-3 py-5 text-center text-sm text-slate-300" role="status">
             <p>{cardPile.length === 0 ? "This pile is empty." : "No cards match your search or filters."}</p>
@@ -300,6 +293,6 @@ export default function CardPileModal({ closeModal }: { closeModal: () => void }
   }
 
   return (
-    <Modal open={open} variant={isCompact ? "constrained-dialog" : "dialog"} compactChrome={compactChrome} ariaLabel={wisdoming ? "Wisdom selection" : waitingForUserInput ? "Card selection" : pileLabel} closeModal={handleCloseModal} modalHeader={renderModalHeader()} modalContent={renderModalContent()} modalFooter={renderModalFooter()} showCloseButton transparentOnBlur={transparentOnBlur} dragThroughBackdrop={dragThroughBackdrop} blurBackdrop={false} overlayClassName="!z-[1300]" />
+    <Modal open={open} variant={isCompact ? "constrained-dialog" : "dialog"} compactChrome={compactChrome} ariaLabel={wisdoming ? "Wisdom selection" : waitingForUserInput ? "Card selection" : pileLabel} closeModal={handleCloseModal} modalHeader={renderModalHeader()} modalToolbar={!wisdoming ? <div role="group" aria-label="Filter cards by type" className="flex flex-wrap items-center gap-2"><span className={compactChrome ? "sr-only" : ""}>Filter by:</span>{renderTab("All")}{renderTab("Warrior")}{renderTab("Unified")}{renderTab("Fortified")}</div> : null} modalContent={renderModalContent()} modalFooter={renderModalFooter()} showCloseButton transparentOnBlur={transparentOnBlur} dragThroughBackdrop={dragThroughBackdrop} blurBackdrop={false} overlayClassName="!z-[1300]" />
   )
 }

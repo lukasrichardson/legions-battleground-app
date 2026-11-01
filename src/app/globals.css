@@ -358,6 +358,16 @@ body {
   line-height: 1.35;
   white-space: normal;
 }
+@media (min-width: 1101px) {
+  .game-card-menu .ant-menu-item,
+  .game-card-menu .ant-menu-submenu-title,
+  .game-card-submenu .ant-menu .ant-menu-item,
+  .game-card-submenu .ant-menu .ant-menu-submenu-title {
+    display: flex;
+    align-items: center;
+    line-height: 1.4;
+  }
+}
 .game-card-menu .ant-menu-item:focus-visible,
 .game-card-menu .ant-menu-submenu-title:focus-visible,
 .game-card-submenu .ant-menu-item:focus-visible,
