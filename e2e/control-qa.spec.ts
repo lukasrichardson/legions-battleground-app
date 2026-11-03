@@ -423,7 +423,9 @@ test.describe("app-wide control QA", () => {
         await expect(number).toHaveValue(value);
       }
       await number.fill("2"); await expect(plunder).toBeEnabled();
-      await page.getByRole("button", { name: "close", exact: true }).click();
+      const plunderDialog = page.getByRole("dialog", { name: "Plunder", exact: true });
+      await plunderDialog.getByRole("button", { name: "Close Plunder", exact: true }).click();
+      await expect(plunderDialog).not.toBeVisible();
     }
     expect(errors).toEqual([]);
   });
