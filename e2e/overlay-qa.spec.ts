@@ -1,5 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { csrfHeaders, expectVisibleCardImagesLoaded, signInAs, createRoomFromLobby, joinRoomFromLobby, newSignedInPage } from "./fixtures";
+import { MongoClient } from "mongodb";
+import { resolveE2eEnvironment } from "./environment.mjs";
 
 // One viewport per layout constraint, including unusually short game dialogs.
 // Dedicated drag/resize and long-content tests retain their explicit sizes.
@@ -62,6 +64,7 @@ test("regular match setup, mulligans and confirmations stay usable in short land
     for (const size of landscape) { await player.setViewportSize(size); await expectOverlayControls(player, setup); }
     await setup.getByRole("button", { name: "Leave match", exact: true }).click();
     const setupLeave = player.getByRole("dialog", { name: "Leave game", exact: true });
+    await expect(setupLeave.getByRole("button", { name: "Stay", exact: true })).toBeFocused();
     await expectOverlayControls(player, setupLeave);
     await setupLeave.getByRole("button", { name: "Stay", exact: true }).click();
     await expect(setup).toBeVisible();
@@ -111,9 +114,11 @@ test("regular match setup, mulligans and confirmations stay usable in short land
       await player.setViewportSize(size);
       await player.getByRole("button", { name: "Open navigation", exact: true }).click();
       await player.getByRole("button", { name: "Concede", exact: true }).last().click();
+      await expect(player.getByRole("button", { name: "Keep playing", exact: true })).toBeFocused();
       await expectOverlayControls(player, player.getByRole("dialog"));
       await player.getByRole("button", { name: "Close Concede match", exact: true }).click();
       await player.getByRole("button", { name: "Leave match", exact: true }).last().click();
+      await expect(player.getByRole("dialog", { name: "Leave game" }).getByRole("button", { name: "Stay", exact: true })).toBeFocused();
       await expectOverlayControls(player, player.getByRole("dialog"));
       await player.getByRole("button", { name: "Stay", exact: true }).click();
     }
@@ -123,6 +128,116 @@ test("regular match setup, mulligans and confirmations stay usable in short land
     await expect(player.getByRole("dialog").getByText("Match complete", { exact: true })).toBeVisible();
     for (const size of landscape) { await player.setViewportSize(size); await expectOverlayControls(player, player.getByRole("dialog")); }
   } finally { await one.close(); await two.close(); }
+});
+
+test("large game dialogs stay bounded and scroll a full deck at desktop and compact sizes", async ({ page }) => {
+  test.setTimeout(180_000);
+  const env = resolveE2eEnvironment(process.env);
+  const mongo = new MongoClient(env.MONGO_URL);
+  await mongo.connect();
+  const decks = mongo.db(env.MONGO_DB_NAME).collection("decks");
+  const deck = await decks.findOne({ name: "E2E Production Visual Deck", userId: "e2e-player-one" });
+  expect(deck).not.toBeNull();
+  const original = deck!.cards_in_deck;
+  try {
+    await decks.updateOne({ _id: deck!._id }, { $set: { cards_in_deck: Array.from({ length: 60 }, (_, i) => original[i % original.length]) } });
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await signInAs(page, "e2e-player-one");
+    await createRoomFromLobby(page, `large-dialog-${Date.now()}`, true, "E2E Production Visual Deck");
+
+    for (const size of [{ width: 1920, height: 1080 }, { width: 2560, height: 1440 }, { width: 1440, height: 900 }, { width: 844, height: 390 }, { width: 568, height: 320 }]) {
+      await page.setViewportSize(size);
+      if (size.width <= 1100) await page.getByRole("button", { name: "Open deck actions", exact: true }).click();
+      else await page.locator('[data-game-zone="p1PlayerDeck"] .card-inner').first().click();
+      await page.getByRole("menuitem", { name: "Search Deck", exact: true }).click();
+      const pile = page.getByRole("dialog", { name: "Your deck", exact: true });
+      await expect(pile.getByText("54 cards", { exact: true })).toBeVisible();
+      await expectOverlayBounds(page, pile);
+      await expect.poll(() => pile.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        const board = document.querySelector(".game-workspace")!.getBoundingClientRect();
+        return r.left >= board.left - 1 && r.right <= board.right + 1 && r.top >= board.top - 1 && r.bottom <= board.bottom + 1;
+      })).toBe(true);
+      await expect(pile.getByRole("button", { name: "Close Your deck" })).toBeInViewport();
+      await expect(pile.getByRole("button", { name: "Close & shuffle" })).toBeInViewport();
+      const cards = pile.locator(".card-inner");
+      await expect(cards).toHaveCount(54);
+      const filterGroup = pile.getByRole("group", { name: "Filter cards by type" });
+      const filterTop = (await filterGroup.boundingBox())!.y;
+      const grid = cards.first();
+      await grid.hover();
+      await page.mouse.wheel(0, 40);
+      await expect.poll(() => grid.evaluate((el) => {
+        let parent = el.parentElement;
+        while (parent && parent.scrollHeight <= parent.clientHeight) parent = parent.parentElement;
+        return parent?.scrollTop ?? 0;
+      })).toBeGreaterThan(0);
+      expect((await filterGroup.boundingBox())!.y).toBeCloseTo(filterTop, 1);
+      await page.mouse.wheel(0, 10000);
+      await expect.poll(() => cards.last().evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+        return !!hit && el.contains(hit);
+      })).toBe(true);
+      expect((await filterGroup.boundingBox())!.y).toBeCloseTo(filterTop, 1);
+      if ([1920, 2560, 844, 568].includes(size.width)) await page.screenshot({ path: `output/playwright/game-pile-filters-${size.width}.png` });
+      for (const name of ["All", "Warrior", "Unified", "Fortified"]) {
+        const filter = pile.getByRole("button", { name, exact: true });
+        await expect(filter).toBeInViewport({ ratio: 0.99 });
+        await filter.click({ trial: true });
+      }
+      await pile.getByRole("button", { name: "Fortified", exact: true }).click();
+      await expect(pile.getByRole("button", { name: "Fortified", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await expect.poll(() => cards.count()).toBeLessThan(54);
+      await pile.getByRole("button", { name: "All", exact: true }).click();
+      await expect(cards).toHaveCount(54);
+      if (size.width === 1920) {
+        const header = pile.locator(".cursor-grab");
+        const bounds = (await header.boundingBox())!;
+        await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + 15);
+        await page.mouse.down();
+        await page.mouse.move(10, 10, { steps: 8 });
+        await page.mouse.up();
+        await expectOverlayBounds(page, pile);
+        await page.setViewportSize({ width: 1280, height: 720 });
+        await expectOverlayBounds(page, pile);
+        await page.setViewportSize(size);
+      }
+      await pile.getByRole("button", { name: "Close Your deck" }).click();
+      if (size.width === 568) continue;
+      if (size.width <= 1100) {
+        await page.getByRole("button", { name: "Open navigation", exact: true }).click();
+        await page.getByRole("button", { name: "Help", exact: true }).last().click();
+      } else await page.getByRole("button", { name: "Help", exact: true }).click();
+      const help = page.getByRole("dialog", { name: "Help", exact: true });
+      await expectOverlayBounds(page, help);
+      await expect(help.getByRole("button", { name: "Close Help" })).toBeInViewport();
+      if (size.width === 1920) await page.screenshot({ path: "output/playwright/game-help-fixed.png" });
+      await help.getByRole("button", { name: "Close Help" }).click();
+    }
+  } finally {
+    await decks.updateOne({ _id: deck!._id }, { $set: { cards_in_deck: original } });
+    await mongo.close();
+  }
+});
+
+test("Plunder closes the originating menu and uses the shared close control", async ({ page }) => {
+  await signInAs(page, "e2e-player-one");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await createRoomFromLobby(page, `plunder-dialog-${Date.now()}`, true, "E2E Player 1 Deck");
+  for (const size of [{ width: 1440, height: 900 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(size);
+    if (size.width <= 1100) await page.getByRole("button", { name: "Open deck actions", exact: true }).click();
+    else await page.locator('[data-game-zone="p1PlayerDeck"] .card-inner').first().click();
+    await page.getByRole("menuitem", { name: "Plunder", exact: true }).click();
+    const plunder = page.getByRole("dialog", { name: "Plunder", exact: true });
+    await expect(plunder).toBeVisible();
+    await expect(page.locator(".game-card-menu:visible")).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Card details and actions" })).toHaveCount(0);
+    await expectOverlayControls(page, plunder);
+    if (size.width === 1440) await page.screenshot({ path: "output/playwright/game-plunder-fixed.png" });
+    await plunder.getByRole("button", { name: "Close Plunder" }).click();
+  }
 });
 
 test("dragged dialogs stay fully on-screen and recover when the viewport shrinks", async ({ page }) => {
@@ -362,10 +477,12 @@ test.describe("touch overlay matrix", () => {
           await page.getByRole("dialog").getByRole("button", { name: /^Inspect E2E Warrior/ }).first().click();
           const details = page.getByRole("dialog", { name: "Card details and actions", exact: true });
           await expectOverlayControls(page, details);
-          await details.getByRole("button", { name: /image full screen/ }).click();
+          const imageButton = details.getByRole("button", { name: /image full screen/ });
+          await imageButton.click();
           await expectOverlayControls(page, page.getByRole("dialog", { name: /full screen image$/ }));
           await page.keyboard.press("Escape");
           await expect(details).toBeVisible();
+          await expect(imageButton).toBeFocused();
           await details.getByRole("button", { name: "Close card details and actions", exact: true }).press("Escape");
           await expect(details).toHaveCount(0);
           await expect(page.getByRole("dialog")).toHaveCount(1);

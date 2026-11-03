@@ -1,5 +1,21 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { createRoomFromLobby, expectVisibleCardImagesLoaded, signInAs } from "./fixtures";
+
+async function cardActionMenu(page: Page, inspect: Locator) {
+  await expect(inspect).toHaveAttribute("aria-expanded", "true");
+  const anchor = inspect.locator("..");
+  await expect(anchor).toHaveAttribute("aria-describedby", /.+/);
+  // Another card's hover popup can still be visible during its exit animation.
+  const popupId = await anchor.getAttribute("aria-describedby");
+  return page.locator(`[id="${popupId}"]`);
+}
+
+async function moveHandCardToDeck(page: Page, menu: Locator) {
+  const move = menu.getByRole("menuitem", { name: "Move to…", exact: true });
+  await move.click();
+  const submenuId = await move.getAttribute("aria-controls");
+  await page.locator(`[id="${submenuId}"]`).getByRole("menuitem", { name: "To Bottom of Deck", exact: true }).click();
+}
 
 test("play workspaces share styling across sizes without stretching cards or clipping controls", async ({ page }) => {
   await signInAs(page, "e2e-player-one");
@@ -93,6 +109,80 @@ test("play workspaces share styling across sizes without stretching cards or cli
   }
 });
 
+test("pile cards cannot be dropped onto zones covered by the dialog", async ({ page }) => {
+  await signInAs(page, "e2e-player-one");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await createRoomFromLobby(page, `covered-drop-${Date.now()}`, true, "E2E Player 1 Deck");
+  await page.locator('[data-game-zone="p1PlayerDeck"] .card-inner').first().click();
+  await page.getByRole("menuitem", { name: "Search Deck", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Your deck", exact: true });
+  const box = (await dialog.boundingBox())!;
+  const zones = page.locator('[data-game-zone]');
+  const index = await zones.evaluateAll((elements, bounds) => elements.findIndex((el) => {
+    const r = el.getBoundingClientRect();
+    const x = (r.left + r.right) / 2;
+    const y = (r.top + r.bottom) / 2;
+    return el.getAttribute("data-game-zone")?.startsWith("p1") && !el.querySelector(".card-inner")
+      && x > bounds.x && x < bounds.x + bounds.width && y > bounds.y && y < bounds.y + bounds.height;
+  }), box);
+  expect(index).toBeGreaterThanOrEqual(0);
+  const target = zones.nth(index);
+  const card = dialog.locator(".card-inner").first();
+  const source = (await card.boundingBox())!;
+  const destination = (await target.boundingBox())!;
+  const count = await dialog.locator(".card-inner").count();
+  await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(source.x + source.width / 2 + 12, source.y + source.height / 2 + 12, { steps: 4 });
+  await expect(card).toHaveClass(/opacity-45/);
+  const preview = page.getByTestId("card-drag-preview");
+  await expect(preview).toBeVisible();
+  await expect(preview.locator("img")).toHaveAttribute("src", await card.locator("img").getAttribute("src") as string);
+  await page.mouse.move(destination.x + destination.width / 2, destination.y + destination.height / 2, { steps: 12 });
+  await expect.poll(async () => {
+    const bounds = (await preview.boundingBox())!;
+    return Math.abs(bounds.x - (destination.x + destination.width / 2)) < 80 && Math.abs(bounds.y - (destination.y + destination.height / 2)) < 115;
+  }).toBe(true);
+  await page.mouse.up();
+  await expect(preview).toHaveCount(0);
+  await expect(target.locator(".card-inner")).toHaveCount(0);
+  await expect(dialog.locator(".card-inner")).toHaveCount(count);
+});
+
+test("a dragged hand card has a preview that follows the pointer", async ({ page }) => {
+  await signInAs(page, "e2e-player-one");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await createRoomFromLobby(page, `hand-preview-${Date.now()}`, true, "E2E Player 1 Deck");
+  const card = page.locator(".game-hand").last().locator(".card-inner").first();
+  const source = (await card.boundingBox())!;
+  const image = await card.locator("img").getAttribute("src");
+  await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(source.x + source.width / 2 + 25, source.y + source.height / 2 - 40, { steps: 6 });
+  const preview = page.getByTestId("card-drag-preview");
+  await expect(preview).toBeVisible();
+  await expect(preview.locator("img")).toHaveAttribute("src", image!);
+  await expect.poll(async () => {
+    const bounds = (await preview.boundingBox())!;
+    const pointerX = source.x + source.width / 2 + 25;
+    const pointerY = source.y + source.height / 2 - 40;
+    return Math.abs(bounds.x - pointerX) < 80 && Math.abs(bounds.y - pointerY) < 115
+      && bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= 1440 && bounds.y + bounds.height <= 900;
+  }).toBe(true);
+  await page.mouse.up();
+  await expect(preview).toHaveCount(0);
+  const deck = page.locator('[data-game-zone="p1PlayerDeck"] .card-inner').first();
+  const deckImage = await deck.locator("img").getAttribute("src");
+  const deckBounds = (await deck.boundingBox())!;
+  await page.mouse.move(deckBounds.x + deckBounds.width / 2, deckBounds.y + deckBounds.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(deckBounds.x + deckBounds.width / 2 - 30, deckBounds.y + deckBounds.height / 2 - 30, { steps: 6 });
+  await expect(preview).toBeVisible();
+  await expect(preview.locator("img")).toHaveAttribute("src", deckImage!);
+  await page.mouse.up();
+  await expect(preview).toHaveCount(0);
+});
+
 test("desktop pile browser moves away from covered zones and keeps card dragging active", async ({
   page,
 }) => {
@@ -157,6 +247,18 @@ test("desktop pile browser moves away from covered zones and keeps card dragging
   expect(coveredTarget!.x < movedBounds!.x || coveredTarget!.x > movedBounds!.x + movedBounds!.width
     || coveredTarget!.y < movedBounds!.y || coveredTarget!.y > movedBounds!.y + movedBounds!.height).toBe(true);
 
+  await dialog.getByRole("button", { name: "Unified", exact: true }).click();
+  await expect(dialog.getByText("No cards match your search or filters.")).toBeVisible();
+  await expect.poll(async () => {
+    const bounds = (await dialog.boundingBox())!;
+    return Math.abs(bounds.x - movedBounds!.x) < 2 && Math.abs(bounds.y - movedBounds!.y) < 2;
+  }).toBe(true);
+  await dialog.getByRole("button", { name: "All", exact: true }).click();
+  await expect.poll(async () => {
+    const bounds = (await dialog.boundingBox())!;
+    return Math.abs(bounds.x - movedBounds!.x) < 2 && Math.abs(bounds.y - movedBounds!.y) < 2;
+  }).toBe(true);
+
   const card = dialog.locator(".card-inner").first();
   const source = await card.boundingBox();
   const target = await destination.boundingBox();
@@ -185,6 +287,18 @@ test("desktop pile browser moves away from covered zones and keeps card dragging
   await page.mouse.up();
   await expect(destination.locator(".card-inner")).toHaveCount(1);
   await expect(dialog).toBeVisible();
+
+  await dialog.getByRole("button", { name: "Unified", exact: true }).click();
+  const shortHeader = (await header.boundingBox())!;
+  await page.mouse.move(shortHeader.x + shortHeader.width / 2, shortHeader.y + 15);
+  await page.mouse.down();
+  await page.mouse.move(shortHeader.x + shortHeader.width / 2, 990, { steps: 12 });
+  await page.mouse.up();
+  await dialog.getByRole("button", { name: "All", exact: true }).click();
+  await expect.poll(async () => {
+    const bounds = (await dialog.boundingBox())!;
+    return bounds.y >= -1 && bounds.y + bounds.height <= 1001;
+  }).toBe(true);
 
   await page.setViewportSize({ width: 1200, height: 700 });
   await expect.poll(async () => {
@@ -224,9 +338,9 @@ test("Wisdom selection tiles contain no nested controls and support pointer and 
     await expect(wisdom).toHaveCount(0);
     await expect(handCards).toHaveCount(before + 1);
     if (input === "pointer") {
-      await playerHand.getByRole("button", { name: `Inspect ${chosenName}`, exact: true }).click();
-      await page.locator(".game-card-menu:visible").last().getByRole("menuitem", { name: "Move to…", exact: true }).click();
-      await page.locator(".game-card-submenu:visible").getByRole("menuitem", { name: "To Bottom of Deck", exact: true }).click();
+      const inspect = playerHand.getByRole("button", { name: `Inspect ${chosenName}`, exact: true });
+      await inspect.click();
+      await moveHandCardToDeck(page, await cardActionMenu(page, inspect));
       await expect(handCards).toHaveCount(before);
     }
   }

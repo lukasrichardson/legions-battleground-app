@@ -119,6 +119,20 @@ body {
   .arena-navigation-slot .arena-navigation { transition: none; }
 }
 
+/* Galleries opt into flowing content at short heights even on wide desktops. */
+@media (max-height: 600px) {
+  .short-viewport-scroll {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .short-viewport-flow {
+    height: auto;
+    min-height: 0;
+    flex-shrink: 0;
+    overflow: visible;
+  }
+}
+
 @media (orientation: landscape) and (max-height: 600px) and (max-width: 1100px) {
   .short-landscape-scroll {
     overflow-x: hidden;
@@ -343,6 +357,16 @@ body {
   height: auto;
   line-height: 1.35;
   white-space: normal;
+}
+@media (min-width: 1101px) {
+  .game-card-menu .ant-menu-item,
+  .game-card-menu .ant-menu-submenu-title,
+  .game-card-submenu .ant-menu .ant-menu-item,
+  .game-card-submenu .ant-menu .ant-menu-submenu-title {
+    display: flex;
+    align-items: center;
+    line-height: 1.4;
+  }
 }
 .game-card-menu .ant-menu-item:focus-visible,
 .game-card-menu .ant-menu-submenu-title:focus-visible,

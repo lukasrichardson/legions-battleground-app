@@ -392,7 +392,7 @@ export default function DeckGrid({
               <LoadingState label="Loading deck…" className="h-full" />
             ) : deckbuild_groupedView ? (
               <div className="space-y-2">
-                <div className="flex">
+                <div className="flex flex-wrap">
                   {renderSection([
                     ...warlords,
                     ...veilRealms,
@@ -418,7 +418,7 @@ export default function DeckGrid({
                   renderSection,
                 )}
 
-                {allMainDeckCards.length === 0 && (
+                {allMainDeckCards.length === 0 && noLeftSide && sideDeck.length === 0 && (
                   <EmptyState
                     icon={<AppIcon name="create" size={20} />}
                     title="No cards in deck"

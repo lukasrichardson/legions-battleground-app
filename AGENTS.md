@@ -1,3 +1,9 @@
+## Working checkout
+
+- Make changes directly in `C:\projects\legions-battleground-app` on the local `develop` branch.
+- If a conversation starts in a Codex worktree, use the local checkout above for edits and validation instead. Do not create another worktree unless explicitly requested.
+- Preserve existing uncommitted changes. Do not commit or push unless explicitly requested.
+
 ## Agent skills
 
 ### Issue tracker

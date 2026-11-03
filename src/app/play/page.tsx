@@ -16,6 +16,7 @@ import ToolsSettingsModal from "../components/Modals/ToolsSettingsModal";
 import HelpModal from "../components/Modals/HelpModal";
 import PlunderModal from "../components/Modals/PlunderModal";
 import Modal from "../components/Modals/Modal";
+import CardDragPreview from "../components/Card/CardDragPreview";
 import { useSocket } from "@/client/hooks/useSocket";
 import { MatchStatus } from "@/shared/enums/Match";
 import { resetState } from "@/client/redux/gameStateSlice";
@@ -76,6 +77,7 @@ function Page() {
   return <div className="h-full w-full text-white" data-testid="game-board" data-game-mode={gameState.sandboxMode ? "sandbox" : "regular"} data-match-status={gameState.matchStatus}>
     <main className="relative flex h-full w-full items-center justify-between">
       <DndProvider backend={HTML5Backend}>
+        <CardDragPreview />
         <Toolbar />
         <PlayArea />
         <CardPileModal closeModal={closePileInView} />

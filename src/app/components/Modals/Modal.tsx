@@ -21,6 +21,7 @@ export default function Modal({
   open,
   closeModal,
   modalHeader,
+  modalToolbar,
   modalContent,
   modalFooter,
   transparentOnBlur = false,
@@ -37,6 +38,7 @@ export default function Modal({
   open: boolean,
   closeModal: () => void,
   modalHeader: JSX.Element,
+  modalToolbar?: JSX.Element | null,
   modalContent: JSX.Element,
   /** Persistent primary action area that never scrolls off a phone viewport. */
   modalFooter?: JSX.Element,
@@ -53,6 +55,7 @@ export default function Modal({
 }) {
   const [isDesktop, setIsDesktop] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const hasDragged = useRef(false);
   const dragStart = useRef<{
     pointerId: number;
     clientX: number;
@@ -80,6 +83,7 @@ export default function Modal({
       setIsDesktop(desktop.matches);
       if (!desktop.matches) {
         dragStart.current = null;
+        hasDragged.current = false;
         setOffset({ x: 0, y: 0 });
       }
     };
@@ -90,6 +94,7 @@ export default function Modal({
 
   useEffect(() => {
     dragStart.current = null;
+    hasDragged.current = false;
     setOffset({ x: 0, y: 0 });
   }, [open, variant]);
 
@@ -131,6 +136,7 @@ export default function Modal({
   const handleHeaderPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     const start = dragStart.current;
     if (!start || start.pointerId !== event.pointerId) return;
+    hasDragged.current = true;
     setOffset({
       x: boundedOffset(start.x + (event.clientX - start.clientX) / start.scaleX, start.left, start.width, start.viewport.left, start.viewport.width, start.scaleX),
       y: boundedOffset(start.y + (event.clientY - start.clientY) / start.scaleY, start.top, start.height, start.viewport.top, start.viewport.height, start.scaleY),
@@ -140,13 +146,34 @@ export default function Modal({
   useEffect(() => {
     if (!open || !isDraggable || !ref.current) return;
     const dialog = ref.current;
+    let previousHeight = dialog.offsetHeight;
     const keepOnScreen = () => {
       dragStart.current = null;
-      // Re-center after layout changes rather than carrying coordinates from a
-      // different viewport (or a differently scaled game board).
+      hasDragged.current = false;
       setOffset({ x: 0, y: 0 });
     };
-    const observer = new ResizeObserver(keepOnScreen);
+    const observer = new ResizeObserver(() => {
+      const height = dialog.offsetHeight;
+      const heightChange = height - previousHeight;
+      previousHeight = height;
+      if (!hasDragged.current || !heightChange) return;
+
+      const rect = dialog.getBoundingClientRect();
+      const backdrop = dialog.parentElement!.getBoundingClientRect();
+      const viewport = window.visualViewport;
+      const left = Math.max(backdrop.left, viewport?.offsetLeft ?? 0);
+      const top = Math.max(backdrop.top, viewport?.offsetTop ?? 0);
+      const width = Math.max(0, Math.min(backdrop.right, (viewport?.offsetLeft ?? 0) + (viewport?.width ?? innerWidth)) - left);
+      const viewportHeight = Math.max(0, Math.min(backdrop.bottom, (viewport?.offsetTop ?? 0) + (viewport?.height ?? innerHeight)) - top);
+      const scaleX = rect.width / dialog.offsetWidth || 1;
+      const scaleY = rect.height / height || 1;
+      setOffset((previous) => ({
+        x: boundedOffset(previous.x, rect.left - previous.x * scaleX, rect.width, left, width, scaleX),
+        // A centered dialog's top moves by half its height change. Compensate
+        // so filtering keeps its dragged position, then clamp it to the board.
+        y: boundedOffset(previous.y + heightChange / 2, rect.top - previous.y * scaleY, rect.height, top, viewportHeight, scaleY),
+      }));
+    });
     observer.observe(dialog);
     window.addEventListener("resize", keepOnScreen);
     window.visualViewport?.addEventListener("resize", keepOnScreen);
@@ -180,7 +207,9 @@ export default function Modal({
     document.body.style.overflow = "hidden";
 
     const focusModal = requestAnimationFrame(() => {
-      if (modalStack.at(-1) === identity) (visibleFocusTargets(ref.current)[0] ?? ref.current)?.focus();
+      if (modalStack.at(-1) !== identity) return;
+      const targets = visibleFocusTargets(ref.current);
+      if (!targets.includes(document.activeElement as HTMLElement)) (targets[0] ?? ref.current)?.focus();
     });
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -248,8 +277,8 @@ export default function Modal({
             aria-label={ariaLabel}
             tabIndex={-1}
             style={isDraggable ? { transform: `translate(${offset.x}px, ${offset.y}px)` } : undefined}
-            className={["flex max-h-[calc(100dvh-env(safe-area-inset-top))] w-full flex-col overflow-hidden rounded-t-sm border border-sky-200/35 border-b-0 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] shadow-[0_-18px_45px_rgba(0,0,0,.5),0_0_28px_rgba(79,169,255,.16)] sm:max-h-[85dvh] sm:max-w-2xl sm:rounded-sm sm:border-b sm:shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_28px_rgba(79,169,255,.16)]",
-              dragThroughBackdrop ? "pointer-events-none" : "pointer-events-auto",
+            className={["flex max-h-full w-full flex-col overflow-hidden rounded-t-sm border border-sky-200/35 border-b-0 bg-[linear-gradient(145deg,rgba(15,31,48,.99),rgba(3,10,18,.99))] shadow-[0_-18px_45px_rgba(0,0,0,.5),0_0_28px_rgba(79,169,255,.16)] sm:max-h-[85%] sm:max-w-2xl sm:rounded-sm sm:border-b sm:shadow-[0_18px_45px_rgba(0,0,0,.55),0_0_28px_rgba(79,169,255,.16)]",
+              "pointer-events-auto",
               transparentOnBlur ? "bg-white/25" : ""
             ].join(" ")}
           >
@@ -266,6 +295,7 @@ export default function Modal({
                 {showCloseButton ? <><div className="min-w-0 flex-1 break-words">{modalHeader}</div><button type="button" aria-label={`Close ${ariaLabel}`} onClick={requestClose} className="grid size-11 shrink-0 place-items-center text-slate-200 hover:bg-blue-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"><X size={20} /></button></> : modalHeader}
               </div>
 
+              {modalToolbar && <div className={["shrink-0 bg-[#081521]", compactChrome ? "px-1 pt-1" : "px-4 pt-4 sm:px-6 sm:pt-6"].join(" ")}>{modalToolbar}</div>}
               <div className={["flex-1 min-h-0 overflow-x-hidden overflow-y-auto bg-[linear-gradient(145deg,rgba(8,21,33,.96),rgba(3,10,18,.98))]", transparentOnBlur ? "opacity-5 hover:opacity-100" : ""].join(" ")}>
                 <div className={compactChrome ? "p-1 pb-[max(.25rem,env(safe-area-inset-bottom))]" : "p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6"}>
                   {modalContent}

@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, type UIEvent } from "react";
 
 const mobileNavigationQuery = "(max-width: 1023px), (max-width: 1100px) and (max-height: 600px)";
 
-export default function ArenaShell({ children, scrollOnShortLandscape = false, scrollOnMobile = false }: { children: React.ReactNode; scrollOnShortLandscape?: boolean; scrollOnMobile?: boolean }) {
+export default function ArenaShell({ children, scrollOnShortLandscape = false, scrollOnShortViewport = false, scrollOnMobile = false }: { children: React.ReactNode; scrollOnShortLandscape?: boolean; scrollOnShortViewport?: boolean; scrollOnMobile?: boolean }) {
   const pathname = usePathname();
   const [navigationHidden, setNavigationHidden] = useState(false);
   const scrollPositions = useRef(new WeakMap<Element, { top: number; travel: number; height: number; contentHeight: number }>());
@@ -68,7 +68,7 @@ export default function ArenaShell({ children, scrollOnShortLandscape = false, s
         <div className="arena-navigation-slot relative z-20 shrink-0" onFocusCapture={() => setNavigationHidden(false)}>
           <ArenaNavigation />
         </div>
-        <main onScrollCapture={handleScroll} className={`min-h-0 flex-1 overflow-hidden ${scrollOnShortLandscape ? "short-landscape-scroll" : ""} ${scrollOnMobile ? "mobile-page-scroll" : ""}`}>{children}</main>
+        <main onScrollCapture={handleScroll} className={`min-h-0 flex-1 overflow-hidden ${scrollOnShortLandscape ? "short-landscape-scroll" : ""} ${scrollOnShortViewport ? "short-viewport-scroll" : ""} ${scrollOnMobile ? "mobile-page-scroll" : ""}`}>{children}</main>
       </div>
     </div>
   );

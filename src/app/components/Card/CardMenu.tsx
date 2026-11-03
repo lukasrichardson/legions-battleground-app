@@ -38,6 +38,8 @@ const CardMenu: FC<CardMenuProps> = ({items, onMenuItemClick, inline = false, pr
         }}
         style={{ width: inline ? "100%" : "fit-content" }}
         mode={inline ? "inline" : "vertical"}
+        // Expanding inline submenus must not move touch targets during a tap.
+        motion={inline ? {} : undefined}
         theme="dark"
         inlineIndent={12}
         builtinPlacements={submenuPlacements}
