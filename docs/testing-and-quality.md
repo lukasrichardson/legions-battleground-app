@@ -10,6 +10,8 @@ npm run check
 
 Use the patched Node 24 release in `.nvmrc`. CI also runs `npm run audit:dependencies` against the complete dependency graph. ESLint uses `eslint.config.mjs`; generated build/test output is excluded there.
 
+The dependency audit has one temporary, visible exception for GHSA-g3hv-75wg-m249 on the exact dev-only `minimatch` 3.1.5 installed under `eslint-config-next`. The [maintainer's advisory](https://github.com/isaacs/minimatch/security/advisories/GHSA-g3hv-75wg-m249) describes an optimization in 10.2.6; the pinned 3.1.5 source lacks that optimizer. GitHub's broader affected range remains subject to an [open clarification request](https://github.com/github/advisory-database/issues/10811), so this is a risk assessment, not an authoritative declaration that version 3 is unaffected. The check prints a warning whenever it applies the exception and rejects any other advisory, affected package path or version, production dependency, modified reviewed `minimatch.js`, or audit error. It explicitly includes development, optional and peer dependencies even when npm is configured to omit them. Run `npm audit --audit-level=low --include=dev --include=optional --include=peer` to see the unfiltered report. Review this exception by December 3, 2026, and remove it when upstream resolves the applicability or the ESLint plugins adopt a compatible patched version.
+
 Individual checks and additional validation:
 
 ```bash
