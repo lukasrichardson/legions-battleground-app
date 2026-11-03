@@ -67,3 +67,7 @@ For gameplay changes, verify normal and sandbox modes, reconnect behavior, and s
 For card imports, use `npm run importToolboxCardsDev` or `npm run importToolboxCardsProd`; both preload `.env` with `dotenv/config` and use `tsconfig.server.json`.
 
 For Toolbox deck imports, confirm that the preview GET goes directly from the browser to `api.legionstoolbox.com`, while the subsequent authenticated save goes only to `POST /api/importDecks` on this app. For R2 migration testing, run `npm run syncCardImages` first and inspect its report before using `--apply`.
+
+## E2E performance benchmarking
+
+See [E2E performance plan](e2e-performance-plan.md) for the optional CI benchmark, timing interpretation and rollout criteria.

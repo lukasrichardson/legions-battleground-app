@@ -1,5 +1,6 @@
 import { MongoClient, ObjectId } from "mongodb";
 import { resolveE2eEnvironment } from "./environment.mjs";
+import { recordBenchmarkTiming } from "./timing";
 
 const users = ["e2e-player-one", "e2e-player-two"] as const;
 
@@ -59,6 +60,7 @@ const visualCard = (id: ObjectId, numericId: number, title: string, code: string
 });
 
 export default async function globalSetup() {
+  recordBenchmarkTiming("global_setup_start");
   const environment = resolveE2eEnvironment(process.env);
   const imageBaseUrl = environment.E2E_CARD_IMAGE_BASE_URL;
   const client = new MongoClient(environment.MONGO_URL);
@@ -133,6 +135,7 @@ export default async function globalSetup() {
   } finally {
     await client.close();
   }
+  recordBenchmarkTiming("database_seeded");
 
   // The health check only proves that the server is listening. Compile the
   // routes needed to enter a game before individual tests start their clocks.
@@ -142,4 +145,5 @@ export default async function globalSetup() {
     });
     if (!response.ok) throw new Error(`Failed to warm ${path}: HTTP ${response.status}`);
   }
+  recordBenchmarkTiming("routes_warmed");
 }
